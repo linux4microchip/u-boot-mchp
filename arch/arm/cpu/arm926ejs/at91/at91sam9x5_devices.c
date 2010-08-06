@@ -23,52 +23,33 @@
  */
 
 #include <common.h>
-#include <asm/sizes.h>
-#include <asm/arch/at91sam9x5.h>
-#include <asm/arch/at91sam9x5_matrix.h>
-#include <asm/arch/at91sam9_smc.h>
 #include <asm/arch/at91_common.h>
 #include <asm/arch/at91_pmc.h>
-#include <asm/arch/at91_rstc.h>
-#include <asm/arch/clk.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/io.h>
-#include <asm/arch/hardware.h>
-//#include <lcd.h>
-//#include <atmel_lcdc.h>
-#if defined(CONFIG_RESET_PHY_R) && defined(CONFIG_MACB)
-#include <net.h>
+
+void at91_serial3_hw_init(void)
+{
+	
+	at91_pmc_t	*pmc	= (at91_pmc_t *) AT91_PMC_BASE;
+
+}
+
+void at91_led_hw_init(void)
+{
+	
+	at91_pmc_t	*pmc	= (at91_pmc_t *) AT91_PMC_BASE;
+
+}
+
+void at91_serial_hw_init(void)
+{
+	at91_led_hw_init();
+
+#ifdef CONFIG_USART3	/* DBGU */
+	at91_serial3_hw_init();
 #endif
-#include <netdev.h>
 
-DECLARE_GLOBAL_DATA_PTR;
-
-/* ------------------------------------------------------------------------- */
-/*
- * Miscelaneous platform dependent initialisations
- */
-
-int board_init(void)
-{
-	/* Enable Ctrlc */
-	console_init_f();
-
-	/* arch number of AT91SAM9X5EK-Board */
-	//gd->bd->bi_arch_number = MACH_TYPE_AT91SAM9X5EK;
-
-	/* adress of boot parameters */
-	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
-
-	at91_serial_hw_init();
-
-	return 0;
+	printf ("%s\n", "Turn on the LEDs.");
 }
-
-int dram_init(void)
-{
-	gd->bd->bi_dram[0].start = PHYS_SDRAM;
-	gd->bd->bi_dram[0].size = PHYS_SDRAM_SIZE;
-	return 0;
-}
-
 

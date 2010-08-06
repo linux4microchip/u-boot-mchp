@@ -2867,6 +2867,14 @@ at91sam9g45ekes_config	:	unconfig
 	fi;
 	@$(MKCONFIG) -a at91sam9m10g45ek arm arm926ejs at91sam9m10g45ek atmel at91
 
+
+at91sam9x5ek_config	:	unconfig
+	@mkdir -p $(obj)include
+	echo "#define CONFIG_AT91SAM9X5EK 1"	>>$(obj)include/config.h ; \
+	$(XECHO) "... 9X5 Variant" ; \
+
+	@$(MKCONFIG) -a at91sam9x5ek arm arm926ejs at91sam9x5ek atmel at91
+	
 otc570_config	:	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm926ejs otc570 esd at91
 
