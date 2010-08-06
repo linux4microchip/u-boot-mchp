@@ -28,17 +28,99 @@
 #include <asm/arch/gpio.h>
 #include <asm/arch/io.h>
 
+#include <asm/arch/memory-map.h>
+#define CONFIG_USART3		1		/* USART 3 is DBGU */
+#include <../drivers/serial/atmel_usart.h>
+
+#define USART_BASE	USART3_BASE
+
+unsigned int SetBaudrate (
+	const unsigned int master_clock, 	// Peripheral Clock
+	const unsigned int baud_rate)  		// UART Baudrate
+{
+	unsigned int baud_value = ((master_clock*10)/(baud_rate * 16));
+	if ((baud_value % 10) >= 5)
+		baud_value = (baud_value / 10) + 1;
+	else
+		baud_value /= 10;
+	return baud_value;
+}
+
 void at91_serial3_hw_init(void)
 {
 	
 	at91_pmc_t	*pmc	= (at91_pmc_t *) AT91_PMC_BASE;
+	writel(1 << AT91SAM9X5_ID_PIOAB, &pmc->pcer);
+	writel(1 << AT91SAM9X5_ID_SYS, &pmc->pcer);
+	
+	unsigned int baud;
 
+	// Reset receiver.
+	usart3_writel(CR, USART3_BIT(RSTRX));
+	usart3_writel(CR, USART3_BIT(RXEN)); 
+    
+    	// Disable interrupts
+	usart3_writel(IDR, 0xffffffff);
+    	usart3_writel(CR, USART3_BIT(RSTRX) | USART3_BIT(RSTTX) | USART3_BIT(RXDIS) | USART3_BIT(TXDIS));
+    
+    	// Set Baudrate    
+    	baud = SetBaudrate(133000000, 115200);
+	usart3_writel(BRGR, baud);
+
+    	// MUX PIO periph A
+    	at91_set_a_periph(AT91_PIO_PORTA, 9, 0);	/* DRXD */
+	at91_set_a_periph(AT91_PIO_PORTA, 10, 1);	/* DTXD */
+	
+	// Enable TX + RX
+	usart3_writel(CR, USART3_BIT(TXEN));
+	usart3_writel(CR, USART3_BIT(RXEN));
+
+}
+
+void blink(int times)
+{
+	at91_port_t  *pioc	= (at91_port_t *) (0xfffff800);
+	volatile unsigned int i;
+	while (times--)
+	{
+		// Clear the LED's. On the board we must apply a "1" to turn off LEDs
+		for (i=0 ; i<1000000;i++)
+		{
+			at91_set_pio_value(AT91_PIO_PORTC, 19, 1);
+			at91_set_pio_value(AT91_PIO_PORTC, 20, 1);
+			at91_set_pio_value(AT91_PIO_PORTC, 21, 1);
+			at91_set_pio_value(AT91_PIO_PORTC, 25, 1);
+		}		
+
+		// Clear the LED's. On the board we must apply a "0" to turn on LEDs		
+		for (i=0 ; i<1000000;i++)
+		{
+			at91_set_pio_value(AT91_PIO_PORTC, 19, 0);
+			at91_set_pio_value(AT91_PIO_PORTC, 20, 0);
+			at91_set_pio_value(AT91_PIO_PORTC, 21, 0);
+			at91_set_pio_value(AT91_PIO_PORTC, 25, 0);
+		}
+	}
 }
 
 void at91_led_hw_init(void)
 {
-	
 	at91_pmc_t	*pmc	= (at91_pmc_t *) AT91_PMC_BASE;
+	writel(1 << AT91SAM9X5_ID_PIOCD, &pmc->pcer);
+	
+	/* PC19: YELLOW LED.
+	   PC20: GREEN  LED.
+	   PC21: BLUE   LED.
+	   PC25: RED power LED. */
+	at91_set_c_periph(AT91_PIO_PORTC, 19, 1);
+	at91_set_c_periph(AT91_PIO_PORTC, 20, 1);
+	at91_set_c_periph(AT91_PIO_PORTC, 21, 1);
+	at91_set_c_periph(AT91_PIO_PORTC, 25, 1);
+	
+	at91_set_pio_output(AT91_PIO_PORTC, 19, 0);
+	at91_set_pio_output(AT91_PIO_PORTC, 20, 0);
+	at91_set_pio_output(AT91_PIO_PORTC, 21, 0);
+	at91_set_pio_output(AT91_PIO_PORTC, 25, 0);
 
 }
 
@@ -50,6 +132,6 @@ void at91_serial_hw_init(void)
 	at91_serial3_hw_init();
 #endif
 
-	printf ("%s\n", "Turn on the LEDs.");
+	printf ("%s\n", "Turn on all the LEDs.");
 }
 
