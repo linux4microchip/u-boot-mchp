@@ -33,6 +33,10 @@
 #include <../drivers/serial/atmel_usart.h>
 
 #define USART_BASE	USART3_BASE
+#define AT91C_PIO_PA9         (1 << 9) /* Pin Controlled by PA9 */
+#define AT91C_PA9_DRXD        (AT91C_PIO_PA9)
+#define AT91C_PIO_PA10        (1 << 10) /* Pin Controlled by PA10 */
+#define AT91C_PA10_DTXD       (AT91C_PIO_PA10)
 
 unsigned int SetBaudrate (
 	const unsigned int master_clock, 	// Peripheral Clock
@@ -70,6 +74,9 @@ void at91_serial3_hw_init(void)
     	// MUX PIO periph A
     	at91_set_a_periph(AT91_PIO_PORTA, 9, 0);	/* DRXD */
 	at91_set_a_periph(AT91_PIO_PORTA, 10, 1);	/* DTXD */
+
+	at91_port_t  *pioa	= (at91_port_t *) (0xFFFFF400);
+	pioa->pdr = AT91C_PA9_DRXD|AT91C_PA10_DTXD;
 	
 	// Enable TX + RX
 	usart3_writel(CR, USART3_BIT(TXEN));
