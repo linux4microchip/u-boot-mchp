@@ -85,6 +85,8 @@ typedef struct at91_port {
 #elif defined(CONFIG_AT91RM9200) || defined(CONFIG_AT91CAP9) || \
 	defined(CONFIG_AT91SAM9RL)
 #define AT91_PIO_PORTS	4
+#elif defined(CONFIG_AT91SAM9X5)
+#define AT91_PIO_PORTS	4
 #else
 #error "Unsupported cpu. Please update at91_pio.h"
 #endif
