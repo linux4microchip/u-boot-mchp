@@ -31,6 +31,10 @@
 #include <asm/arch/io.h>
 #include <asm/arch/at91_pio.h>
 
+#if defined(CONFIG_AT91SAM9X5)
+#define CPU_HAS_PIO3	1
+#endif
+
 int at91_set_pio_pullup(unsigned port, unsigned pin, int use_pullup)
 {
 	at91_pio_t	*pio 	= (at91_pio_t *) AT91_PIO_BASE;
@@ -76,7 +80,12 @@ int at91_set_a_periph(unsigned port, unsigned pin, int use_pullup)
 		mask = 1 << pin;
 		writel(mask, &pio->port[port].idr);
 		at91_set_pio_pullup(port, pin, use_pullup);
+#if defined(CPU_HAS_PIO3)
+		writel(readl(&pio->port[port].abcdsr1) & ~mask, &pio->port[port].abcdsr1);
+		writel(readl(&pio->port[port].abcdsr2) & ~mask, &pio->port[port].abcdsr2);
+#else
 		writel(mask, &pio->port[port].asr);
+#endif
 		writel(mask, &pio->port[port].pdr);
 	}
 	return 0;
@@ -94,11 +103,56 @@ int at91_set_b_periph(unsigned port, unsigned pin, int use_pullup)
 		mask = 1 << pin;
 		writel(mask, &pio->port[port].idr);
 		at91_set_pio_pullup(port, pin, use_pullup);
+#if defined(CPU_HAS_PIO3)
+		writel(readl(&pio->port[port].abcdsr1) | mask, &pio->port[port].abcdsr1);
+		writel(readl(&pio->port[port].abcdsr2) & ~mask, &pio->port[port].abcdsr2);
+#else
 		writel(mask, &pio->port[port].bsr);
+#endif
 		writel(mask, &pio->port[port].pdr);
 	}
 	return 0;
 }
+
+#if defined(CPU_HAS_PIO3)
+/*
+ * mux the pin to the "C" internal peripheral role.
+ */
+int at91_set_c_periph(unsigned port, unsigned pin, int use_pullup)
+{
+	at91_pio_t	*pio 	= (at91_pio_t *) AT91_PIO_BASE;
+	u32		mask;
+
+	if ((port < AT91_PIO_PORTS) && (pin < 32)) {
+		mask = 1 << pin;
+		writel(mask, &pio->port[port].idr);
+		at91_set_pio_pullup(port, pin, use_pullup);
+		writel(readl(&pio->port[port].abcdsr1) & ~mask, &pio->port[port].abcdsr1);
+		writel(readl(&pio->port[port].abcdsr2) | mask, &pio->port[port].abcdsr2);
+		writel(mask, &pio->port[port].pdr);
+	}
+	return 0;
+}
+
+/*
+ * mux the pin to the "D" internal peripheral role.
+ */
+int at91_set_d_periph(unsigned port, unsigned pin, int use_pullup)
+{
+	at91_pio_t	*pio 	= (at91_pio_t *) AT91_PIO_BASE;
+	u32		mask;
+
+	if ((port < AT91_PIO_PORTS) && (pin < 32)) {
+		mask = 1 << pin;
+		writel(mask, &pio->port[port].idr);
+		at91_set_pio_pullup(port, pin, use_pullup);
+		writel(readl(&pio->port[port].abcdsr1) | mask, &pio->port[port].abcdsr1);
+		writel(readl(&pio->port[port].abcdsr2) | mask, &pio->port[port].abcdsr2);
+		writel(mask, &pio->port[port].pdr);
+	}
+	return 0;
+}
+#endif
 
 /*
  * mux the pin to the gpio controller (instead of "A" or "B" peripheral), and
@@ -152,13 +206,75 @@ int at91_set_pio_deglitch(unsigned port, unsigned pin, int is_on)
 
 	if ((port < AT91_PIO_PORTS) && (pin < 32)) {
 		mask = 1 << pin;
-		if (is_on)
+		if (is_on)	{
+#if defined(CPU_HAS_PIO3)
+			writel(mask, &pio->port[port].ifscdr);
+#endif
 			writel(mask, &pio->port[port].ifer);
+		}
 		else
 			writel(mask, &pio->port[port].ifdr);
 	}
 	return 0;
 }
+
+#if defined(CPU_HAS_PIO3)
+/*
+ * enable/disable the debounce filter.
+ */
+int at91_set_pio_debounce(unsigned port, unsigned pin, int is_on, int div)
+{
+	at91_pio_t	*pio 	= (at91_pio_t *) AT91_PIO_BASE;
+	u32		mask;
+
+	if ((port < AT91_PIO_PORTS) && (pin < 32)) {
+		mask = 1 << pin;
+		if (is_on)	{
+			writel(mask, &pio->port[port].ifscer);
+			writel(div & PIO_SCDR_DIV, &pio->port[port].scdr);
+			writel(mask, &pio->port[port].ifer);
+		}
+		else
+			writel(mask, &pio->port[port].ifdr);
+	}
+	return 0;
+}
+
+/*
+ * enable/disable the pull-down.
+ * If pull-up already enabled while calling the function, we disable it.
+ */
+int at91_set_pio_pulldown(unsigned port, unsigned pin, int is_on)
+{
+	at91_pio_t	*pio 	= (at91_pio_t *) AT91_PIO_BASE;
+	u32		mask;
+
+	if ((port < AT91_PIO_PORTS) && (pin < 32)) {
+		mask = 1 << pin;
+		writel(mask, &pio->port[port].pudr);
+		if (is_on)
+			writel(mask, &pio->port[port].ppder);
+		else
+			writel(mask, &pio->port[port].ppddr);
+	}
+	return 0;
+}
+
+/*
+ * disable Schmitt trigger
+ */
+int at91_set_pio_disable_schmitt_trig(unsigned port, unsigned pin)
+{
+	at91_pio_t	*pio 	= (at91_pio_t *) AT91_PIO_BASE;
+	u32		mask;
+
+	if ((port < AT91_PIO_PORTS) && (pin < 32)) {
+		mask = 1 << pin;
+		writel(readl(&pio->port[port].schmitt) | mask, &pio->port[port].schmitt);
+	}
+	return 0;
+}
+#endif	
 
 /*
  * enable/disable the multi-driver. This is only valid for output and
