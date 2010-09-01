@@ -225,11 +225,15 @@ static int macb_send(struct eth_device *netdev, volatile void *packet,
 	 * re-use the transmit buffer as soon as we return...
 	 */
 	for (i = 0; i <= CONFIG_SYS_MACB_TX_TIMEOUT; i++) {
+		volatile unsigned long j;
+
 		barrier();
 		ctrl = macb->tx_ring[tx_head].ctrl;
 		if (ctrl & TXBUF_USED)
 			break;
-		udelay(1);
+		//udelay(100);
+		for (j = 0; j < 400; j++)
+			;
 	}
 
 	dma_unmap_single(packet, length, paddr);

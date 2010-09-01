@@ -93,10 +93,10 @@
 #undef CONFIG_CMD_AUTOSCRIPT
 #undef CONFIG_CMD_LOADS
 
-#undef CONFIG_CMD_NET
+#define CONFIG_CMD_NET			1
 
-//#define CONFIG_CMD_PING		1
-//#define CONFIG_CMD_DHCP		1
+#define CONFIG_CMD_PING		1
+#define CONFIG_CMD_DHCP		1
 #define CONFIG_CMD_NAND		1
 #undef CONFIG_CMD_USB
 
@@ -144,11 +144,11 @@
 #endif
 
 /* Ethernet */
-//#define CONFIG_MACB			1
-//#define CONFIG_RMII			1
-//#define CONFIG_NET_MULTI		1
-//#define CONFIG_NET_RETRY_COUNT		20
-//#define CONFIG_RESET_PHY_R		1
+#define CONFIG_MACB			1
+#define CONFIG_RMII			1
+#define CONFIG_NET_MULTI		1
+#define CONFIG_NET_RETRY_COUNT		20
+#define CONFIG_RESET_PHY_R		1
 
 /* USB */
 //#define CONFIG_USB_ATMEL

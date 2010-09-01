@@ -105,6 +105,36 @@ static void at91sam9x5ek_nand_hw_init(void)
 }
 #endif
 
+#ifdef CONFIG_RESET_PHY_R
+void reset_phy(void)
+{
+#ifdef CONFIG_MACB
+	/*
+	 * Initialize ethernet HW addr prior to starting Linux,
+	 * needed for nfsroot
+	 */
+	eth_init(gd->bd);
+#endif
+}
+#endif
+
+int board_eth_init(bd_t *bis)
+{
+	int rc = 0;
+#ifdef CONFIG_MACB
+	rc = macb_eth_initialize(0, (void *)AT91SAM9X5_BASE_EMAC0, 0x00);
+#endif
+	return rc;
+}
+
+#ifdef CONFIG_MACB
+static void at91sam9x5ek_macb_hw_init()
+{
+	/* Enable clock */
+	at91_sys_write(AT91_PMC_PCER, 1 << AT91SAM9X5_ID_EMAC);
+	at91_macb_hw_init();
+}
+#endif
 
 int board_init(void)
 {
@@ -120,6 +150,10 @@ int board_init(void)
 	at91_serial_hw_init();
 #ifdef CONFIG_CMD_NAND
 	at91sam9x5ek_nand_hw_init();
+#endif
+
+#ifdef CONFIG_MACB
+	at91sam9x5ek_macb_hw_init();
 #endif
 	return 0;
 }
