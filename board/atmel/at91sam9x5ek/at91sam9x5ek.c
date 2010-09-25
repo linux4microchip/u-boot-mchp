@@ -57,8 +57,13 @@ static void at91sam9x5ek_nand_hw_init(void)
 	
 #if CONFIG_SYS_NAND_NFD0_ON_D16	
 	csa |= AT91_MATRIX_NFD0_ON_HIGHER;
+#else
+	csa &= ~AT91_MATRIX_NFD0_ON_HIGHER;
 #endif
-	csa |= AT91_MATRIX_MP_ON;
+	//csa |= AT91_MATRIX_MP_ON;
+
+	csa &= ~(3 << 16);
+
 	at91_sys_write(AT91_MATRIX_EBICSA,
 		       csa | AT91_MATRIX_EBI_CS3A_SMC_NANDFLASH);
 
