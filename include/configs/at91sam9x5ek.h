@@ -133,7 +133,7 @@
 #define CONFIG_SYS_MAX_NAND_DEVICE		1
 #define CONFIG_SYS_NAND_BASE			0x40000000
 #define CONFIG_SYS_NAND_DBW_8			1
-#define CONFIG_SYS_NAND_NFD0_ON_D16		0	/* NAND flash i/o are connnected to D16-D31. */
+#define CONFIG_SYS_NAND_NFD0_ON_D16		0	/* NAND flash i/o are connnected to D0-D7. */
 /* our ALE is AD21 */
 #define CONFIG_SYS_NAND_MASK_ALE		(1 << 21)
 /* our CLE is AD22 */
