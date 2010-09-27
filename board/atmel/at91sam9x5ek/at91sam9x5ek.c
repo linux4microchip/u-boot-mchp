@@ -62,7 +62,7 @@ static void at91sam9x5ek_nand_hw_init(void)
 #endif
 	csa &= ~AT91_MATRIX_MP_ON;
 
-	//csa &= ~(3 << 16);
+	csa &= ~(3 << 16);
 
 	at91_sys_write(AT91_MATRIX_EBICSA,
 		       csa | AT91_MATRIX_EBI_CS3A_SMC_NANDFLASH);
@@ -99,6 +99,7 @@ static void at91sam9x5ek_nand_hw_init(void)
 	at91_set_a_periph(AT91_PIO_PORTD, 2, 1);	/* ALE */
 	at91_set_a_periph(AT91_PIO_PORTD, 3, 1);	/* CLE */
 	
+#if 0
 	at91_set_a_periph(AT91_PIO_PORTD, 6, 1);
 	at91_set_a_periph(AT91_PIO_PORTD, 7, 1);
 	at91_set_a_periph(AT91_PIO_PORTD, 8, 1);
@@ -107,6 +108,7 @@ static void at91sam9x5ek_nand_hw_init(void)
 	at91_set_a_periph(AT91_PIO_PORTD, 11, 1);
 	at91_set_a_periph(AT91_PIO_PORTD, 12, 1);
 	at91_set_a_periph(AT91_PIO_PORTD, 13, 1);
+#endif
 }
 #endif
 
