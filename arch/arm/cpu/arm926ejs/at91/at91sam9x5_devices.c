@@ -84,62 +84,11 @@ void at91_serial3_hw_init(void)
 
 }
 
-void blink(int times)
-{
-	at91_port_t  *pioc	= (at91_port_t *) (0xfffff800);
-	volatile unsigned int i;
-	while (times--)
-	{
-		// Clear the LED's. On the board we must apply a "1" to turn off LEDs
-		for (i=0 ; i<1000000;i++)
-		{
-			at91_set_pio_value(AT91_PIO_PORTC, 19, 1);
-			at91_set_pio_value(AT91_PIO_PORTC, 20, 1);
-			at91_set_pio_value(AT91_PIO_PORTC, 21, 1);
-			at91_set_pio_value(AT91_PIO_PORTC, 25, 1);
-		}		
-
-		// Clear the LED's. On the board we must apply a "0" to turn on LEDs		
-		for (i=0 ; i<1000000;i++)
-		{
-			at91_set_pio_value(AT91_PIO_PORTC, 19, 0);
-			at91_set_pio_value(AT91_PIO_PORTC, 20, 0);
-			at91_set_pio_value(AT91_PIO_PORTC, 21, 0);
-			at91_set_pio_value(AT91_PIO_PORTC, 25, 0);
-		}
-	}
-}
-
-void at91_led_hw_init(void)
-{
-	at91_pmc_t	*pmc	= (at91_pmc_t *) AT91_PMC_BASE;
-	writel(1 << AT91SAM9X5_ID_PIOCD, &pmc->pcer);
-	
-	/* PC19: YELLOW LED.
-	   PC20: GREEN  LED.
-	   PC21: BLUE   LED.
-	   PC25: RED power LED. */
-	at91_set_c_periph(AT91_PIO_PORTC, 19, 1);
-	at91_set_c_periph(AT91_PIO_PORTC, 20, 1);
-	at91_set_c_periph(AT91_PIO_PORTC, 21, 1);
-	at91_set_c_periph(AT91_PIO_PORTC, 25, 1);
-	
-	at91_set_pio_output(AT91_PIO_PORTC, 19, 0);
-	at91_set_pio_output(AT91_PIO_PORTC, 20, 0);
-	at91_set_pio_output(AT91_PIO_PORTC, 21, 0);
-	at91_set_pio_output(AT91_PIO_PORTC, 25, 0);
-
-}
-
 void at91_serial_hw_init(void)
 {
-	at91_led_hw_init();
-
 #ifdef CONFIG_USART3	/* DBGU */
 	at91_serial3_hw_init();
 #endif
-
-	printf ("%s\n", "Turn on all the LEDs.");
 }
 
 #ifdef CONFIG_MACB
