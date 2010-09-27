@@ -114,17 +114,9 @@
 #define CONFIG_SYS_MAX_DATAFLASH_BANKS	1
 #endif
 
-#define CONFIG_SYS_NO_FLASH		1
-
-/* NOR flash, if populated */
-#ifndef CONFIG_CMD_NAND
-#define CONFIG_SYS_FLASH_CFI		1
-#define CONFIG_FLASH_CFI_DRIVER		1
-#define PHYS_FLASH_1			0x10000000
-#define CONFIG_SYS_FLASH_BASE			PHYS_FLASH_1
-#define CONFIG_SYS_MAX_FLASH_SECT		256
-#define CONFIG_SYS_MAX_FLASH_BANKS		1
-#endif
+/* no NOR flash */
+#undef CONFIG_SYS_USE_NORFLASH
+#define CONFIG_SYS_NO_FLASH	1
 
 /* NAND flash */
 #ifdef CONFIG_CMD_NAND
