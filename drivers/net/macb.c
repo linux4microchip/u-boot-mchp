@@ -231,9 +231,7 @@ static int macb_send(struct eth_device *netdev, volatile void *packet,
 		ctrl = macb->tx_ring[tx_head].ctrl;
 		if (ctrl & TXBUF_USED)
 			break;
-		//udelay(100);
-		for (j = 0; j < 400; j++)
-			;
+		udelay(100);
 	}
 
 	dma_unmap_single(packet, length, paddr);
