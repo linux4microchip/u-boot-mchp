@@ -69,8 +69,8 @@
 #define AT91_MATRIX_PRBS6	(AT91_MATRIX + 0xB4)	/* Priority Register B for Slave 6 */
 #define AT91_MATRIX_PRAS7	(AT91_MATRIX + 0xB8)	/* Priority Register A for Slave 7 */
 #define AT91_MATRIX_PRBS7	(AT91_MATRIX + 0xBC)	/* Priority Register B for Slave 7 */
-#define AT91_MATRIX_PRAS7	(AT91_MATRIX + 0xC0)	/* Priority Register A for Slave 8 */
-#define AT91_MATRIX_PRBS7	(AT91_MATRIX + 0xC4)	/* Priority Register B for Slave 8 */
+#define AT91_MATRIX_PRAS8	(AT91_MATRIX + 0xC0)	/* Priority Register A for Slave 8 */
+#define AT91_MATRIX_PRBS8	(AT91_MATRIX + 0xC4)	/* Priority Register B for Slave 8 */
 #define		AT91_MATRIX_M0PR		(3 << 0)	/* Master 0 Priority */
 #define		AT91_MATRIX_M1PR		(3 << 4)	/* Master 1 Priority */
 #define		AT91_MATRIX_M2PR		(3 << 8)	/* Master 2 Priority */
@@ -108,18 +108,15 @@
 #define		AT91_MATRIX_EBI_DBPUC		(1 << 8)	/* Data Bus Pull-up Configuration */
 #define			AT91_MATRIX_EBI_DBPU_ON			(0 << 8)
 #define			AT91_MATRIX_EBI_DBPU_OFF		(1 << 8)
-#define		AT91_MATRIX_EBI_VDDIOMSEL	(1 << 16)	/* Memory voltage selection */
-#define			AT91_MATRIX_EBI_VDDIOMSEL_1_8V		(0 << 16)
-#define			AT91_MATRIX_EBI_VDDIOMSEL_3_3V		(1 << 16)
+#define		AT91_MATRIX_EBI_DBPDC		(1 << 9)	/* Data Bus Pull-up Configuration */
+#define			AT91_MATRIX_EBI_DBPD_ON			(0 << 9)
+#define			AT91_MATRIX_EBI_DBPD_OFF		(1 << 9)
 #define		AT91_MATRIX_EBI_EBI_IOSR	(1 << 17)	/* EBI I/O slew rate selection */
 #define			AT91_MATRIX_EBI_EBI_IOSR_REDUCED	(0 << 17)
 #define			AT91_MATRIX_EBI_EBI_IOSR_NORMAL		(1 << 17)
-#define		AT91_MATRIX_EBI_DDR_IOSR	(1 << 18)	/* DDR2 dedicated port I/O slew rate selection */
-#define			AT91_MATRIX_EBI_DDR_IOSR_REDUCED	(0 << 18)
-#define			AT91_MATRIX_EBI_DDR_IOSR_NORMAL		(1 << 18)
-#define		AT91_MATRIX_NFD0_ON_D16		(1 << 24)	/* NAND Flash Data Bus Selection */
-#define			AT91_MATRIX_NFD0_ON_LOWER		(0 << 24)
-#define			AT91_MATRIX_NFD0_ON_HIGHER		(1 << 24)
+#define		AT91_MATRIX_NFD0_SELECT		(1 << 24)	/* NAND Flash Data Bus Selection */
+#define			AT91_MATRIX_NFD0_ON_D0			(0 << 24)
+#define			AT91_MATRIX_NFD0_ON_D16			(1 << 24)
 #define		AT91_MATRIX_DDR_MP_EN		(1 << 25)	/* DDR Multi-port Enable */
 #define			AT91_MATRIX_MP_OFF			(0 << 25)
 #define			AT91_MATRIX_MP_ON			(1 << 25)
