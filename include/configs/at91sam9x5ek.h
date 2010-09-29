@@ -93,8 +93,6 @@
 #undef CONFIG_CMD_AUTOSCRIPT
 #undef CONFIG_CMD_LOADS
 
-#define CONFIG_CMD_NET			1
-
 #define CONFIG_CMD_PING		1
 #define CONFIG_CMD_DHCP		1
 #define CONFIG_CMD_NAND		1
