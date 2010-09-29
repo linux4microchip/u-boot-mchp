@@ -99,7 +99,7 @@ static void at91sam9x5ek_nand_hw_init(void)
 	at91_set_a_periph(AT91_PIO_PORTD, 2, 1);	/* ALE */
 	at91_set_a_periph(AT91_PIO_PORTD, 3, 1);	/* CLE */
 	
-#if 0
+#if CONFIG_SYS_NAND_NFD0_ON_D16
 	at91_set_a_periph(AT91_PIO_PORTD, 6, 1);
 	at91_set_a_periph(AT91_PIO_PORTD, 7, 1);
 	at91_set_a_periph(AT91_PIO_PORTD, 8, 1);
@@ -135,7 +135,7 @@ int board_eth_init(bd_t *bis)
 }
 
 #ifdef CONFIG_MACB
-static void at91sam9x5ek_macb_hw_init()
+static void at91sam9x5ek_macb_hw_init(void)
 {
 	/* Enable clock */
 	at91_sys_write(AT91_PMC_PCER, 1 << AT91SAM9X5_ID_EMAC);
