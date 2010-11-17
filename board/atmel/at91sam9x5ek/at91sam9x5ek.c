@@ -43,6 +43,7 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+extern unsigned int has_emac1();
 /* ------------------------------------------------------------------------- */
 /*
  * Miscelaneous platform dependent initialisations
@@ -133,6 +134,8 @@ int board_eth_init(bd_t *bis)
 	int rc = 0;
 #ifdef CONFIG_MACB
 	rc = macb_eth_initialize(0, (void *)AT91SAM9X5_BASE_EMAC0, 0x00);
+	if (has_emac1())
+		rc = macb_eth_initialize(1, (void *)AT91SAM9X5_BASE_EMAC1, 0x00);
 #endif
 	return rc;
 }
@@ -141,7 +144,9 @@ int board_eth_init(bd_t *bis)
 static void at91sam9x5ek_macb_hw_init(void)
 {
 	/* Enable clock */
-	at91_sys_write(AT91_PMC_PCER, 1 << AT91SAM9X5_ID_EMAC);
+	at91_sys_write(AT91_PMC_PCER, 1 << AT91SAM9X5_ID_EMAC0);
+	if (has_emac1())
+		at91_sys_write(AT91_PMC_PCER, 1 << AT91SAM9X5_ID_EMAC1);
 	at91_macb_hw_init();
 }
 #endif

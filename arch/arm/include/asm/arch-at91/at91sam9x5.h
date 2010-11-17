@@ -44,14 +44,16 @@
 #define AT91SAM9X5_ID_DMAC1	21	/* DMA Controller 1 */
 #define AT91SAM9X5_ID_UHPHS	22	/* USB Host High Speed */
 #define AT91SAM9X5_ID_UDPHS	23	/* USB Device High Speed */
-#define AT91SAM9X5_ID_EMAC	24	/* Ethernet MAC */
+#define AT91SAM9X5_ID_EMAC0	24	/* Ethernet MAC0 */
 #define AT91SAM9X5_ID_LCDC	25	/* LCD Controller */
 #define AT91SAM9X5_ID_HSMCI1	26	/* High Speed Multimedia Card Interface 1 */
+#define AT91SAM9X5_ID_EMAC1	27	/* Ethernet MAC1 */
 #define AT91SAM9X5_ID_SSC	28	/* Synchronous Serial Controller */
 #define AT91SAM9X5_ID_IRQ	31	/* Advanced Interrupt Controller */
 
 
-#define AT91_EMAC_BASE		0xf802c000
+#define AT91_EMAC0_BASE		0xf802c000
+#define AT91_EMAC1_BASE		0xf8030000
 #define AT91_SMC_BASE		0xffffea00
 #define AT91_MATRIX_BASE	0xffffde00
 #define AT91_PIO_BASE		0xfffff400
@@ -59,6 +61,14 @@
 #define AT91_RSTC_BASE		0xfffffe00
 #define AT91_PIT_BASE		0xfffffe30
 #define AT91_WDT_BASE		0xfffffe40
+
+/* 9x5 series chip id definitions */
+#define ARCH_ID_AT91SAM9X5	0x819a05a0
+#define ARCH_EXID_AT91SAM9G15	0x00000000
+#define ARCH_EXID_AT91SAM9G35	0x00000001
+#define ARCH_EXID_AT91SAM9X35	0x00000002
+#define ARCH_EXID_AT91SAM9G25	0x00000003
+#define ARCH_EXID_AT91SAM9X25	0x00000004
 
 #ifdef CONFIG_AT91_LEGACY
 /*
