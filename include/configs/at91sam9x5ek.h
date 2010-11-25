@@ -54,18 +54,18 @@
 #define CONFIG_USART3		1	/* USART 3 is DBGU */
 
 /* LCD */
-// #define CONFIG_LCD			1
-// #define LCD_BPP				LCD_COLOR8
-// #define CONFIG_LCD_LOGO			1
-// #undef LCD_TEST_PATTERN
-// #define CONFIG_LCD_INFO			1
-// #define CONFIG_LCD_INFO_BELOW_LOGO	1
-// #define CONFIG_SYS_WHITE_ON_BLACK		1
-// #define CONFIG_ATMEL_LCD		1
-// #define CONFIG_ATMEL_LCD_RGB565		1
-// #define CONFIG_SYS_CONSOLE_IS_IN_ENV		1
-// /* board specific(not enough SRAM) */
-// #define CONFIG_AT91SAM9G45_LCD_BASE		0x73E00000
+#define CONFIG_LCD			1
+#define LCD_BPP				LCD_COLOR16
+#define CONFIG_LCD_LOGO			1
+#undef LCD_TEST_PATTERN
+#define CONFIG_LCD_INFO			1
+#define CONFIG_LCD_INFO_BELOW_LOGO	1
+#define CONFIG_SYS_WHITE_ON_BLACK		1
+#define CONFIG_ATMEL_LCD		1
+#define CONFIG_ATMEL_LCD_RGB565		1
+#define CONFIG_SYS_CONSOLE_IS_IN_ENV		1
+/* board specific(not enough SRAM) */
+#define CONFIG_AT91SAM9X5_LCD_BASE		0x23D00000
 
 /* LED */
 #define CONFIG_AT91_LED

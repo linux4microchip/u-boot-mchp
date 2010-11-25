@@ -59,6 +59,27 @@ unsigned int get_chip_id(void)	{ return usart3_readl(CIDR); }
 unsigned int get_extension_chip_id(void)	{ return usart3_readl(EXDR); }
 
 unsigned int has_emac1()	{ return cpu_is_at91sam9x25(); }
+char *get_cpu_name()
+{
+	unsigned int extension_id = get_extension_chip_id();
+	if (cpu_is_at91sam9x5())
+		switch (extension_id) {
+		case ARCH_EXID_AT91SAM9G15:
+			return CONFIG_SYS_AT91_G15_CPU_NAME;
+		case ARCH_EXID_AT91SAM9G25:
+			return CONFIG_SYS_AT91_G25_CPU_NAME;
+		case ARCH_EXID_AT91SAM9G35:
+			return CONFIG_SYS_AT91_G35_CPU_NAME;
+		case ARCH_EXID_AT91SAM9X25:
+			return CONFIG_SYS_AT91_X25_CPU_NAME;
+		case ARCH_EXID_AT91SAM9X35:
+			return CONFIG_SYS_AT91_X35_CPU_NAME;
+		default:
+			return CONFIG_SYS_AT91_UNKNOWN_CPU;
+		}
+	else
+		return CONFIG_SYS_AT91_UNKNOWN_CPU;
+}
 
 unsigned int SetBaudrate (
 	const unsigned int master_clock, 	// Peripheral Clock
@@ -81,26 +102,26 @@ void at91_serial3_hw_init(void)
 	
 	unsigned int baud;
 
-	// Reset receiver.
+	/* Reset receiver */
 	usart3_writel(CR, USART3_BIT(RSTRX));
-	usart3_writel(CR, USART3_BIT(RXEN)); 
-    
-    	// Disable interrupts
+	usart3_writel(CR, USART3_BIT(RXEN));
+	/* Disable interrupts */
 	usart3_writel(IDR, 0xffffffff);
-    	usart3_writel(CR, USART3_BIT(RSTRX) | USART3_BIT(RSTTX) | USART3_BIT(RXDIS) | USART3_BIT(TXDIS));
-    
-    	// Set Baudrate    
-    	baud = SetBaudrate(133000000, 115200);
+	usart3_writel(CR, USART3_BIT(RSTRX) | USART3_BIT(RSTTX) \
+		| USART3_BIT(RXDIS) | USART3_BIT(TXDIS));
+
+	/* Set Baudrate */
+	baud = SetBaudrate(133000000, 115200);
 	usart3_writel(BRGR, baud);
 
-    	// MUX PIO periph A
-    	at91_set_a_periph(AT91_PIO_PORTA, 9, 0);	/* DRXD */
+	/* MUX PIO periph A */
+	at91_set_a_periph(AT91_PIO_PORTA, 9, 0);	/* DRXD */
 	at91_set_a_periph(AT91_PIO_PORTA, 10, 1);	/* DTXD */
 
 	at91_port_t  *pioa	= (at91_port_t *) (0xFFFFF400);
 	pioa->pdr = AT91C_PA9_DRXD|AT91C_PA10_DTXD;
 	
-	// Enable TX + RX
+	/* Enable TX + RX */
 	usart3_writel(CR, USART3_BIT(TXEN));
 	usart3_writel(CR, USART3_BIT(RXEN));
 

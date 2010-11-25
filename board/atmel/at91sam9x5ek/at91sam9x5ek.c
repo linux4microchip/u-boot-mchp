@@ -34,8 +34,8 @@
 #include <asm/arch/gpio.h>
 #include <asm/arch/io.h>
 #include <asm/arch/hardware.h>
-//#include <lcd.h>
-//#include <atmel_lcdc.h>
+#include <lcd.h>
+#include <atmel_lcdc.h>
 #if defined(CONFIG_RESET_PHY_R) && defined(CONFIG_MACB)
 #include <net.h>
 #endif
@@ -44,6 +44,7 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 extern unsigned int has_emac1();
+extern char *get_cpu_name();
 /* ------------------------------------------------------------------------- */
 /*
  * Miscelaneous platform dependent initialisations
@@ -151,6 +152,105 @@ static void at91sam9x5ek_macb_hw_init(void)
 }
 #endif
 
+#ifdef CONFIG_LCD
+
+vidinfo_t panel_info = {
+	vl_col:		800,
+	vl_row:		480,
+	vl_clk:		24000000,
+	vl_sync:	ATMEL_LCDC_INVLINE_NORMAL |
+			ATMEL_LCDC_INVFRAME_NORMAL,
+	vl_bpix:	4,
+	vl_tft:		1,
+	vl_hsync_len:	128,
+	vl_left_margin:	64,
+	vl_right_margin:64,
+	vl_vsync_len:	2,
+	vl_upper_margin:22,
+	vl_lower_margin:21,
+	mmio:		AT91SAM9X5_BASE_LCDC,
+};
+
+
+void lcd_enable(void)
+{
+	at91_set_A_periph(AT91_PIN_PC29, 1);	/* power up */
+}
+
+void lcd_disable(void)
+{
+	at91_set_A_periph(AT91_PIN_PC29, 0);	/* power down */
+}
+
+static void at91sam9x5ek_lcd_hw_init(void)
+{
+	at91_set_A_periph(AT91_PIN_PC26, 0);	/* LCDPWM */
+	at91_set_A_periph(AT91_PIN_PC27, 0);	/* LCDVSYNC */
+	at91_set_A_periph(AT91_PIN_PC28, 0);	/* LCDHSYNC */
+	at91_set_A_periph(AT91_PIN_PC24, 0);	/* LCDDISP */
+	at91_set_A_periph(AT91_PIN_PC29, 0);	/* LCDDEN */
+	at91_set_A_periph(AT91_PIN_PC30, 0);	/* LCDPCK */
+
+	at91_set_A_periph(AT91_PIN_PC0, 0);	/* LCDD0 */
+	at91_set_A_periph(AT91_PIN_PC1, 0);	/* LCDD1 */
+	at91_set_A_periph(AT91_PIN_PC2, 0);	/* LCDD2 */
+	at91_set_A_periph(AT91_PIN_PC3, 0);	/* LCDD3 */
+	at91_set_A_periph(AT91_PIN_PC4, 0);	/* LCDD4 */
+	at91_set_A_periph(AT91_PIN_PC5, 0);	/* LCDD5 */
+	at91_set_A_periph(AT91_PIN_PC6, 0);	/* LCDD6 */
+	at91_set_A_periph(AT91_PIN_PC7, 0);	/* LCDD7 */
+	at91_set_A_periph(AT91_PIN_PC8, 0);	/* LCDD8 */
+	at91_set_A_periph(AT91_PIN_PC9, 0);	/* LCDD9 */
+	at91_set_A_periph(AT91_PIN_PC10, 0);	/* LCDD10 */
+	at91_set_A_periph(AT91_PIN_PC11, 0);	/* LCDD11 */
+	at91_set_A_periph(AT91_PIN_PC12, 0);	/* LCDD12 */
+	at91_set_B_periph(AT91_PIN_PC13, 0);	/* LCDD13 */
+	at91_set_A_periph(AT91_PIN_PC14, 0);	/* LCDD14 */
+	at91_set_A_periph(AT91_PIN_PC15, 0);	/* LCDD15 */
+	at91_set_A_periph(AT91_PIN_PC16, 0);	/* LCDD16 */
+	at91_set_A_periph(AT91_PIN_PC17, 0);	/* LCDD17 */
+	at91_set_A_periph(AT91_PIN_PC18, 0);	/* LCDD18 */
+	at91_set_A_periph(AT91_PIN_PC19, 0);	/* LCDD19 */
+	at91_set_A_periph(AT91_PIN_PC20, 0);	/* LCDD20 */
+	at91_set_B_periph(AT91_PIN_PC21, 0);	/* LCDD21 */
+	at91_set_A_periph(AT91_PIN_PC22, 0);	/* LCDD22 */
+	at91_set_A_periph(AT91_PIN_PC23, 0);	/* LCDD23 */
+
+	at91_sys_write(AT91_PMC_PCER, 1 << AT91SAM9X5_ID_LCDC);
+
+	gd->fb_base = CONFIG_AT91SAM9X5_LCD_BASE;
+}
+
+#ifdef CONFIG_LCD_INFO
+#include <nand.h>
+#include <version.h>
+
+void lcd_show_board_info(void)
+{
+	ulong dram_size, nand_size;
+	int i;
+	char temp[32];
+
+	lcd_printf("%s\n", U_BOOT_VERSION);
+	lcd_printf("(C) 2010 ATMEL Corp\n");
+	lcd_printf("at91support@atmel.com\n");
+	lcd_printf("%s CPU at %s MHz\n",
+		get_cpu_name(),
+		strmhz(temp, get_cpu_clk_rate()));
+
+	dram_size = 0;
+	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++)
+		dram_size += gd->bd->bi_dram[i].size;
+	nand_size = 0;
+	for (i = 0; i < CONFIG_SYS_MAX_NAND_DEVICE; i++)
+		nand_size += nand_info[i].size;
+	lcd_printf("  %ld MB SDRAM, %ld MB NAND\n",
+		dram_size >> 20,
+		nand_size >> 20);
+}
+#endif /* CONFIG_LCD_INFO */
+#endif
+
 int board_init(void)
 {
 	/* Enable Ctrlc */
@@ -169,6 +269,10 @@ int board_init(void)
 
 #ifdef CONFIG_MACB
 	at91sam9x5ek_macb_hw_init();
+#endif
+
+#ifdef CONFIG_LCD
+	at91sam9x5ek_lcd_hw_init();
 #endif
 	return 0;
 }

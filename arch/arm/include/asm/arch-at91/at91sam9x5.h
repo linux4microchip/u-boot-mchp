@@ -19,8 +19,8 @@
  * Peripheral identifiers/interrupts.
  */
 #define AT91_ID_FIQ	0	/* Advanced Interrupt Controller (FIQ) */
-#define AT91_ID_SYS	1	/* System Controller Interrupt */ 
- 
+#define AT91_ID_SYS	1	/* System Controller Interrupt */
+
 #define AT91SAM9X5_ID_FIQ	0	/* Advanced Interrupt Controller (FIQ) */
 #define AT91SAM9X5_ID_SYS	1	/* System Controller Interrupt */
 #define AT91SAM9X5_ID_PIOAB	2	/* Parallel I/O Controller A and B */
@@ -191,5 +191,15 @@
 #define AT_DMA_ID_UART1_RX	11
 #define AT_DMA_ID_USART2_TX	12
 #define AT_DMA_ID_USART2_RX	13
+
+/*
+ * Cpu Name
+ */
+#define CONFIG_SYS_AT91_G15_CPU_NAME	"AT91SAM9G15"
+#define CONFIG_SYS_AT91_G25_CPU_NAME	"AT91SAM9G25"
+#define CONFIG_SYS_AT91_G35_CPU_NAME	"AT91SAM9G35"
+#define CONFIG_SYS_AT91_X25_CPU_NAME	"AT91SAM9X25"
+#define CONFIG_SYS_AT91_X35_CPU_NAME	"AT91SAM9X35"
+#define CONFIG_SYS_AT91_UNKNOWN_CPU		"Unknown CPU type"
 
 #endif
