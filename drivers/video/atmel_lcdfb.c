@@ -75,6 +75,9 @@ void lcd_9x5_ctrl_init(void *lcdbase)
 	unsigned long value;
 	lcd_dma_desc *desc;
 
+	if (!has_lcdc())
+		return;     /* No lcdc */
+
 	/* Disable DISP signal */
 	lcdc_writel(panel_info.mmio, ATMEL_LCDC_LCDDIS, LCDC_LCDDIS_DISPDIS);
 	while ((lcdc_readl(panel_info.mmio, ATMEL_LCDC_LCDSR) & LCDC_LCDSR_DISPSTS))

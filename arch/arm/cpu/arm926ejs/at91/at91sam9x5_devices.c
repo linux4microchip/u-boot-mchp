@@ -59,6 +59,12 @@ unsigned int get_chip_id(void)	{ return usart3_readl(CIDR); }
 unsigned int get_extension_chip_id(void)	{ return usart3_readl(EXDR); }
 
 unsigned int has_emac1()	{ return cpu_is_at91sam9x25(); }
+unsigned int has_emac0()	{ return !(cpu_is_at91sam9g15()); }
+unsigned int has_lcdc()
+{
+	return cpu_is_at91sam9g15() || cpu_is_at91sam9g35() || cpu_is_at91sam9x35();
+}
+
 char *get_cpu_name()
 {
 	unsigned int extension_id = get_extension_chip_id();
@@ -137,16 +143,18 @@ void at91_serial_hw_init(void)
 #ifdef CONFIG_MACB
 void at91_macb_hw_init(void)
 {
-	at91_set_a_periph(AT91_PIO_PORTB, 4, 0);	/* ETXCK_EREFCK */
-	at91_set_a_periph(AT91_PIO_PORTB, 3, 0);	/* ERXDV */
-	at91_set_a_periph(AT91_PIO_PORTB, 0, 0);	/* ERX0 */
-	at91_set_a_periph(AT91_PIO_PORTB, 1, 0);	/* ERX1 */
-	at91_set_a_periph(AT91_PIO_PORTB, 2, 0);	/* ERXER */
-	at91_set_a_periph(AT91_PIO_PORTB, 7, 0);	/* ETXEN */
-	at91_set_a_periph(AT91_PIO_PORTB, 9, 0);	/* ETX0 */
-	at91_set_a_periph(AT91_PIO_PORTB, 10, 0);	/* ETX1 */
-	at91_set_a_periph(AT91_PIO_PORTB, 5, 0);	/* EMDIO */
-	at91_set_a_periph(AT91_PIO_PORTB, 6, 0);	/* EMDC */
+	if (has_emac0()) {
+		at91_set_a_periph(AT91_PIO_PORTB, 4, 0);	/* ETXCK_EREFCK */
+		at91_set_a_periph(AT91_PIO_PORTB, 3, 0);	/* ERXDV */
+		at91_set_a_periph(AT91_PIO_PORTB, 0, 0);	/* ERX0 */
+		at91_set_a_periph(AT91_PIO_PORTB, 1, 0);	/* ERX1 */
+		at91_set_a_periph(AT91_PIO_PORTB, 2, 0);	/* ERXER */
+		at91_set_a_periph(AT91_PIO_PORTB, 7, 0);	/* ETXEN */
+		at91_set_a_periph(AT91_PIO_PORTB, 9, 0);	/* ETX0 */
+		at91_set_a_periph(AT91_PIO_PORTB, 10, 0);	/* ETX1 */
+		at91_set_a_periph(AT91_PIO_PORTB, 5, 0);	/* EMDIO */
+		at91_set_a_periph(AT91_PIO_PORTB, 6, 0);	/* EMDC */
+	}
 
 	if (has_emac1()) {
 		/* EMAC1 pins setup */

@@ -202,4 +202,8 @@
 #define CONFIG_SYS_AT91_X35_CPU_NAME	"AT91SAM9X35"
 #define CONFIG_SYS_AT91_UNKNOWN_CPU		"Unknown CPU type"
 
+extern unsigned int has_lcdc();
+extern unsigned int has_emac0();
+extern unsigned int has_emac1();
+extern char *get_cpu_name();
 #endif
