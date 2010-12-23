@@ -72,13 +72,13 @@ static void at91sam9x5ek_nand_hw_init(void)
 
 	/* Configure SMC CS3 for NAND/SmartMedia */
 	at91_sys_write(AT91_SMC_SETUP(3),
-		       AT91_SMC_NWESETUP_(2) | AT91_SMC_NCS_WRSETUP_(0) |
-		       AT91_SMC_NRDSETUP_(2) | AT91_SMC_NCS_RDSETUP_(0));
+		       AT91_SMC_NWESETUP_(1) | AT91_SMC_NCS_WRSETUP_(0) |
+		       AT91_SMC_NRDSETUP_(1) | AT91_SMC_NCS_RDSETUP_(0));
 	at91_sys_write(AT91_SMC_PULSE(3),
-		       AT91_SMC_NWEPULSE_(4) | AT91_SMC_NCS_WRPULSE_(4) |
-		       AT91_SMC_NRDPULSE_(4) | AT91_SMC_NCS_RDPULSE_(4));
+		       AT91_SMC_NWEPULSE_(3) | AT91_SMC_NCS_WRPULSE_(5) |
+		       AT91_SMC_NRDPULSE_(4) | AT91_SMC_NCS_RDPULSE_(6));
 	at91_sys_write(AT91_SMC_CYCLE(3),
-		       AT91_SMC_NWECYCLE_(7) | AT91_SMC_NRDCYCLE_(7));
+		       AT91_SMC_NWECYCLE_(5) | AT91_SMC_NRDCYCLE_(6));
 	at91_sys_write(AT91_SMC_MODE(3),
 		       AT91_SMC_READMODE | AT91_SMC_WRITEMODE |
 		       AT91_SMC_EXNWMODE_DISABLE |
@@ -87,7 +87,7 @@ static void at91sam9x5ek_nand_hw_init(void)
 #else /* CONFIG_SYS_NAND_DBW_8 */
 		       AT91_SMC_DBW_8 |
 #endif
-		       AT91_SMC_TDF_(3));
+		       AT91_SMC_TDF_(1));
 
 	at91_sys_write(AT91_PMC_PCER, 1 << AT91SAM9X5_ID_PIOCD);
 
@@ -133,9 +133,11 @@ int board_eth_init(bd_t *bis)
 	int rc = 0;
 #ifdef CONFIG_MACB
 	if (has_emac0())
-		rc = macb_eth_initialize(0, (void *)AT91SAM9X5_BASE_EMAC0, 0x00);
+		rc = macb_eth_initialize(0,
+			(void *)AT91SAM9X5_BASE_EMAC0, 0x00);
 	if (has_emac1())
-		rc = macb_eth_initialize(1, (void *)AT91SAM9X5_BASE_EMAC1, 0x00);
+		rc = macb_eth_initialize(1,
+			(void *)AT91SAM9X5_BASE_EMAC1, 0x00);
 #endif
 	return rc;
 }

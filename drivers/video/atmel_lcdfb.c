@@ -80,19 +80,23 @@ void lcd_9x5_ctrl_init(void *lcdbase)
 
 	/* Disable DISP signal */
 	lcdc_writel(panel_info.mmio, ATMEL_LCDC_LCDDIS, LCDC_LCDDIS_DISPDIS);
-	while ((lcdc_readl(panel_info.mmio, ATMEL_LCDC_LCDSR) & LCDC_LCDSR_DISPSTS))
+	while ((lcdc_readl(panel_info.mmio, ATMEL_LCDC_LCDSR)
+		& LCDC_LCDSR_DISPSTS))
 		udelay(1);
 	/* Disable synchronization */
 	lcdc_writel(panel_info.mmio, ATMEL_LCDC_LCDDIS, LCDC_LCDDIS_SYNCDIS);
-	while ((lcdc_readl(panel_info.mmio, ATMEL_LCDC_LCDSR) & LCDC_LCDSR_LCDSTS))
+	while ((lcdc_readl(panel_info.mmio, ATMEL_LCDC_LCDSR)
+		& LCDC_LCDSR_LCDSTS))
 		udelay(1);
 	/* Disable pixel clock */
 	lcdc_writel(panel_info.mmio, ATMEL_LCDC_LCDDIS, LCDC_LCDDIS_CLKDIS);
-	while ((lcdc_readl(panel_info.mmio, ATMEL_LCDC_LCDSR) & LCDC_LCDSR_CLKSTS))
+	while ((lcdc_readl(panel_info.mmio, ATMEL_LCDC_LCDSR)
+		& LCDC_LCDSR_CLKSTS))
 		udelay(1);
 	/* Disable PWM */
 	lcdc_writel(panel_info.mmio, ATMEL_LCDC_LCDDIS, LCDC_LCDDIS_PWMDIS);
-	while ((lcdc_readl(panel_info.mmio, ATMEL_LCDC_LCDSR) & LCDC_LCDSR_PWMSTS))
+	while ((lcdc_readl(panel_info.mmio, ATMEL_LCDC_LCDSR)
+		& LCDC_LCDSR_PWMSTS))
 		udelay(1);
 
 	/* Set pixel clock */
@@ -106,7 +110,7 @@ void lcd_9x5_ctrl_init(void *lcdbase)
 					LCDC_LCDCFG0_CLKDIV(0) | 0x1b5);
 	} else {
 		lcdc_writel(panel_info.mmio, ATMEL_LCDC_LCDCFG0,
-					LCDC_LCDCFG0_CLKDIV(value - 2) | 0x1b1);
+				LCDC_LCDCFG0_CLKDIV(value - 2) | 0x1b1);
 	}
 
 	/* Initialize control register 5 */
@@ -139,22 +143,26 @@ void lcd_9x5_ctrl_init(void *lcdbase)
 	value |= LCDC_LCDCFG4_PPL(panel_info.vl_col - 1);
 	lcdc_writel(panel_info.mmio, ATMEL_LCDC_LCDCFG4, value);
 
-	lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASECFG0, LCDC_BASECFG0_BLEN_AHB_INCR4 | LCDC_BASECFG0_DLBO);
+	lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASECFG0,
+			LCDC_BASECFG0_BLEN_AHB_INCR4 | LCDC_BASECFG0_DLBO);
 
 	switch (NBITS(panel_info.vl_bpix)) {
 	case 24:
-		lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASECFG1, LCDC_BASECFG1_RGBMODE_24BPP_RGB_888_PACKED);
+		lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASECFG1,
+			LCDC_BASECFG1_RGBMODE_24BPP_RGB_888_PACKED);
 		break;
 	case 16:
-		lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASECFG1, LCDC_BASECFG1_RGBMODE_16BPP_RGB_565);
+		lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASECFG1,
+			LCDC_BASECFG1_RGBMODE_16BPP_RGB_565);
 		break;
 	default:
 		BUG();
 		break;
 	}
 
-	lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASECFG2, LCDC_BASECFG2_XSTRIDE(0));
-	lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASECFG3, 0x555555);  /* Default color */
+	lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASECFG2,
+			LCDC_BASECFG2_XSTRIDE(0));
+	lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASECFG3, 0x555555);
 	lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASECFG4, LCDC_BASECFG4_DMA);
 
 	/* Disable all interrupts */
@@ -173,24 +181,33 @@ void lcd_9x5_ctrl_init(void *lcdbase)
 	lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASEADDR, desc->address);
 	lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASECTRL, desc->control);
 	lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASENEXT, desc->next);
-	lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASECHER, LCDC_BASECHER_CHEN | LCDC_BASECHER_UPDATEEN);
+	lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASECHER, LCDC_BASECHER_CHEN
+			| LCDC_BASECHER_UPDATEEN);
 
 	/* Enable LCD */
 	value = lcdc_readl(panel_info.mmio, ATMEL_LCDC_LCDEN);
-	lcdc_writel(panel_info.mmio, ATMEL_LCDC_LCDEN, value | LCDC_LCDEN_CLKEN);
-	while (!(lcdc_readl(panel_info.mmio, ATMEL_LCDC_LCDSR) & LCDC_LCDSR_CLKSTS))
+	lcdc_writel(panel_info.mmio, ATMEL_LCDC_LCDEN, value
+			| LCDC_LCDEN_CLKEN);
+	while (!(lcdc_readl(panel_info.mmio, ATMEL_LCDC_LCDSR)
+		& LCDC_LCDSR_CLKSTS))
 		udelay(1);
 	value = lcdc_readl(panel_info.mmio, ATMEL_LCDC_LCDEN);
-	lcdc_writel(panel_info.mmio, ATMEL_LCDC_LCDEN, value | LCDC_LCDEN_SYNCEN);
-	while (!(lcdc_readl(panel_info.mmio, ATMEL_LCDC_LCDSR) & LCDC_LCDSR_LCDSTS))
+	lcdc_writel(panel_info.mmio, ATMEL_LCDC_LCDEN, value
+			| LCDC_LCDEN_SYNCEN);
+	while (!(lcdc_readl(panel_info.mmio, ATMEL_LCDC_LCDSR)
+		& LCDC_LCDSR_LCDSTS))
 		udelay(1);
 	value = lcdc_readl(panel_info.mmio, ATMEL_LCDC_LCDEN);
-	lcdc_writel(panel_info.mmio, ATMEL_LCDC_LCDEN, value | LCDC_LCDEN_DISPEN);
-	while (!(lcdc_readl(panel_info.mmio, ATMEL_LCDC_LCDSR) & LCDC_LCDSR_DISPSTS))
+	lcdc_writel(panel_info.mmio, ATMEL_LCDC_LCDEN, value
+			| LCDC_LCDEN_DISPEN);
+	while (!(lcdc_readl(panel_info.mmio, ATMEL_LCDC_LCDSR)
+		& LCDC_LCDSR_DISPSTS))
 		udelay(1);
 	value = lcdc_readl(panel_info.mmio, ATMEL_LCDC_LCDEN);
-	lcdc_writel(panel_info.mmio, ATMEL_LCDC_LCDEN, value | LCDC_LCDEN_PWMEN);
-	while (!(lcdc_readl(panel_info.mmio, ATMEL_LCDC_LCDSR) & LCDC_LCDSR_PWMSTS))
+	lcdc_writel(panel_info.mmio, ATMEL_LCDC_LCDEN, value
+			| LCDC_LCDEN_PWMEN);
+	while (!(lcdc_readl(panel_info.mmio, ATMEL_LCDC_LCDSR)
+		& LCDC_LCDSR_PWMSTS))
 		udelay(1);
 }
 #endif
@@ -229,7 +246,8 @@ void lcd_ctrl_init(void *lcdbase)
 	value = (value / 2) - 1;
 
 	if (!value) {
-		lcdc_writel(panel_info.mmio, ATMEL_LCDC_LCDCON1, ATMEL_LCDC_BYPASS);
+		lcdc_writel(panel_info.mmio, ATMEL_LCDC_LCDCON1,
+				ATMEL_LCDC_BYPASS);
 	} else
 		lcdc_writel(panel_info.mmio, ATMEL_LCDC_LCDCON1,
 			    value << ATMEL_LCDC_CLKVAL_OFFSET);
@@ -279,14 +297,16 @@ void lcd_ctrl_init(void *lcdbase)
 		ATMEL_LCDC_POL_POSITIVE |
 		ATMEL_LCDC_ENA_PWMENABLE;
 	lcdc_writel(panel_info.mmio, ATMEL_LCDC_CONTRAST_CTR, value);
-	lcdc_writel(panel_info.mmio, ATMEL_LCDC_CONTRAST_VAL, ATMEL_LCDC_CVAL_DEFAULT);
+	lcdc_writel(panel_info.mmio, ATMEL_LCDC_CONTRAST_VAL,
+			ATMEL_LCDC_CVAL_DEFAULT);
 
 	/* Set framebuffer DMA base address and pixel offset */
 	lcdc_writel(panel_info.mmio, ATMEL_LCDC_DMABADDR1, (u_long)lcdbase);
 
 	lcdc_writel(panel_info.mmio, ATMEL_LCDC_DMACON, ATMEL_LCDC_DMAEN);
 	lcdc_writel(panel_info.mmio, ATMEL_LCDC_PWRCON,
-		    (ATMEL_LCDC_GUARD_TIME << ATMEL_LCDC_GUARDT_OFFSET) | ATMEL_LCDC_PWR);
+			(ATMEL_LCDC_GUARD_TIME << ATMEL_LCDC_GUARDT_OFFSET)
+			| ATMEL_LCDC_PWR);
 }
 
 ulong calc_fbsize(void)

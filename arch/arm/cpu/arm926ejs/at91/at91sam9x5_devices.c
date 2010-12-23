@@ -44,15 +44,15 @@
 #ifdef CONFIG_AT91SAM9X5
 #define cpu_is_at91sam9x5()	(get_chip_id() == ARCH_ID_AT91SAM9X5)
 #define cpu_is_at91sam9g15()	(cpu_is_at91sam9x5() && \
-				(get_extension_chip_id() == ARCH_EXID_AT91SAM9G15))
+			(get_extension_chip_id() == ARCH_EXID_AT91SAM9G15))
 #define cpu_is_at91sam9g25()	(cpu_is_at91sam9x5() && \
-				(get_extension_chip_id() == ARCH_EXID_AT91SAM9G25))
+			(get_extension_chip_id() == ARCH_EXID_AT91SAM9G25))
 #define cpu_is_at91sam9g35()	(cpu_is_at91sam9x5() && \
-				(get_extension_chip_id() == ARCH_EXID_AT91SAM9G35))
+			(get_extension_chip_id() == ARCH_EXID_AT91SAM9G35))
 #define cpu_is_at91sam9x25()	(cpu_is_at91sam9x5() && \
-				(get_extension_chip_id() == ARCH_EXID_AT91SAM9X25))
+			(get_extension_chip_id() == ARCH_EXID_AT91SAM9X25))
 #define cpu_is_at91sam9x35()	(cpu_is_at91sam9x5() && \
-				(get_extension_chip_id() == ARCH_EXID_AT91SAM9X35))
+			(get_extension_chip_id() == ARCH_EXID_AT91SAM9X35))
 #endif
 
 unsigned int get_chip_id(void)	{ return usart3_readl(CIDR); }
@@ -62,7 +62,8 @@ unsigned int has_emac1()	{ return cpu_is_at91sam9x25(); }
 unsigned int has_emac0()	{ return !(cpu_is_at91sam9g15()); }
 unsigned int has_lcdc()
 {
-	return cpu_is_at91sam9g15() || cpu_is_at91sam9g35() || cpu_is_at91sam9x35();
+	return cpu_is_at91sam9g15() || cpu_is_at91sam9g35()
+		|| cpu_is_at91sam9x35();
 }
 
 char *get_cpu_name()
@@ -144,7 +145,7 @@ void at91_serial_hw_init(void)
 void at91_macb_hw_init(void)
 {
 	if (has_emac0()) {
-		at91_set_a_periph(AT91_PIO_PORTB, 4, 0);	/* ETXCK_EREFCK */
+		at91_set_a_periph(AT91_PIO_PORTB, 4, 0);	/* ETXCK */
 		at91_set_a_periph(AT91_PIO_PORTB, 3, 0);	/* ERXDV */
 		at91_set_a_periph(AT91_PIO_PORTB, 0, 0);	/* ERX0 */
 		at91_set_a_periph(AT91_PIO_PORTB, 1, 0);	/* ERX1 */
@@ -158,7 +159,7 @@ void at91_macb_hw_init(void)
 
 	if (has_emac1()) {
 		/* EMAC1 pins setup */
-		at91_set_b_periph(AT91_PIO_PORTC, 29, 0);	/* ETXCK_EREFCK */
+		at91_set_b_periph(AT91_PIO_PORTC, 29, 0);	/* ETXCK */
 		at91_set_b_periph(AT91_PIO_PORTC, 28, 0);	/* ECRSDV */
 		at91_set_b_periph(AT91_PIO_PORTC, 20, 0);	/* ERXO */
 		at91_set_b_periph(AT91_PIO_PORTC, 21, 0);	/* ERX1 */
