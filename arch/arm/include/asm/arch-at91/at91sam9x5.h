@@ -142,7 +142,7 @@
 #define AT91SAM9X5_SRAM_SIZE	SZ_32K		/* Internal SRAM size (32Kb) */
 
 #define AT91SAM9X5_ROM_BASE	0x00100000	/* Internal ROM base address */
-#define AT91SAM9X5_ROM_SIZE	SZ_1M		/* Internal ROM size (64Kb) */
+#define AT91SAM9X5_ROM_SIZE	SZ_1M		/* Internal ROM size (1M) */
 
 #define AT91SAM9X5_SMD_BASE	0x00400000	/* SMD Controller */
 #define AT91SAM9X5_UDPHS_FIFO	0x00500000	/* USB Device HS controller */
@@ -202,8 +202,4 @@
 #define CONFIG_SYS_AT91_X35_CPU_NAME	"AT91SAM9X35"
 #define CONFIG_SYS_AT91_UNKNOWN_CPU		"Unknown CPU type"
 
-extern unsigned int has_lcdc();
-extern unsigned int has_emac0();
-extern unsigned int has_emac1();
-extern char *get_cpu_name();
 #endif

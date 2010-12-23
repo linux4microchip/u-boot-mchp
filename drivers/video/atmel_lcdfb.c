@@ -107,10 +107,22 @@ void lcd_9x5_ctrl_init(void *lcdbase)
 	if (value < 1) {
 		/* Using system clock as pixel clock */
 		lcdc_writel(panel_info.mmio, ATMEL_LCDC_LCDCFG0,
-					LCDC_LCDCFG0_CLKDIV(0) | 0x1b5);
+					LCDC_LCDCFG0_CLKDIV(0)
+					| LCDC_LCDCFG0_CGDISHCR
+					| LCDC_LCDCFG0_CGDISHEO
+					| LCDC_LCDCFG0_CGDISOVR1
+					| LCDC_LCDCFG0_CGDISBASE
+					| LCDC_LCDCFG0_CLKPOL
+					| LCDC_LCDCFG0_CLKSEL);
+
 	} else {
 		lcdc_writel(panel_info.mmio, ATMEL_LCDC_LCDCFG0,
-				LCDC_LCDCFG0_CLKDIV(value - 2) | 0x1b1);
+				LCDC_LCDCFG0_CLKDIV(value - 2)
+				| LCDC_LCDCFG0_CGDISHCR
+				| LCDC_LCDCFG0_CGDISHEO
+				| LCDC_LCDCFG0_CGDISOVR1
+				| LCDC_LCDCFG0_CGDISBASE
+				| LCDC_LCDCFG0_CLKPOL);
 	}
 
 	/* Initialize control register 5 */
@@ -118,7 +130,29 @@ void lcd_9x5_ctrl_init(void *lcdbase)
 
 	value |= LCDC_LCDCFG5_HSPOL;
 	value |= LCDC_LCDCFG5_VSPOL;
+
+#ifndef LCD_OUTPUT_BPP
+	/* Output is 24bpp */
 	value |= LCDC_LCDCFG5_MODE_OUTPUT_24BPP;
+#else
+	switch (LCD_OUTPUT_BPP) {
+	case 12:
+		value |= LCDC_LCDCFG5_MODE_OUTPUT_12BPP;
+		break;
+	case 16:
+		value |= LCDC_LCDCFG5_MODE_OUTPUT_16BPP;
+		break;
+	case 18:
+		value |= LCDC_LCDCFG5_MODE_OUTPUT_18BPP;
+		break;
+	case 24:
+		value |= LCDC_LCDCFG5_MODE_OUTPUT_24BPP;
+		break;
+	default:
+		BUG();
+		break;
+	}
+#endif
 
 	value |= LCDC_LCDCFG5_GUARDTIME(ATMEL_LCDC_GUARD_TIME);
 	value |= (LCDC_LCDCFG5_DISPDLY | LCDC_LCDCFG5_VSPDLYS);
@@ -147,10 +181,6 @@ void lcd_9x5_ctrl_init(void *lcdbase)
 			LCDC_BASECFG0_BLEN_AHB_INCR4 | LCDC_BASECFG0_DLBO);
 
 	switch (NBITS(panel_info.vl_bpix)) {
-	case 24:
-		lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASECFG1,
-			LCDC_BASECFG1_RGBMODE_24BPP_RGB_888_PACKED);
-		break;
 	case 16:
 		lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASECFG1,
 			LCDC_BASECFG1_RGBMODE_16BPP_RGB_565);
@@ -162,7 +192,7 @@ void lcd_9x5_ctrl_init(void *lcdbase)
 
 	lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASECFG2,
 			LCDC_BASECFG2_XSTRIDE(0));
-	lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASECFG3, 0x555555);
+	lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASECFG3, 0);
 	lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASECFG4, LCDC_BASECFG4_DMA);
 
 	/* Disable all interrupts */

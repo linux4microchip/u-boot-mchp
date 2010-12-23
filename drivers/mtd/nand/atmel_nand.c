@@ -45,34 +45,34 @@
 
 /* Register access macros for PMECC */
 #define pmecc_readl(addr, reg) \
-	__raw_readl(AT91_BASE_SYS + (addr) + ATMEL_PMECC_##reg)
+	readl(AT91_BASE_SYS + (addr) + ATMEL_PMECC_##reg)
 
 #define pmecc_writel(addr, reg, value) \
-	__raw_writel((value), AT91_BASE_SYS + (addr) + ATMEL_PMECC_##reg)
+	writel((value), AT91_BASE_SYS + (addr) + ATMEL_PMECC_##reg)
 
 #define pmecc_readb_ecc(addr, sector, n) \
-	__raw_readb(AT91_BASE_SYS + (addr) + ATMEL_PMECC_ECCx + \
+	readb(AT91_BASE_SYS + (addr) + ATMEL_PMECC_ECCx + \
 			((sector) * 0x40) + (n))
 
 #define pmecc_readl_rem(addr, sector, n) \
-	__raw_readl(AT91_BASE_SYS + (addr) + ATMEL_PMECC_REMx + \
+	readl(AT91_BASE_SYS + (addr) + ATMEL_PMECC_REMx + \
 			((sector) * 0x40) + (n))
 
 #define pmerrloc_readl(addr, reg) \
-	__raw_readl(AT91_BASE_SYS + (addr) + ATMEL_PMERRLOC_##reg)
+	readl(AT91_BASE_SYS + (addr) + ATMEL_PMERRLOC_##reg)
 
 #define pmerrloc_writel(addr, reg, value) \
-	__raw_writel((value), AT91_BASE_SYS + (addr) + ATMEL_PMERRLOC_##reg)
+	writel((value), AT91_BASE_SYS + (addr) + ATMEL_PMERRLOC_##reg)
 
 #define pmerrloc_writel_sigma(addr, n, value) \
-	__raw_writel((value), AT91_BASE_SYS + (addr) + ATMEL_PMERRLOC_SIGMAx + \
+	writel((value), AT91_BASE_SYS + (addr) + ATMEL_PMERRLOC_SIGMAx + \
 			((n) * 4))
 
 #define pmerrloc_readl_sigma(addr, n) \
-	__raw_readl(AT91_BASE_SYS + (addr) + ATMEL_PMERRLOC_SIGMAx + ((n) * 4))
+	readl(AT91_BASE_SYS + (addr) + ATMEL_PMERRLOC_SIGMAx + ((n) * 4))
 
 #define pmerrloc_readl_el(addr, n) \
-	__raw_readl(AT91_BASE_SYS + (addr) + ATMEL_PMERRLOC_ELx + ((n) * 4))
+	readl(AT91_BASE_SYS + (addr) + ATMEL_PMERRLOC_ELx + ((n) * 4))
 
 #endif
 

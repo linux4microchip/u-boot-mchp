@@ -185,7 +185,8 @@ int at91_clock_init(unsigned long main_clock)
 	 * For now, assume this parentage won't change.
 	 */
 	mckr = readl(&pmc->mckr);
-#if defined(CONFIG_AT91SAM9G45) || defined(CONFIG_AT91SAM9M10G45) || defined(CONFIG_AT91SAM9X5)
+#if defined(CONFIG_AT91SAM9G45) || defined(CONFIG_AT91SAM9M10G45) \
+		|| defined(CONFIG_AT91SAM9X5)
 	/* plla divisor by 2 */
 	plla_rate_hz /= (1 << ((mckr & 1 << 12) >> 12));
 #endif
@@ -193,7 +194,8 @@ int at91_clock_init(unsigned long main_clock)
 	freq = mck_rate_hz;
 
 #if defined(CONFIG_AT91SAM9X5)
-	freq /= (1 << ((mckr & AT91_PMC_MCKR_PRES_9X5_MASK) >> 4));	/* 9x5 is different in prescale */
+	/* 9x5 is different in prescale */
+	freq /= (1 << ((mckr & AT91_PMC_MCKR_PRES_9X5_MASK) >> 4));
 #else
 	freq /= (1 << ((mckr & AT91_PMC_MCKR_PRES_MASK) >> 2));	/* prescale */
 #endif
@@ -207,7 +209,8 @@ int at91_clock_init(unsigned long main_clock)
 		freq / ((mckr & AT91_PMC_MCKR_MDIV_MASK) >> 7) : freq;
 	if (mckr & AT91_PMC_MCKR_MDIV_MASK)
 		freq /= 2;			/* processor clock division */
-#elif defined(CONFIG_AT91SAM9G45) || defined(CONFIG_AT91SAM9M10G45) || defined(CONFIG_AT91SAM9X5)
+#elif defined(CONFIG_AT91SAM9G45) || defined(CONFIG_AT91SAM9M10G45) \
+		|| defined(CONFIG_AT91SAM9X5)
 	mck_rate_hz = (mckr & AT91_PMC_MCKR_MDIV_MASK) ==
 		(AT91_PMC_MCKR_MDIV_2 | AT91_PMC_MCKR_MDIV_4)
 		? freq / 3

@@ -2874,7 +2874,7 @@ at91sam9x5ek_config	:	unconfig
 	$(XECHO) "... 9X5 Variant" ; \
 
 	@$(MKCONFIG) -a at91sam9x5ek arm arm926ejs at91sam9x5ek atmel at91
-	
+
 otc570_config	:	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm926ejs otc570 esd at91
 

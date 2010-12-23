@@ -30,7 +30,7 @@
 #define CONFIG_AT91_LEGACY
 
 /* ARM asynchronous clock */
-#define CONFIG_SYS_AT91_MAIN_CLOCK	12000000	/* from 12 MHz crystal */
+#define CONFIG_SYS_AT91_MAIN_CLOCK	12000000	/* 12 MHz crystal */
 #define CONFIG_SYS_HZ		1000
 
 #define CONFIG_ARM926EJS	1	/* This is an ARM926EJS Core	*/
@@ -50,12 +50,23 @@
  * Hardware drivers
  */
 #define CONFIG_AT91_GPIO	1
+
+/* DBGU */
 #define CONFIG_ATMEL_USART	1
 #define CONFIG_USART3		1	/* USART 3 is DBGU */
+#define USART_BASE	USART3_BASE
+#define AT91C_PIO_PA9         (1 << 9)	/* Pin Controlled by PA9 */
+#define AT91C_PA9_DRXD        (AT91C_PIO_PA9)
+#define AT91C_PIO_PA10        (1 << 10)	/* Pin Controlled by PA10 */
+#define AT91C_PA10_DTXD       (AT91C_PIO_PA10)
+
+#define USART3_CIDR	0x0040	/* 9x5 series chip id register */
+#define USART3_EXDR	0x0044	/* 9x5 series chip id extension register */
 
 /* LCD */
 #define CONFIG_LCD			1
 #define LCD_BPP				LCD_COLOR16
+#define LCD_OUTPUT_BPP			24
 #define CONFIG_LCD_LOGO			1
 #undef LCD_TEST_PATTERN
 #define CONFIG_LCD_INFO			1
@@ -146,14 +157,6 @@
 #define CONFIG_RESET_PHY_R		1
 
 /* USB */
-//#define CONFIG_USB_ATMEL
-//#define CONFIG_USB_OHCI_NEW		1
-//#define CONFIG_DOS_PARTITION		1
-//#define CONFIG_SYS_USB_OHCI_CPU_INIT		1
-//#define CONFIG_SYS_USB_OHCI_REGS_BASE		0x00700000	/* AT91SAM9G45_UHP_OHCI_BASE */
-//#define CONFIG_SYS_USB_OHCI_SLOT_NAME		"at91sam9g45"
-//#define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	2
-//#define CONFIG_USB_STORAGE		1
 #undef CONFIG_USB_STORAGE
 
 #define CONFIG_SYS_LOAD_ADDR		0x22000000	/* load address */
@@ -183,9 +186,13 @@
 #define CONFIG_ENV_OFFSET		0x60000
 #define CONFIG_ENV_OFFSET_REDUND	0x80000
 #define CONFIG_ENV_SIZE		0x20000		/* 1 sector = 128 kB */
-#define CONFIG_BOOTCOMMAND	"nand read.jffs2 0x22000000 0x200000 0x200000; bootm"
+#define CONFIG_BOOTCOMMAND	"nand read.jffs2 " \
+				"0x22000000 0x200000 0x200000; " \
+				"bootm"
 #define CONFIG_BOOTARGS		"mem=128M console=ttyS0,115200 " \
-				"mtdparts=atmel_nand:4M(bootstrap/uboot/kernel)ro,60M(rootfs),-(data) " \
+				"mtdparts=atmel_nand:" \
+				"4M(bootstrap/uboot/kernel)ro," \
+				"60M(rootfs),-(data) " \
 				"root=/dev/mtdblock1 rw rootfstype=jffs2"
 
 #endif
@@ -193,11 +200,12 @@
 #define CONFIG_BAUDRATE		115200
 #define CONFIG_SYS_BAUDRATE_TABLE	{115200 , 19200, 38400, 57600, 9600 }
 
-#define CONFIG_SYS_PROMPT		"U-Boot> "
-#define CONFIG_SYS_CBSIZE		256
-#define CONFIG_SYS_MAXARGS		16
-#define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
-#define CONFIG_SYS_LONGHELP		1
+#define CONFIG_SYS_PROMPT	"U-Boot> "
+#define CONFIG_SYS_CBSIZE	256
+#define CONFIG_SYS_MAXARGS	16
+#define CONFIG_SYS_PBSIZE	(CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) \
+					+ 16)
+#define CONFIG_SYS_LONGHELP	1
 #define CONFIG_CMDLINE_EDITING	1
 #define CONFIG_AUTO_COMPLETE
 #define CONFIG_SYS_HUSH_PARSER
@@ -206,7 +214,7 @@
 /*
  * Size of malloc() pool
  */
-#define CONFIG_SYS_MALLOC_LEN		ROUND(3 * CONFIG_ENV_SIZE + 128*1024, 0x1000)
+#define CONFIG_SYS_MALLOC_LEN	ROUND(3 * CONFIG_ENV_SIZE + 128*1024, 0x1000)
 #define CONFIG_SYS_GBL_DATA_SIZE	128	/* 128 bytes for initial data */
 
 #define CONFIG_STACKSIZE	(32*1024)	/* regular stack */

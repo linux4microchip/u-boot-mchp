@@ -225,8 +225,6 @@ static int macb_send(struct eth_device *netdev, volatile void *packet,
 	 * re-use the transmit buffer as soon as we return...
 	 */
 	for (i = 0; i <= CONFIG_SYS_MACB_TX_TIMEOUT; i++) {
-		volatile unsigned long j;
-
 		barrier();
 		ctrl = macb->tx_ring[tx_head].ctrl;
 		if (ctrl & TXBUF_USED)
@@ -492,7 +490,12 @@ static int macb_init(struct eth_device *netdev, bd_t *bd)
     defined(CONFIG_AT91SAM9263) || defined(CONFIG_AT91SAM9G20) || \
 	defined(CONFIG_AT91SAM9G45) || defined(CONFIG_AT91SAM9M10G45) || \
 	defined(CONFIG_AT91SAM9X5)
-	macb_writel(macb, USRIO, MACB_BIT(CLKEN));
+	if (strcmp(netdev->name, "macb1") == 0)
+		/* It's second phy in 9X5 series chip. It only support
+		 * RMII mode. So we still use RMII mode. */
+		macb_writel(macb, USRIO, MACB_BIT(RMII) | MACB_BIT(CLKEN));
+	else
+		macb_writel(macb, USRIO, MACB_BIT(CLKEN));
 #else
 	macb_writel(macb, USRIO, MACB_BIT(MII));
 #endif

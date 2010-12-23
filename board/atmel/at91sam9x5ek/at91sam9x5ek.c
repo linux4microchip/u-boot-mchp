@@ -54,8 +54,8 @@ static void at91sam9x5ek_nand_hw_init(void)
 
 	/* Enable CS3 */
 	csa = at91_sys_read(AT91_MATRIX_EBICSA);
-	
-#if CONFIG_SYS_NAND_NFD0_ON_D16	
+
+#if CONFIG_SYS_NAND_NFD0_ON_D16
 	csa |= AT91_MATRIX_NFD0_ON_D16;
 #ifndef CONFIG_SYS_NAND_DBW_16
 	csa |= AT91_MATRIX_MP_ON;
@@ -96,12 +96,12 @@ static void at91sam9x5ek_nand_hw_init(void)
 
 	/* Enable NandFlash */
 	at91_set_gpio_output(CONFIG_SYS_NAND_ENABLE_PIN, 1);
-	
+
 	at91_set_a_periph(AT91_PIO_PORTD, 0, 1);	/* NAND OE */
 	at91_set_a_periph(AT91_PIO_PORTD, 1, 1);	/* NAND WE */
 	at91_set_a_periph(AT91_PIO_PORTD, 2, 1);	/* ALE */
 	at91_set_a_periph(AT91_PIO_PORTD, 3, 1);	/* CLE */
-	
+
 #if CONFIG_SYS_NAND_NFD0_ON_D16
 	at91_set_a_periph(AT91_PIO_PORTD, 6, 1);
 	at91_set_a_periph(AT91_PIO_PORTD, 7, 1);
@@ -162,7 +162,7 @@ vidinfo_t panel_info = {
 	vl_clk:		24000000,
 	vl_sync:	ATMEL_LCDC_INVLINE_NORMAL |
 			ATMEL_LCDC_INVFRAME_NORMAL,
-	vl_bpix:	4,
+	vl_bpix:	LCD_BPP,
 	vl_tft:		1,
 	vl_hsync_len:	128,
 	vl_left_margin:	64,
@@ -257,7 +257,7 @@ void lcd_show_board_info(void)
 	}
 }
 #endif /* CONFIG_LCD_INFO */
-#endif
+#endif /* CONFIG_LCD */
 
 int board_init(void)
 {

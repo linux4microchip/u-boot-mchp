@@ -29,19 +29,8 @@
 #include <asm/arch/io.h>
 
 #include <asm/arch/memory-map.h>
-#define CONFIG_USART3		1		/* USART 3 is DBGU */
 #include <../drivers/serial/atmel_usart.h>
 
-#define USART_BASE	USART3_BASE
-#define AT91C_PIO_PA9         (1 << 9) /* Pin Controlled by PA9 */
-#define AT91C_PA9_DRXD        (AT91C_PIO_PA9)
-#define AT91C_PIO_PA10        (1 << 10) /* Pin Controlled by PA10 */
-#define AT91C_PA10_DTXD       (AT91C_PIO_PA10)
-
-#define USART3_CIDR	0x0040	/* 9x5 series chip id register */
-#define USART3_EXDR	0x0044	/* 9x5 series chip id extension register */
-
-#ifdef CONFIG_AT91SAM9X5
 #define cpu_is_at91sam9x5()	(get_chip_id() == ARCH_ID_AT91SAM9X5)
 #define cpu_is_at91sam9g15()	(cpu_is_at91sam9x5() && \
 			(get_extension_chip_id() == ARCH_EXID_AT91SAM9G15))
@@ -53,13 +42,24 @@
 			(get_extension_chip_id() == ARCH_EXID_AT91SAM9X25))
 #define cpu_is_at91sam9x35()	(cpu_is_at91sam9x5() && \
 			(get_extension_chip_id() == ARCH_EXID_AT91SAM9X35))
-#endif
 
-unsigned int get_chip_id(void)	{ return usart3_readl(CIDR); }
-unsigned int get_extension_chip_id(void)	{ return usart3_readl(EXDR); }
+unsigned int get_chip_id(void)
+{
+	return usart3_readl(CIDR);
+}
+unsigned int get_extension_chip_id(void)
+{
+	return usart3_readl(EXDR);
+}
 
-unsigned int has_emac1()	{ return cpu_is_at91sam9x25(); }
-unsigned int has_emac0()	{ return !(cpu_is_at91sam9g15()); }
+unsigned int has_emac1()
+{
+	return cpu_is_at91sam9x25();
+}
+unsigned int has_emac0()
+{
+	return !(cpu_is_at91sam9g15());
+}
 unsigned int has_lcdc()
 {
 	return cpu_is_at91sam9g15() || cpu_is_at91sam9g35()
@@ -88,11 +88,11 @@ char *get_cpu_name()
 		return CONFIG_SYS_AT91_UNKNOWN_CPU;
 }
 
-unsigned int SetBaudrate (
-	const unsigned int master_clock, 	// Peripheral Clock
-	const unsigned int baud_rate)  		// UART Baudrate
+unsigned int usart_set_baudrate(
+	const unsigned int master_clock,	/* Peripheral Clock */
+	const unsigned int baud_rate)		/* UART Baudrate */
 {
-	unsigned int baud_value = ((master_clock*10)/(baud_rate * 16));
+	unsigned int baud_value = ((master_clock * 10) / (baud_rate * 16));
 	if ((baud_value % 10) >= 5)
 		baud_value = (baud_value / 10) + 1;
 	else
@@ -102,12 +102,10 @@ unsigned int SetBaudrate (
 
 void at91_serial3_hw_init(void)
 {
-	
-	at91_pmc_t	*pmc	= (at91_pmc_t *) AT91_PMC_BASE;
+	unsigned int baud;
+	at91_pmc_t *pmc = (at91_pmc_t *) AT91_PMC_BASE;
 	writel(1 << AT91SAM9X5_ID_PIOAB, &pmc->pcer);
 	writel(1 << AT91SAM9X5_ID_SYS, &pmc->pcer);
-	
-	unsigned int baud;
 
 	/* Reset receiver */
 	usart3_writel(CR, USART3_BIT(RSTRX));
@@ -118,20 +116,19 @@ void at91_serial3_hw_init(void)
 		| USART3_BIT(RXDIS) | USART3_BIT(TXDIS));
 
 	/* Set Baudrate */
-	baud = SetBaudrate(133000000, 115200);
+	baud = usart_set_baudrate(133000000, 115200);
 	usart3_writel(BRGR, baud);
 
 	/* MUX PIO periph A */
 	at91_set_a_periph(AT91_PIO_PORTA, 9, 0);	/* DRXD */
 	at91_set_a_periph(AT91_PIO_PORTA, 10, 1);	/* DTXD */
 
-	at91_port_t  *pioa	= (at91_port_t *) (0xFFFFF400);
-	pioa->pdr = AT91C_PA9_DRXD|AT91C_PA10_DTXD;
-	
+	at91_port_t *pioa = (at91_port_t *) (0xFFFFF400);
+	pioa->pdr = AT91C_PA9_DRXD | AT91C_PA10_DTXD;
+
 	/* Enable TX + RX */
 	usart3_writel(CR, USART3_BIT(TXEN));
 	usart3_writel(CR, USART3_BIT(RXEN));
-
 }
 
 void at91_serial_hw_init(void)
@@ -172,14 +169,17 @@ void at91_macb_hw_init(void)
 	}
 
 #ifndef CONFIG_RMII
-	at91_set_b_periph(AT91_PIO_PORTB, 16, 0);	/* ECRS */
-	at91_set_b_periph(AT91_PIO_PORTB, 17, 0);	/* ECOL */
-	at91_set_b_periph(AT91_PIO_PORTB, 13,  0);	/* ERX2 */
-	at91_set_b_periph(AT91_PIO_PORTB, 14,  0);	/* ERX3 */
-	at91_set_b_periph(AT91_PIO_PORTB, 15, 0);	/* ERXCK */
-	at91_set_b_periph(AT91_PIO_PORTB, 11,  0);	/* ETX2 */
-	at91_set_b_periph(AT91_PIO_PORTB, 12,  0);	/* ETX3 */
-	at91_set_b_periph(AT91_PIO_PORTB, 8, 0);	/* ETXER */
+	/* Only emac0 support MII */
+	if (has_emac0()) {
+		at91_set_b_periph(AT91_PIO_PORTB, 16, 0);	/* ECRS */
+		at91_set_b_periph(AT91_PIO_PORTB, 17, 0);	/* ECOL */
+		at91_set_b_periph(AT91_PIO_PORTB, 13,  0);	/* ERX2 */
+		at91_set_b_periph(AT91_PIO_PORTB, 14,  0);	/* ERX3 */
+		at91_set_b_periph(AT91_PIO_PORTB, 15, 0);	/* ERXCK */
+		at91_set_b_periph(AT91_PIO_PORTB, 11,  0);	/* ETX2 */
+		at91_set_b_periph(AT91_PIO_PORTB, 12,  0);	/* ETX3 */
+		at91_set_b_periph(AT91_PIO_PORTB, 8, 0);	/* ETXER */
+	}
 #endif
 }
 #endif

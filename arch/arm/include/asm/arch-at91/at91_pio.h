@@ -66,46 +66,46 @@ typedef struct at91_port {
 	u32	puer;		/* 0x64 Pull-up Enable Register */
 	u32	pusr;		/* 0x68 Pad Pull-up Status Register */
 	u32	reserved4;
-#if defined(CONFIG_AT91SAM9X5)	
+#if defined(CONFIG_AT91SAM9X5)
 	u32 abcdsr1;	/* 0x70 Peripheral ABCD Select Register 1 */
 #else
 	u32	asr;		/* 0x70 Select A Register */
-#endif	
-#if defined(CONFIG_AT91SAM9X5)	
+#endif
+#if defined(CONFIG_AT91SAM9X5)
 	u32 abcdsr2;	/* 0x74 Peripheral ABCD Select Register 2 */
 #else
 	u32	bsr;		/* 0x74 Select B Register */
-#endif	
+#endif
 	u32	absr;		/* 0x78 AB Select Status Register */
-#if defined(CONFIG_AT91SAM9X5)	
+#if defined(CONFIG_AT91SAM9X5)
 	u32 reserved5;
-	u32 ifscdr;		/* 0x80 Input Filter Slow Clock Disable Register */
-	u32 ifscer;		/* 0x84 Input Filter Slow Clock Enable Register */
-	u32 ifscsr;		/* 0x88 Input Filter Slow Clock Status Register */
-	u32 scdr;		/* 0x8C Slow Clock Divider Debouncing Register */
-	u32 ppddr;		/* 0x90 Pad Pull-down Disable Register */
-	u32 ppder;		/* 0x94 Pad Pull-down Enable Register */
-	u32 ppdsr;		/* 0x98 Pad Pull-down Status Register */
+	u32 ifscdr;	/* 0x80 Input Filter Slow Clock Disable Register */
+	u32 ifscer;	/* 0x84 Input Filter Slow Clock Enable Register */
+	u32 ifscsr;	/* 0x88 Input Filter Slow Clock Status Register */
+	u32 scdr;	/* 0x8C Slow Clock Divider Debouncing Register */
+	u32 ppddr;	/* 0x90 Pad Pull-down Disable Register */
+	u32 ppder;	/* 0x94 Pad Pull-down Enable Register */
+	u32 ppdsr;	/* 0x98 Pad Pull-down Status Register */
 	u32 reserved6;	/*  */
 #else
 	u32	reserved5[9];	/*  */
-#endif	
+#endif
 	u32	ower;		/* 0xA0 Output Write Enable Register */
 	u32	owdr;		/* 0xA4 Output Write Disable Register */
 	u32	owsr;		/* OxA8 Output Write Status Register */
 #if defined(CONFIG_AT91SAM9X5)
 	u32 reserved7;	/*  */
-	u32 aimer;		/* 0xB0 Additional Interrupt Modes Enable Register */
-	u32 aimdr;		/* 0xB4 Additional Interrupt Modes Disable Register */
-	u32 aimmr;		/* 0xB8 Additional Intterupt Modes Mask Register */
+	u32 aimer;	/* 0xB0 Additional Interrupt Modes Enable Register */
+	u32 aimdr;	/* 0xB4 Additional Interrupt Modes Disable Register */
+	u32 aimmr;	/* 0xB8 Additional Intterupt Modes Mask Register */
 	u32 reserved8;	/* */
 	u32 esr;		/* 0xC0 Edge Select Register */
 	u32 lsr;		/* 0xC4 Level Select Register */
 	u32 elsr;		/* 0xC8 Edge/Level Status Register */
 	u32 reserved9;	/* 0xCC */
-	u32 fellsr;		/* 0xD0 Falling Edge/Low Level Select Register */
-	u32 rehlsr;		/* 0xD4 Rising Edge/High Level Select Register */
-	u32 frlhsr;		/* 0xD8 Fall/Rise - Low/High Status Register */
+	u32 fellsr;	/* 0xD0 Falling Edge/Low Level Select Register */
+	u32 rehlsr;	/* 0xD4 Rising Edge/High Level Select Register */
+	u32 frlhsr;	/* 0xD8 Fall/Rise - Low/High Status Register */
 	u32 reserved10[9];	/* */
 	u32 schmitt;	/* 0x100 Schmitt Trigger Register */
 	u32 reserved11[63];
@@ -114,7 +114,7 @@ typedef struct at91_port {
 #endif
 } at91_port_t;
 
-#define		PIO_SCDR_DIV	(0x3fff <<  0)		/* Slow Clock Divider Mask */
+#define		PIO_SCDR_DIV	(0x3fff <<  0)	/* Slow Clock Divider Mask */
 
 #if defined(CONFIG_AT91SAM9260) || defined(CONFIG_AT91SAM9261) || \
 	defined(CONFIG_AT91SAM9G10) || defined(CONFIG_AT91SAM9G20)
@@ -127,6 +127,7 @@ typedef struct at91_port {
 #define AT91_PIO_PORTS	4
 #elif defined(CONFIG_AT91SAM9X5)
 #define AT91_PIO_PORTS	4
+#define CPU_HAS_PIO3	1
 #else
 #error "Unsupported cpu. Please update at91_pio.h"
 #endif
@@ -149,6 +150,13 @@ typedef union at91_pio {
 #ifdef CONFIG_AT91_GPIO
 int at91_set_a_periph(unsigned port, unsigned pin, int use_pullup);
 int at91_set_b_periph(unsigned port, unsigned pin, int use_pullup);
+#if defined(CPU_HAS_PIO3)
+int at91_set_c_periph(unsigned port, unsigned pin, int use_pullup);
+int at91_set_d_periph(unsigned port, unsigned pin, int use_pullup);
+int at91_set_pio_debounce(unsigned port, unsigned pin, int is_on, int div);
+int at91_set_pio_pulldown(unsigned port, unsigned pin, int is_on);
+int at91_set_pio_disable_schmitt_trig(unsigned port, unsigned pin);
+#endif
 int at91_set_pio_input(unsigned port, unsigned pin, int use_pullup);
 int at91_set_pio_multi_drive(unsigned port, unsigned pin, int is_on);
 int at91_set_pio_output(unsigned port, unsigned pin, int value);
@@ -192,15 +200,15 @@ int at91_get_pio_value(unsigned port, unsigned pin);
 #define PIO_PUER	0x64	/* Pull-up Enable Register */
 #define PIO_PUSR	0x68	/* Pull-up Status Register */
 #define PIO_ASR		0x70	/* Peripheral A Select Register */
-#define PIO_ABCDSR1	0x70	/* Peripheral ABCD Select Register 1 [some sam9 only] */
+#define PIO_ABCDSR1	0x70	/* Peripheral ABCD Select Register 1[sam9x5] */
 #define PIO_BSR		0x74	/* Peripheral B Select Register */
-#define PIO_ABCDSR2	0x74	/* Peripheral ABCD Select Register 2 [some sam9 only] */
+#define PIO_ABCDSR2	0x74	/* Peripheral ABCD Select Register 2[sam9x5] */
 #define PIO_ABSR	0x78	/* AB Status Register */
 #define PIO_IFSCDR	0x80	/* Input Filter Slow Clock Disable Register */
 #define PIO_IFSCER	0x84	/* Input Filter Slow Clock Enable Register */
 #define PIO_IFSCSR	0x88	/* Input Filter Slow Clock Status Register */
 #define PIO_SCDR	0x8c	/* Slow Clock Divider Debouncing Register */
-#define		PIO_SCDR_DIV	(0x3fff <<  0)		/* Slow Clock Divider Mask */
+#define		PIO_SCDR_DIV	(0x3fff <<  0)	/* Slow Clock Divider Mask */
 #define PIO_PPDDR	0x90	/* Pad Pull-down Disable Register */
 #define PIO_PPDER	0x94	/* Pad Pull-down Enable Register */
 #define PIO_PPDSR	0x98	/* Pad Pull-down Status Register */
