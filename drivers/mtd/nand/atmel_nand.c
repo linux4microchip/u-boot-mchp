@@ -753,8 +753,8 @@ static int atmel_nand_pmecc_read_page(struct mtd_info *mtd,
 	uint8_t *oob = chip->oob_poi;
 	uint32_t val;
 
-	pmecc_writel(host->ecc, CTRL, PMECC_CTRL_DISABLE);
 	pmecc_writel(host->ecc, CTRL, PMECC_CTRL_RST);
+	pmecc_writel(host->ecc, CTRL, PMECC_CTRL_DISABLE);
 
 	val = pmecc_readl(host->ecc, CFG);
 	/* Setup to read mode */
@@ -778,12 +778,6 @@ static int atmel_nand_pmecc_read_page(struct mtd_info *mtd,
 			err = -1;
 	}
 
-	pmecc_writel(host->ecc, CTRL, PMECC_CTRL_DISABLE);
-	val = pmecc_readl(host->ecc, CFG);
-	val &= ~PMECC_CFG_AUTO_ENABLE;
-	pmecc_writel(host->ecc, CFG, val);
-	pmecc_writel(host->ecc, CTRL, PMECC_CTRL_DISABLE);
-
 	return err;
 }
 
@@ -797,12 +791,13 @@ static void atmel_nand_pmecc_write_page(struct mtd_info *mtd,
 	uint32_t val;
 
 	pmecc_writel(host->ecc, CTRL, PMECC_CTRL_RST);
-	pmecc_writel(host->ecc, CTRL, PMECC_CTRL_ENABLE);
+	pmecc_writel(host->ecc, CTRL, PMECC_CTRL_DISABLE);
 
 	val = pmecc_readl(host->ecc, CFG);
 	val |= PMECC_CFG_WRITE_OP;
 	val &= ~PMECC_CFG_AUTO_ENABLE;
 	pmecc_writel(host->ecc, CFG, val);
+	pmecc_writel(host->ecc, CTRL, PMECC_CTRL_ENABLE);
 	pmecc_writel(host->ecc, CTRL, PMECC_CTRL_DATA);
 	chip->write_buf(mtd, buf, mtd->writesize);
 
