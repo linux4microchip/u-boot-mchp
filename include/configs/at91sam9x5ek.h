@@ -3,7 +3,7 @@
  * Stelian Pop <stelian.pop@leadtechdesign.com>
  * Lead Tech Design <www.leadtechdesign.com>
  *
- * Configuation settings for the AT91SAM9M10G45EK board(and AT91SAM9G45EKES).
+ * Configuation settings for the AT91SAM9X5EK board.
  *
  * See file CREDITS for list of people who contributed to this
  * project.

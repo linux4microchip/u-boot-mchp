@@ -95,6 +95,23 @@ Environment variables
 
 
 ------------------------------------------------------------------------------
+AT91SAM9X5EK
+------------------------------------------------------------------------------
+
+Memory map
+	0x20000000 - 27FFFFFF	SDRAM (128 MB)
+	0x10000000 - 1xxxxxxx	Soldered Atmel Dataflash (SW1-2)
+
+Environment variables
+
+	U-Boot environment variables can be stored at different places:
+		- Nand flash.
+
+	You can choose your storage location at config step (here for at91sam9x5ek) :
+		make at91sam9x5ek_config			- use nand flash (default)
+
+
+------------------------------------------------------------------------------
 AT91SAM9RLEK
 ------------------------------------------------------------------------------
 
