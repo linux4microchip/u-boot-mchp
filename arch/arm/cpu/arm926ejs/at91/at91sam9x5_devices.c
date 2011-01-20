@@ -138,6 +138,68 @@ void at91_serial_hw_init(void)
 #endif
 }
 
+#ifdef CONFIG_ATMEL_SPI
+void at91_spi0_hw_init(unsigned long cs_mask)
+{
+	at91_pmc_t	*pmc = (at91_pmc_t *) AT91_PMC_BASE;
+	writel(1 << AT91SAM9X5_ID_PIOAB, &pmc->pcer);
+
+	at91_set_a_periph(AT91_PIO_PORTA, 11, 0);	/* SPI0_MISO */
+	at91_set_a_periph(AT91_PIO_PORTA, 12, 0);	/* SPI0_MOSI */
+	at91_set_a_periph(AT91_PIO_PORTA, 13, 0);	/* SPI0_SPCK */
+
+	/* Enable clock */
+	writel(1 << AT91SAM9X5_ID_SPI0, &pmc->pcer);
+
+	if (cs_mask & (1 << 0))
+		at91_set_a_periph(AT91_PIO_PORTA, 14, 0);
+	if (cs_mask & (1 << 1))
+		at91_set_b_periph(AT91_PIO_PORTA, 7, 0);
+	if (cs_mask & (1 << 2))
+		at91_set_b_periph(AT91_PIO_PORTA, 1, 0);
+	if (cs_mask & (1 << 3))
+		at91_set_b_periph(AT91_PIO_PORTB, 3, 0);
+	if (cs_mask & (1 << 4))
+		at91_set_pio_output(AT91_PIO_PORTA, 14, 0);
+	if (cs_mask & (1 << 5))
+		at91_set_pio_output(AT91_PIO_PORTA, 7, 0);
+	if (cs_mask & (1 << 6))
+		at91_set_pio_output(AT91_PIO_PORTA, 1, 0);
+	if (cs_mask & (1 << 7))
+		at91_set_pio_output(AT91_PIO_PORTB, 3, 0);
+}
+
+void at91_spi1_hw_init(unsigned long cs_mask)
+{
+	at91_pmc_t	*pmc = (at91_pmc_t *) AT91_PMC_BASE;
+	writel(1 << AT91SAM9X5_ID_PIOAB, &pmc->pcer);
+
+	at91_set_b_periph(AT91_PIO_PORTA, 21, 0);	/* SPI1_MISO */
+	at91_set_b_periph(AT91_PIO_PORTA, 22, 0);	/* SPI1_MOSI */
+	at91_set_b_periph(AT91_PIO_PORTA, 23, 0);	/* SPI1_SPCK */
+
+	/* Enable clock */
+	writel(1 << AT91SAM9X5_ID_SPI1, &pmc->pcer);
+
+	if (cs_mask & (1 << 0))
+		at91_set_b_periph(AT91_PIO_PORTA, 8, 0);
+	if (cs_mask & (1 << 1))
+		at91_set_b_periph(AT91_PIO_PORTA, 0, 0);
+	if (cs_mask & (1 << 2))
+		at91_set_b_periph(AT91_PIO_PORTA, 31, 0);
+	if (cs_mask & (1 << 3))
+		at91_set_b_periph(AT91_PIO_PORTA, 30, 0);
+	if (cs_mask & (1 << 4))
+		at91_set_pio_output(AT91_PIO_PORTA, 8, 0);
+	if (cs_mask & (1 << 5))
+		at91_set_pio_output(AT91_PIO_PORTA, 0, 0);
+	if (cs_mask & (1 << 6))
+		at91_set_pio_output(AT91_PIO_PORTA, 31, 0);
+	if (cs_mask & (1 << 7))
+		at91_set_pio_output(AT91_PIO_PORTA, 30, 0);
+}
+#endif
+
 #ifdef CONFIG_MACB
 void at91_macb_hw_init(void)
 {

@@ -25,6 +25,33 @@
 #define AT45_STATUS_P2_PAGE_SIZE	(1 << 0)
 #define AT45_STATUS_READY		(1 << 7)
 
+/* AT25-specific commands */
+#define CMD_AT25_READ_STATUS		0x05
+#define CMD_AT25_WRITE_STATUS		0x01
+
+#define CMD_AT25_BYTE_PAGE_PROGRAM	0x02
+#define CMD_AT25_ERASE_BLOCK_4K		0x20
+#define CMD_AT25_ERASE_BLOCK_32K	0x52
+#define CMD_AT25_ERASE_BLOCK_64K	0xD8
+
+#define CMD_AT25_WRITE_ENABLE	0x06
+#define CMD_AT25_WRITE_DISABLE	0x04
+
+/* AT25 status register bits */
+#define AT25_STATUS_READYBUSY		(1 << 0)
+#define AT25_STATUS_READYBUSY_READY	(0 << 0)
+#define AT25_STATUS_READYBUSY_BUSY	(1 << 0)
+#define AT25_ERASE_PROGRAM_ERROR	(1 << 5)
+#define AT25_STATUS_SWP			(3 << 2)
+#define AT25_STATUS_SWP_PROTECTALL	(3 << 2)
+#define AT25_STATUS_SWP_PROTECTSOME	(1 << 2)
+#define AT25_STATUS_SWP_PROTECTNONE	(0 << 2)
+#define AT25_STATUS_SPRL		(1 << 7)
+#define AT25_STATUS_SPRL_UNLOCKED	(0 << 7)
+#define AT25_STATUS_SPRL_LOCKED		(1 << 7)
+
+#define BLOCK_SIZE_4K		(4 * 1024)
+
 /* DataFlash family IDs, as obtained from the second idcode byte */
 #define DF_FAMILY_AT26F			0
 #define DF_FAMILY_AT45			1
@@ -108,6 +135,14 @@ static const struct atmel_spi_flash_params atmel_spi_flash_table[] = {
 		.blocks_per_sector	= 32,
 		.nr_sectors		= 32,
 		.name			= "AT45DB642D",
+	},
+	{
+		.idcode1		= 0x47,
+		.l2_page_size		= 8,	/* 256 bytes per page */
+		.pages_per_block	= 16,	/* 4k bytes per block */
+		.blocks_per_sector	= 16,	/* 64k bytes per sector*/
+		.nr_sectors		= 64,	/* 64 sectors */
+		.name			= "AT25DF321",
 	},
 };
 
@@ -464,6 +499,259 @@ out:
 	return ret;
 }
 
+static int at25_read_status(struct spi_flash *flash)
+{
+	struct spi_slave *spi = flash->spi;
+	int ret;
+	u8 cmd = CMD_AT25_READ_STATUS;
+	u8 status;
+
+	ret = spi_flash_cmd_read(spi, &cmd, 1, &status, 1);
+
+	if (ret < 0) {
+		debug("SF: Error occured when read AT25 status\n");
+		return ret;
+	} else
+		return status;
+}
+
+static int at25_wait_ready(struct spi_flash *flash, unsigned long timeout)
+{
+	unsigned long timebase;
+	int ret;
+	u8 status;
+
+	timebase = get_timer(0);
+
+	do {
+		ret = at25_read_status(flash);
+		if (ret < 0)
+			return -1;
+		else
+			status = ret;
+
+		if ((status & AT25_STATUS_READYBUSY)
+				== AT25_STATUS_READYBUSY_READY)
+			break;
+	} while (get_timer(timebase) < timeout);
+
+	if ((status & AT25_STATUS_READYBUSY) == AT25_STATUS_READYBUSY_READY)
+		return 0;
+
+	/* Timed out */
+	return -1;
+}
+
+static int at25_write_status(struct spi_flash *flash, u8 data)
+{
+	struct spi_slave *spi = flash->spi;
+	u8 cmd = CMD_AT25_WRITE_STATUS;
+
+	return spi_flash_cmd_write(spi, &cmd, 1, &data, 1);
+}
+
+static int at25_write_enable(struct spi_flash *flash, int is_enable)
+{
+	struct spi_slave *spi = flash->spi;
+	int ret;
+	u8 cmd;
+
+	if (is_enable)
+		cmd = CMD_AT25_WRITE_ENABLE;
+	else
+		cmd = CMD_AT25_WRITE_DISABLE;
+
+	ret = spi_xfer(spi, 8, &cmd, NULL, SPI_XFER_BEGIN);
+	if (ret)
+		return -1;
+
+	/* Deactivate CS */
+	spi_xfer(spi, 0, NULL, NULL, SPI_XFER_END);
+
+	return 0;
+}
+
+static int at25_unprotect(struct spi_flash *flash)
+{
+	int ret;
+	u8 status;
+	u8 cmd = CMD_AT25_WRITE_STATUS;
+
+	ret = at25_read_status(flash);
+	if (ret < 0)
+		debug("SF: Read AT25 status failed\n");
+	else
+		status = ret;
+
+	if ((status & AT25_STATUS_SWP) == AT25_STATUS_SWP_PROTECTNONE) {
+		/* Protection already disabled */
+		return 0;
+	}
+
+	/* Check if sector protection registers are locked */
+	if ((status & AT25_STATUS_SPRL) == AT25_STATUS_SPRL_LOCKED) {
+		/* Unprotect sector protection registers. */
+		at25_write_enable(flash, 1);
+		at25_write_status(flash, 0);
+	}
+
+	/* Perform a global unprotect command */
+	at25_write_enable(flash, 1);
+	at25_write_status(flash, 0);
+
+	/* Check the new status */
+	status = at25_read_status(flash);
+	if (ret < 0)
+		return -1;
+
+	if ((status & (AT25_STATUS_SPRL | AT25_STATUS_SWP)) != 0) {
+		debug("SF: Unprotect AT25 failed\n");
+		return -1;
+	} else
+		return 0;
+}
+
+int dataflash_erase_block_at25(struct spi_flash *flash, u32 offset)
+{
+	/* Using 4k block erase. */
+	u32 addr = offset;
+	int ret;
+	u8 cmd[4];
+
+	if (offset % BLOCK_SIZE_4K != 0)
+		return -1;
+
+	ret = at25_write_enable(flash, 1);
+	if (ret < 0) {
+		debug("SF: Enable write AT25 failed\n");
+		return ret;
+	}
+
+	cmd[0] = CMD_AT25_ERASE_BLOCK_4K;
+	cmd[1] = addr >> 16;
+	cmd[2] = addr >> 8;
+	cmd[3] = addr;
+	ret = spi_flash_cmd_write(flash->spi, cmd, 4, NULL, 0);
+	if (ret < 0) {
+		debug("SF: AT25 4k block erase failed\n");
+		return ret;
+	}
+
+	ret = at25_wait_ready(flash, SPI_FLASH_PAGE_ERASE_TIMEOUT);
+	if (ret < 0) {
+		debug("SF: AT25 4k block erase timed out\n");
+		return ret;
+	}
+
+	return ret;
+}
+
+int dataflash_erase_at25(struct spi_flash *flash, u32 offset, size_t len)
+{
+	struct atmel_spi_flash *asf = to_atmel_spi_flash(flash);
+	int ret;
+	u8 cmd[4];
+	u8 status;
+	u32 addr;
+
+	/*
+	 * TODO: This function currently uses 4k block erase only. We can
+	 * probably speed things up by using 32k/64k block erase or chip
+	 * erase when possible.
+	 */
+
+	if (offset % BLOCK_SIZE_4K || len % BLOCK_SIZE_4K) {
+		debug("SF: Erase offset/length not multiple of block size\n");
+		return -1;
+	}
+
+	ret = spi_claim_bus(flash->spi);
+	if (ret) {
+		debug("SF: Unable to claim SPI bus\n");
+		return ret;
+	}
+
+	ret = at25_unprotect(flash);
+	if (ret < 0)
+		goto out;
+
+	/* Use 4k block erase. */
+	for (addr = offset; addr < offset + len; addr += BLOCK_SIZE_4K) {
+		if (offset % BLOCK_SIZE_4K != 0)
+			addr = (addr >> 12) << 12;	/* 4k size align. */
+
+		ret = dataflash_erase_block_at25(flash, addr);
+		if (ret < 0)
+			goto out;
+	}
+
+	debug("SF: AT25: Successfully erased %zu bytes @ 0x%x\n",
+			len, offset);
+	ret = 0;
+out:
+	spi_release_bus(flash->spi);
+	return ret;
+}
+
+int dataflash_write_at25(struct spi_flash *flash,
+		u32 offset, size_t len, const void *buf)
+{
+	struct atmel_spi_flash *asf = to_atmel_spi_flash(flash);
+	unsigned long page_size;
+	size_t chunk_len;
+	size_t actual;
+	int ret;
+	u8 status;
+	u32 addr;
+	u8 cmd[4];
+	u8 *data = buf;
+
+	page_size = 1 << (asf->params->l2_page_size);
+
+	ret = spi_claim_bus(flash->spi);
+	if (ret) {
+		debug("SF: Unable to claim SPI bus\n");
+		return ret;
+	}
+
+	ret = at25_read_status(flash);
+	if (ret < 0)
+		goto out;
+	else
+		status = ret;
+
+	/* Using page programming. */
+	for (actual = 0; actual < len; actual += chunk_len, data += chunk_len) {
+		chunk_len = min(page_size, len - actual);
+		/* using page programming. */
+		ret = at25_write_enable(flash, 1);
+		if (ret < 0)
+			goto out;
+
+		addr = offset + actual;
+		cmd[0] = CMD_AT25_BYTE_PAGE_PROGRAM;
+		cmd[1] = addr >> 16;
+		cmd[2] = addr >> 8;
+		cmd[3] = addr;
+
+		ret = spi_flash_cmd_write(flash->spi, cmd, 4, data, chunk_len);
+		if (ret < 0) {
+			debug("SF: Page programming AT25 failed\n");
+			goto out;
+		}
+
+		ret = at25_wait_ready(flash, SPI_FLASH_PAGE_ERASE_TIMEOUT);
+		if (ret < 0) {
+			debug("SF: AT25 page programming timed out\n");
+			goto out;
+		}
+	}
+
+out:
+	spi_release_bus(flash->spi);
+	return 0;
+}
+
 struct spi_flash *spi_flash_probe_atmel(struct spi_slave *spi, u8 *idcode)
 {
 	const struct atmel_spi_flash_params *params;
@@ -529,6 +817,8 @@ struct spi_flash *spi_flash_probe_atmel(struct spi_slave *spi, u8 *idcode)
 	case DF_FAMILY_AT26F:
 	case DF_FAMILY_AT26DF:
 		asf->flash.read = dataflash_read_fast_p2;
+		asf->flash.write = dataflash_write_at25;
+		asf->flash.erase = dataflash_erase_at25;
 		break;
 
 	default:

@@ -259,6 +259,43 @@ void lcd_show_board_info(void)
 #endif /* CONFIG_LCD_INFO */
 #endif /* CONFIG_LCD */
 
+/* SPI chip select control */
+#ifdef CONFIG_ATMEL_SPI
+#include <spi.h>
+
+int spi_cs_is_valid(unsigned int bus, unsigned int cs)
+{
+	return bus == 0 && cs < 2;
+}
+
+void spi_cs_activate(struct spi_slave *slave)
+{
+	switch (slave->cs) {
+	case 1:
+		at91_set_gpio_output(AT91_PIN_PA7, 0);
+		break;
+	case 0:
+	default:
+		at91_set_gpio_output(AT91_PIN_PA14, 0);
+		break;
+	}
+}
+
+void spi_cs_deactivate(struct spi_slave *slave)
+{
+	switch (slave->cs) {
+	case 1:
+		at91_set_gpio_output(AT91_PIN_PA7, 1);
+		break;
+	case 0:
+	default:
+		at91_set_gpio_output(AT91_PIN_PA14, 1);
+		break;
+	}
+}
+#endif /* CONFIG_ATMEL_SPI */
+
+
 int board_init(void)
 {
 	/* Enable Ctrlc */
@@ -273,6 +310,11 @@ int board_init(void)
 	at91_serial_hw_init();
 #ifdef CONFIG_CMD_NAND
 	at91sam9x5ek_nand_hw_init();
+#endif
+
+#ifdef CONFIG_ATMEL_SPI
+	at91_spi0_hw_init(1 << 0);
+	at91_spi0_hw_init(1 << 4);
 #endif
 
 #ifdef CONFIG_MACB

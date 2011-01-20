@@ -2867,11 +2867,20 @@ at91sam9g45ekes_config	:	unconfig
 	fi;
 	@$(MKCONFIG) -a at91sam9m10g45ek arm arm926ejs at91sam9m10g45ek atmel at91
 
-
+at91sam9x5ek_nandflash_config \
+at91sam9x5ek_dataflash_config \
 at91sam9x5ek_config	:	unconfig
 	@mkdir -p $(obj)include
-	echo "#define CONFIG_AT91SAM9X5EK 1"	>>$(obj)include/config.h ; \
+	@echo "#define CONFIG_AT91SAM9X5EK 1"	>>$(obj)include/config.h ; \
 	$(XECHO) "... 9X5 Variant" ; \
+
+	@if [ "$(findstring _dataflash,$@)" ] ; then \
+		echo "#define CONFIG_ATMEL_SPI 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in SPI DATAFLASH CS0" ; \
+	else \
+		echo "#define CONFIG_SYS_USE_NANDFLASH 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in NAND FLASH" ; \
+	fi;
 
 	@$(MKCONFIG) -a at91sam9x5ek arm arm926ejs at91sam9x5ek atmel at91
 

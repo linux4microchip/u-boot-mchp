@@ -121,6 +121,7 @@
 #define CONFIG_SPI_FLASH		1
 #define CONFIG_SPI_FLASH_ATMEL		1
 #define CONFIG_SYS_MAX_DATAFLASH_BANKS	1
+#define CONFIG_SYS_USE_DATAFLASH	1
 #endif
 
 /* no NOR flash */
@@ -168,12 +169,12 @@
 
 /* bootstrap + u-boot + env + linux in dataflash on CS0 */
 #define CONFIG_ENV_IS_IN_SPI_FLASH	1
-#define CONFIG_SYS_MONITOR_BASE	(0xC0000000 + 0x8400)
-#define CONFIG_ENV_OFFSET		0x4200
-#define CONFIG_ENV_ADDR		(0xC0000000 + CONFIG_ENV_OFFSET)
+#define CONFIG_SYS_MONITOR_BASE	(0x10000000 + 0x8400)
+#define CONFIG_ENV_OFFSET		0x5000
+#define CONFIG_ENV_ADDR		(0x10000000 + CONFIG_ENV_OFFSET)
 #define CONFIG_ENV_SIZE		0x4200
 #define CONFIG_ENV_SECT_SIZE		0x10000
-#define CONFIG_BOOTCOMMAND	"cp.b 0xC0042000 0x22000000 0x210000; bootm"
+#define CONFIG_BOOTCOMMAND	"cp.b 0x10042000 0x22000000 0x200000; bootm"
 #define CONFIG_BOOTARGS		"console=ttyS0,115200 " \
 				"root=/dev/mtdblock0 " \
 				"mtdparts=atmel_nand:-(root) "\

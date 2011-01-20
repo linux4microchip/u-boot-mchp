@@ -34,7 +34,7 @@
 #define AT91SAM9X5_ID_TWI2	11	/* Two-Wire Interface 2 */
 #define AT91SAM9X5_ID_HSMCI0	12	/* High Speed Multimedia Card Interface 0 */
 #define AT91SAM9X5_ID_SPI0	13	/* Serial Peripheral Interface 0 */
-#define AT91SAM9X5_ID_SPI	14	/* Serial Peripheral Interface 1 */
+#define AT91SAM9X5_ID_SPI1	14	/* Serial Peripheral Interface 1 */
 #define AT91SAM9X5_ID_UART0	15	/* UART 0 */
 #define AT91SAM9X5_ID_UART1	16	/* UART 1 */
 #define AT91SAM9X5_ID_TC01	17	/* Timer Counter 0, 1, 2, 3, 4 and 5 */
