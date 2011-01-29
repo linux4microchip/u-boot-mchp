@@ -43,6 +43,29 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#ifdef CONFIG_LOAD_ONE_WIRE_INFO
+static u32 system_rev;
+static u32 system_serial_low;
+
+u32 get_board_rev(void)
+{
+	return system_rev;
+}
+
+void get_board_serial(struct tag_serialnr *serialnr)
+{
+	serialnr->high = 0;	/* Not used */
+	serialnr->low = system_serial_low;
+}
+
+void load_1wire_info(void)
+{
+	/* serial is in GPBR #2 and revision is in GPBR #3 */
+	system_serial_low = at91_sys_read(AT91_GPBR + 4 * 2);
+	system_rev = at91_sys_read(AT91_GPBR + 4 * 3);
+}
+
+#endif
 /* ------------------------------------------------------------------------- */
 /*
  * Miscelaneous platform dependent initialisations
@@ -308,6 +331,11 @@ int board_init(void)
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
 
 	at91_serial_hw_init();
+
+#ifdef CONFIG_LOAD_ONE_WIRE_INFO
+	load_1wire_info();
+#endif
+
 #ifdef CONFIG_CMD_NAND
 	at91sam9x5ek_nand_hw_init();
 #endif

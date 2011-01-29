@@ -43,6 +43,12 @@
 #define CONFIG_SETUP_MEMORY_TAGS 1
 #define CONFIG_INITRD_TAG	1
 
+#define CONFIG_LOAD_ONE_WIRE_INFO	1
+#ifdef CONFIG_LOAD_ONE_WIRE_INFO
+#define CONFIG_REVISION_TAG	1       /* get the one-wire board information */
+#define CONFIG_SERIAL_TAG	1
+#endif
+
 #define CONFIG_SKIP_LOWLEVEL_INIT
 #define CONFIG_SKIP_RELOCATE_UBOOT
 
