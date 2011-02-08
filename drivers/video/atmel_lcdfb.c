@@ -202,11 +202,11 @@ void lcd_9x5_ctrl_init(void *lcdbase)
 	/* Setup the DMA descriptor, this descriptor will loop to itself */
 	desc = (lcd_dma_desc *)(lcdbase - 16);
 
-	desc->address = lcdbase;
+	desc->address = (u32)lcdbase;
 	/* Disable DMA transfer interrupt & descriptor loaded interrupt. */
 	desc->control = LCDC_BASECTRL_ADDIEN | LCDC_BASECTRL_DSCRIEN
 			| LCDC_BASECTRL_DMAIEN | LCDC_BASECTRL_DFETCH;
-	desc->next = desc;
+	desc->next = (u32)desc;
 
 	lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASEADDR, desc->address);
 	lcdc_writel(panel_info.mmio, ATMEL_LCDC_BASECTRL, desc->control);
