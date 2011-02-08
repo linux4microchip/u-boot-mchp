@@ -1017,7 +1017,12 @@ static void at91_nand_hwcontrol(struct mtd_info *mtd,
 		writeb(cmd, this->IO_ADDR_W);
 }
 
-#ifdef CONFIG_SYS_NAND_READY_PIN
+#ifdef CONFIG_SYS_NAND_ALT_READY_PIN
+static int at91_nand_ready(struct mtd_info *mtd)
+{
+	return at91_get_gpio_value(CONFIG_SYS_NAND_ALT_READY_PIN);
+}
+#elif defined(CONFIG_SYS_NAND_READY_PIN)
 static int at91_nand_ready(struct mtd_info *mtd)
 {
 	return at91_get_gpio_value(CONFIG_SYS_NAND_READY_PIN);
@@ -1031,7 +1036,7 @@ int board_nand_init(struct nand_chip *nand)
 	nand->options = NAND_BUSWIDTH_16;
 #endif
 	nand->cmd_ctrl = at91_nand_hwcontrol;
-#ifdef CONFIG_SYS_NAND_READY_PIN
+#if defined(CONFIG_SYS_NAND_READY_PIN) || defined(CONFIG_SYS_NAND_ALT_READY_PIN)
 	nand->dev_ready = at91_nand_ready;
 #endif
 	nand->chip_delay = 20;

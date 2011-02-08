@@ -34,6 +34,7 @@
 #include <asm/arch/gpio.h>
 #include <asm/arch/io.h>
 #include <asm/arch/hardware.h>
+#include <asm/arch/one_wire_info.h>
 #include <lcd.h>
 #include <atmel_lcdc.h>
 #if defined(CONFIG_RESET_PHY_R) && defined(CONFIG_MACB)
@@ -65,7 +66,15 @@ void load_1wire_info(void)
 	system_rev = at91_sys_read(AT91_GPBR + 4 * 3);
 }
 
+
+#define nand_nfd0_on_d16(rev)	(cm_rev(rev) > 0)
+#define nand_alt_rdy_busy(rev)	(cm_rev(rev) > 0)
+#else
+/* If no One Wire information: assume we are using revA boards */
+#define nand_nfd0_on_d16(rev)	0
+#define nand_alt_rdy_busy(rev)	0
 #endif
+
 /* ------------------------------------------------------------------------- */
 /*
  * Miscelaneous platform dependent initialisations
@@ -78,15 +87,15 @@ static void at91sam9x5ek_nand_hw_init(void)
 	/* Enable CS3 */
 	csa = at91_sys_read(AT91_MATRIX_EBICSA);
 
-#if CONFIG_SYS_NAND_NFD0_ON_D16
-	csa |= AT91_MATRIX_NFD0_ON_D16;
+	if (nand_nfd0_on_d16(system_rev)) {
+		csa |= AT91_MATRIX_NFD0_ON_D16;
 #ifndef CONFIG_SYS_NAND_DBW_16
-	csa |= AT91_MATRIX_MP_ON;
+		csa |= AT91_MATRIX_MP_ON;
 #endif
-#else
-	csa &= ~AT91_MATRIX_NFD0_ON_D16;
-	csa &= ~AT91_MATRIX_MP_ON;
-#endif
+	} else {
+		csa &= ~AT91_MATRIX_NFD0_ON_D16;
+		csa &= ~AT91_MATRIX_MP_ON;
+	}
 	/* Configure IO drive */
 	csa &= ~AT91_MATRIX_EBI_EBI_IOSR;
 
@@ -115,7 +124,10 @@ static void at91sam9x5ek_nand_hw_init(void)
 	at91_sys_write(AT91_PMC_PCER, 1 << AT91SAM9X5_ID_PIOCD);
 
 	/* Configure RDY/BSY */
-	at91_set_gpio_input(CONFIG_SYS_NAND_READY_PIN, 1);
+	if (nand_alt_rdy_busy(system_rev))
+		at91_set_gpio_input(CONFIG_SYS_NAND_ALT_READY_PIN, 1);
+	else
+		at91_set_gpio_input(CONFIG_SYS_NAND_READY_PIN, 1);
 
 	/* Enable NandFlash */
 	at91_set_gpio_output(CONFIG_SYS_NAND_ENABLE_PIN, 1);
@@ -125,16 +137,16 @@ static void at91sam9x5ek_nand_hw_init(void)
 	at91_set_a_periph(AT91_PIO_PORTD, 2, 1);	/* ALE */
 	at91_set_a_periph(AT91_PIO_PORTD, 3, 1);	/* CLE */
 
-#if CONFIG_SYS_NAND_NFD0_ON_D16
-	at91_set_a_periph(AT91_PIO_PORTD, 6, 1);
-	at91_set_a_periph(AT91_PIO_PORTD, 7, 1);
-	at91_set_a_periph(AT91_PIO_PORTD, 8, 1);
-	at91_set_a_periph(AT91_PIO_PORTD, 9, 1);
-	at91_set_a_periph(AT91_PIO_PORTD, 10, 1);
-	at91_set_a_periph(AT91_PIO_PORTD, 11, 1);
-	at91_set_a_periph(AT91_PIO_PORTD, 12, 1);
-	at91_set_a_periph(AT91_PIO_PORTD, 13, 1);
-#endif
+	if (nand_nfd0_on_d16(system_rev)) {
+		at91_set_a_periph(AT91_PIO_PORTD, 6, 1);
+		at91_set_a_periph(AT91_PIO_PORTD, 7, 1);
+		at91_set_a_periph(AT91_PIO_PORTD, 8, 1);
+		at91_set_a_periph(AT91_PIO_PORTD, 9, 1);
+		at91_set_a_periph(AT91_PIO_PORTD, 10, 1);
+		at91_set_a_periph(AT91_PIO_PORTD, 11, 1);
+		at91_set_a_periph(AT91_PIO_PORTD, 12, 1);
+		at91_set_a_periph(AT91_PIO_PORTD, 13, 1);
+	}
 }
 #endif
 
