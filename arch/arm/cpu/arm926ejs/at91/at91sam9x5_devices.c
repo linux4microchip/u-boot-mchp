@@ -23,6 +23,7 @@
  */
 
 #include <common.h>
+#include <asm/arch/at91sam9x5.h>
 #include <asm/arch/at91_common.h>
 #include <asm/arch/at91_pmc.h>
 #include <asm/arch/gpio.h>
@@ -30,18 +31,6 @@
 
 #include <asm/arch/memory-map.h>
 #include <../drivers/serial/atmel_usart.h>
-
-#define cpu_is_at91sam9x5()	(get_chip_id() == ARCH_ID_AT91SAM9X5)
-#define cpu_is_at91sam9g15()	(cpu_is_at91sam9x5() && \
-			(get_extension_chip_id() == ARCH_EXID_AT91SAM9G15))
-#define cpu_is_at91sam9g25()	(cpu_is_at91sam9x5() && \
-			(get_extension_chip_id() == ARCH_EXID_AT91SAM9G25))
-#define cpu_is_at91sam9g35()	(cpu_is_at91sam9x5() && \
-			(get_extension_chip_id() == ARCH_EXID_AT91SAM9G35))
-#define cpu_is_at91sam9x25()	(cpu_is_at91sam9x5() && \
-			(get_extension_chip_id() == ARCH_EXID_AT91SAM9X25))
-#define cpu_is_at91sam9x35()	(cpu_is_at91sam9x5() && \
-			(get_extension_chip_id() == ARCH_EXID_AT91SAM9X35))
 
 unsigned int get_chip_id(void)
 {

@@ -70,6 +70,18 @@
 #define ARCH_EXID_AT91SAM9G25	0x00000003
 #define ARCH_EXID_AT91SAM9X25	0x00000004
 
+#define cpu_is_at91sam9x5()	(get_chip_id() == ARCH_ID_AT91SAM9X5)
+#define cpu_is_at91sam9g15()	(cpu_is_at91sam9x5() && \
+			(get_extension_chip_id() == ARCH_EXID_AT91SAM9G15))
+#define cpu_is_at91sam9g25()	(cpu_is_at91sam9x5() && \
+			(get_extension_chip_id() == ARCH_EXID_AT91SAM9G25))
+#define cpu_is_at91sam9g35()	(cpu_is_at91sam9x5() && \
+			(get_extension_chip_id() == ARCH_EXID_AT91SAM9G35))
+#define cpu_is_at91sam9x25()	(cpu_is_at91sam9x5() && \
+			(get_extension_chip_id() == ARCH_EXID_AT91SAM9X25))
+#define cpu_is_at91sam9x35()	(cpu_is_at91sam9x5() && \
+			(get_extension_chip_id() == ARCH_EXID_AT91SAM9X35))
+
 #ifdef CONFIG_AT91_LEGACY
 /*
  * User Peripheral physical base addresses.
@@ -201,5 +213,15 @@
 #define CONFIG_SYS_AT91_X25_CPU_NAME	"AT91SAM9X25"
 #define CONFIG_SYS_AT91_X35_CPU_NAME	"AT91SAM9X35"
 #define CONFIG_SYS_AT91_UNKNOWN_CPU		"Unknown CPU type"
+
+/*
+ * at91sam9x5 specific prototypes
+ */
+unsigned int get_chip_id(void);
+unsigned int get_extension_chip_id(void);
+unsigned int has_emac1(void);
+unsigned int has_emac0(void);
+unsigned int has_lcdc(void);
+char *get_cpu_name(void);
 
 #endif
