@@ -152,8 +152,8 @@
 /* PMECC & PMERRLOC */
 #define CONFIG_SYS_NAND_PMECC_BASE	AT91_PMECC
 #define CONFIG_SYS_NAND_PMERRLOC_BASE	AT91_PMERRLOC
-#define CONFIG_ATMEL_NAND_HWECC		1
-#define CONFIG_ATMEL_NAND_HW_PMECC	1
+//#define CONFIG_ATMEL_NAND_HWECC		1
+//#define CONFIG_ATMEL_NAND_HW_PMECC	1
 #endif
 
 /* Ethernet */
@@ -180,11 +180,12 @@
 #define CONFIG_ENV_ADDR		(0x10000000 + CONFIG_ENV_OFFSET)
 #define CONFIG_ENV_SIZE		0x3000
 #define CONFIG_ENV_SECT_SIZE		0x10000
-#define CONFIG_BOOTCOMMAND	"cp.b 0x10042000 0x22000000 0x200000; bootm"
-#define CONFIG_BOOTARGS		"console=ttyS0,115200 " \
-				"root=/dev/mtdblock0 " \
-				"mtdparts=atmel_nand:-(root) "\
-				"rw rootfstype=jffs2"
+#define CONFIG_BOOTCOMMAND	"nand read.jffs2 0x22000000 0x200000 0x200000; " \
+				"bootm 0x22000000"
+#define CONFIG_BOOTARGS		"mem=128M console=ttyS0,115200 " \
+				"mtdparts=atmel_nand:4M(bootstrap/uboot/kernel)ro,60M(rootfs),-(data) " \
+				"root=/dev/mtdblock1 rw rootfstype=jffs2 " \
+				"atmel_nand.use_dma=0"
 
 #else /* CONFIG_SYS_USE_NANDFLASH */
 
