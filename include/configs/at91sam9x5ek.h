@@ -176,17 +176,16 @@
 /* bootstrap + u-boot + env + linux in dataflash on CS0 */
 #define CONFIG_ENV_IS_IN_SPI_FLASH	1
 #define CONFIG_SYS_MONITOR_BASE	(0x10000000 + 0x8400)
-#define CONFIG_ENV_OFFSET		0x5000
+#define CONFIG_ENV_OFFSET	0x5000
 #define CONFIG_ENV_ADDR		(0x10000000 + CONFIG_ENV_OFFSET)
 #define CONFIG_ENV_SIZE		0x3000
-#define CONFIG_ENV_SECT_SIZE		0x10000
-#define CONFIG_BOOTCOMMAND	"nand read.jffs2 0x22000000 0x200000 0x200000; " \
+#define CONFIG_ENV_SECT_SIZE	0x1000
+#define CONFIG_BOOTCOMMAND	"sf probe 0; " \
+				"sf read 0x22000000 0x42000 0x200000; " \
 				"bootm 0x22000000"
 #define CONFIG_BOOTARGS		"mem=128M console=ttyS0,115200 " \
 				"mtdparts=atmel_nand:4M(bootstrap/uboot/kernel)ro,60M(rootfs),-(data) " \
-				"root=/dev/mtdblock1 rw rootfstype=jffs2 " \
-				"atmel_nand.use_dma=0"
-
+				"root=/dev/mtdblock1 rw rootfstype=jffs2 "
 #else /* CONFIG_SYS_USE_NANDFLASH */
 
 /* bootstrap + u-boot + env + linux in nandflash */
