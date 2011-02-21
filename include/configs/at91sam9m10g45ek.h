@@ -116,6 +116,8 @@
 #define CONFIG_SPI_FLASH		1
 #define CONFIG_SPI_FLASH_ATMEL		1
 #define CONFIG_SYS_MAX_DATAFLASH_BANKS	1
+#define CONFIG_SYS_USE_DATAFLASH	1
+#define CONFIG_ENV_SPI_MODE		SPI_MODE_0
 #endif
 
 /* NOR flash, if populated */
@@ -176,8 +178,10 @@
 #define CONFIG_ENV_OFFSET		0x4200
 #define CONFIG_ENV_ADDR		(0xC0000000 + CONFIG_ENV_OFFSET)
 #define CONFIG_ENV_SIZE		0x4200
-#define CONFIG_ENV_SECT_SIZE		0x10000
-#define CONFIG_BOOTCOMMAND	"cp.b 0xC0042000 0x22000000 0x210000; bootm"
+#define CONFIG_ENV_SECT_SIZE		0x2100
+#define CONFIG_BOOTCOMMAND	"sf probe 0; " \
+				"sf read 0x72200000 0x42000 0x200000; " \
+				"bootm 0x72200000"
 #define CONFIG_BOOTARGS		"console=ttyS0,115200 " \
 				"root=/dev/mtdblock0 " \
 				"mtdparts=atmel_nand:-(root) "\
