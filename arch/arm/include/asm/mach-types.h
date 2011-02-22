@@ -2800,7 +2800,7 @@ extern unsigned int __machine_arch_type;
 #define MACH_TYPE_SNAPPER9G45          2817
 #define MACH_TYPE_TAM3517              2818
 #define MACH_TYPE_PDC100               2819
-#define MACH_TYPE_AT91SAM9X5EK         2830
+#define MACH_TYPE_AT91SAM9X5EK         3373
 
 #ifdef CONFIG_ARCH_EBSA110
 # ifdef machine_arch_type
