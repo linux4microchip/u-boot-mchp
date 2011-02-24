@@ -70,7 +70,8 @@
 #define USART3_EXDR	0x0044	/* 9x5 series chip id extension register */
 
 /* LCD */
-#define CONFIG_LCD			1
+//#define CONFIG_LCD			1
+#undef CONFIG_LCD
 #define LCD_BPP				LCD_COLOR16
 #define LCD_OUTPUT_BPP			24
 #define CONFIG_LCD_LOGO			1
