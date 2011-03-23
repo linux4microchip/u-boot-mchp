@@ -478,8 +478,7 @@ int nand_write_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
 	u_char *p_buffer = buffer;
 
 	/* Reject writes, which are not page aligned */
-	if ((offset & (nand->writesize - 1)) != 0 ||
-	    (*length & (nand->writesize - 1)) != 0) {
+	if ((offset & (nand->writesize - 1)) != 0) {
 		printf ("Attempt to write non page aligned data\n");
 		return -EINVAL;
 	}
