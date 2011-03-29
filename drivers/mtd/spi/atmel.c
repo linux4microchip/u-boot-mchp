@@ -575,7 +575,6 @@ static int at25_unprotect(struct spi_flash *flash)
 {
 	int ret;
 	u8 status;
-	u8 cmd = CMD_AT25_WRITE_STATUS;
 
 	ret = at25_read_status(flash);
 	if (ret < 0)
@@ -648,10 +647,7 @@ int dataflash_erase_block_at25(struct spi_flash *flash, u32 offset)
 
 int dataflash_erase_at25(struct spi_flash *flash, u32 offset, size_t len)
 {
-	struct atmel_spi_flash *asf = to_atmel_spi_flash(flash);
 	int ret;
-	u8 cmd[4];
-	u8 status;
 	u32 addr;
 
 	/*
@@ -704,7 +700,7 @@ int dataflash_write_at25(struct spi_flash *flash,
 	u8 status;
 	u32 addr;
 	u8 cmd[4];
-	u8 *data = buf;
+	u8 *data = (u8 *)buf;
 
 	page_size = 1 << (asf->params->l2_page_size);
 

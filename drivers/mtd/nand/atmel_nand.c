@@ -698,7 +698,7 @@ static int32_t pmecc_correction(struct mtd_info *mtd, uint32_t pmecc_stat,
 		unsigned char *buf, u8 *ecc)
 {
 	int i, err_nbr;
-	uint32_t buf_pos;
+	u8 *buf_pos;
 	struct nand_chip *nand_chip = mtd->priv;
 	struct atmel_nand_host *host = nand_chip->priv;
 	int eccbytes = nand_chip->ecc.bytes;
@@ -710,7 +710,7 @@ static int32_t pmecc_correction(struct mtd_info *mtd, uint32_t pmecc_stat,
 	while (i < host->sector_number) {
 		err_nbr = 0;
 		if (pmecc_stat & 0x1) {
-			buf_pos = (uint32_t)(buf + i * host->sector_size);
+			buf_pos = (buf + i * host->sector_size);
 
 			pmecc_gen_syndrome(mtd, i);
 
@@ -787,7 +787,6 @@ static void atmel_nand_pmecc_write_page(struct mtd_info *mtd,
 	int i, j;
 	struct atmel_nand_host *host = chip->priv;
 	uint32_t *eccpos = chip->ecc.layout->eccpos;
-	unsigned char *pp;
 	uint32_t val;
 
 	pmecc_writel(host->ecc, CTRL, PMECC_CTRL_RST);
@@ -931,7 +930,7 @@ static void atmel_nand_pmecc_init(struct nand_chip *nand)
 	/* Detect NAND chips */
 	if (nand_scan_ident(mtd, 1)) {
 		printk(KERN_WARNING "NAND Flash not found !\n");
-		return -ENXIO;
+		return;
 	}
 
 	if (nand->ecc.mode == NAND_ECC_HW) {
@@ -952,9 +951,9 @@ static void atmel_nand_pmecc_init(struct nand_chip *nand)
 			nand->ecc.bytes = 16;
 			nand->ecc.steps = 1;
 			nand->ecc.layout = &atmel_oobinfo_2048;
-			host->ecc = CONFIG_SYS_NAND_PMECC_BASE;
-			host->pmerrloc_base = CONFIG_SYS_NAND_PMERRLOC_BASE;
-			host->rom_base = AT91SAM9X5_ROM_BASE;
+			host->ecc = (void *)CONFIG_SYS_NAND_PMECC_BASE;
+			host->pmerrloc_base = (void *)CONFIG_SYS_NAND_PMERRLOC_BASE;
+			host->rom_base = (void *)AT91SAM9X5_ROM_BASE;
 			host->mm = 13;
 			host->nn = (1 << host->mm) - 1;
 			host->tt = 2;

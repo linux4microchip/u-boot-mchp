@@ -138,7 +138,5 @@ ulong get_timer(ulong base)
  */
 ulong get_tbclk(void)
 {
-	ulong tbclk;
-
 	return timer_freq;
 }
