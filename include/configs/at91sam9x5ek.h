@@ -185,22 +185,22 @@
 				"sf read 0x22000000 0x42000 0x200000; " \
 				"bootm 0x22000000"
 #define CONFIG_BOOTARGS		"mem=128M console=ttyS0,115200 " \
-				"mtdparts=atmel_nand:4M(bootstrap/uboot/kernel)ro,60M(rootfs),-(data) " \
+				"mtdparts=atmel_nand:8M(bootstrap/uboot/kernel)ro,-(rootfs) " \
 				"root=/dev/mtdblock1 rw rootfstype=jffs2 "
 #else /* CONFIG_SYS_USE_NANDFLASH */
 
 /* bootstrap + u-boot + env + linux in nandflash */
 #define CONFIG_ENV_IS_IN_NAND	1
-#define CONFIG_ENV_OFFSET		0x60000
-#define CONFIG_ENV_OFFSET_REDUND	0x80000
+#define CONFIG_ENV_OFFSET		0x0c0000
+#define CONFIG_ENV_OFFSET_REDUND	0x160000
 #define CONFIG_ENV_SIZE		0x20000		/* 1 sector = 128 kB */
 #define CONFIG_BOOTCOMMAND	"nand read.jffs2 " \
 				"0x22000000 0x200000 0x200000; " \
 				"bootm"
 #define CONFIG_BOOTARGS		"mem=128M console=ttyS0,115200 " \
 				"mtdparts=atmel_nand:" \
-				"4M(bootstrap/uboot/kernel)ro," \
-				"60M(rootfs),-(data) " \
+				"8M(bootstrap/uboot/kernel)ro," \
+				"-(rootfs) " \
 				"root=/dev/mtdblock1 rw rootfstype=jffs2"
 
 #endif
