@@ -111,8 +111,10 @@ typedef struct nand_erase_options nand_erase_options_t;
 
 int nand_read_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
 		       u_char *buffer);
+
+#define WITH_DROP_FFS (1 << 1) /* drop trailing all-0xff pages */
 int nand_write_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
-			u_char *buffer);
+			u_char *buffer, int flags);
 int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts);
 
 #define NAND_LOCK_STATUS_TIGHT	0x01

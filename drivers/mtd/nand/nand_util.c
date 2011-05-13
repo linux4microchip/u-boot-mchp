@@ -456,6 +456,31 @@ static size_t get_len_incl_bad (nand_info_t *nand, loff_t offset,
 }
 
 /**
+ * drop_ffs:
+ *
+ * Count non 0xff-all pages.
+ *
+ * @param nand		NAND device
+ * @param buf		Buffer to read from
+ * @param len		buffer length
+ */
+static size_t drop_ffs(const nand_info_t *nand, const u_char *buf,
+                       const size_t *len)
+{
+       size_t i, l = *len;
+
+       for (i = l - 1; i >= 0; i--)
+               if (((const uint8_t *)buf)[i] != 0xFF)
+                       break;
+
+       /* The resulting length must be aligned to the minimum flash I/O size */
+       l = i + 1;
+       l = (l + nand->writesize - 1) / nand->writesize;
+       l *=  nand->writesize;
+       return l;
+}
+
+/**
  * nand_write_skip_bad:
  *
  * Write image to NAND flash.
@@ -463,14 +488,15 @@ static size_t get_len_incl_bad (nand_info_t *nand, loff_t offset,
  * block instead as long as the image is short enough to fit even after
  * skipping the bad blocks.
  *
- * @param nand  	NAND device
+ * @param nand		NAND device
  * @param offset	offset in flash
  * @param length	buffer length
- * @param buf           buffer to read from
+ * @param buf		buffer to read from
+ * @param flags		flags to activate features as droping all-0xff pages
  * @return		0 in case of success
  */
 int nand_write_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
-			u_char *buffer)
+			u_char *buffer, int flags)
 {
 	int rval;
 	size_t left_to_write = *length;
@@ -490,18 +516,19 @@ int nand_write_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
 		return -EINVAL;
 	}
 
-	if (len_incl_bad == *length) {
+	if ((len_incl_bad == *length) && !(flags & WITH_DROP_FFS)) {
 		rval = nand_write (nand, offset, length, buffer);
 		if (rval != 0)
 			printf ("NAND write to offset %llx failed %d\n",
 				offset, rval);
 
+		printf("[nand_write_skip_bad] return rval\n");
 		return rval;
 	}
 
 	while (left_to_write > 0) {
 		size_t block_offset = offset & (nand->erasesize - 1);
-		size_t write_size;
+		size_t write_size, truncated_write_size;
 
 		WATCHDOG_RESET ();
 
@@ -517,7 +544,13 @@ int nand_write_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
 		else
 			write_size = nand->erasesize - block_offset;
 
-		rval = nand_write (nand, offset, &write_size, p_buffer);
+		if (flags & WITH_DROP_FFS)
+			truncated_write_size = drop_ffs(nand, p_buffer,
+					&write_size);
+		else
+			truncated_write_size = write_size;
+
+		rval = nand_write (nand, offset, &truncated_write_size, p_buffer);
 		if (rval != 0) {
 			printf ("NAND write to offset %llx failed %d\n",
 				offset, rval);
