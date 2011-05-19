@@ -210,19 +210,19 @@ static void at91samm10g45ek_macb_hw_init(void)
 
 #ifdef CONFIG_LCD
 vidinfo_t panel_info = {
-	vl_col:		480,
-	vl_row:		272,
-	vl_clk:		125000,
+	vl_col:		800,
+	vl_row:		480,
+	vl_clk:		15000000,
 	vl_sync:	ATMEL_LCDC_INVLINE_NORMAL |
 			ATMEL_LCDC_INVFRAME_NORMAL,
 	vl_bpix:	3,
 	vl_tft:		1,
-	vl_hsync_len:	41,
-	vl_left_margin:	2,
-	vl_right_margin:2,
-	vl_vsync_len:	1,
-	vl_upper_margin:2,
-	vl_lower_margin:2,
+	vl_hsync_len:	48,
+	vl_left_margin:	40,
+	vl_right_margin:40,
+	vl_vsync_len:	3,
+	vl_upper_margin:29,
+	vl_lower_margin:13,
 	mmio:		AT91SAM9G45_LCDC_BASE,
 };
 
@@ -240,10 +240,12 @@ static void at91samm10g45ek_lcd_hw_init(void)
 {
 	at91_set_A_periph(AT91_PIN_PE0, 0);		/* LCDDPWR */
 
+	at91_set_A_periph(AT91_PIN_PE2, 0);
+	at91_set_A_periph(AT91_PIN_PE3, 0);
 	at91_set_A_periph(AT91_PIN_PE4, 0);		/* LCDHSYNC */
 	at91_set_A_periph(AT91_PIN_PE5, 0);		/* LCDDOTCK */
 	
-	at91_set_gpio_input(AT91_PIN_PE6, 0);	/* LCDDEN */
+	at91_set_A_periph(AT91_PIN_PE6, 0);	/* LCDDEN */
 
 	at91_set_A_periph(AT91_PIN_PE7, 0);		/* LCDD0 */
 	at91_set_A_periph(AT91_PIN_PE8, 0);		/* LCDD1 */
@@ -258,7 +260,7 @@ static void at91samm10g45ek_lcd_hw_init(void)
 	at91_set_A_periph(AT91_PIN_PE17, 0);	/* LCDD10 */
 	at91_set_A_periph(AT91_PIN_PE18, 0);	/* LCDD11 */
 	at91_set_A_periph(AT91_PIN_PE19, 0);	/* LCDD12 */
-	at91_set_B_periph(AT91_PIN_PE20, 0);	/* LCDD13 */
+	at91_set_A_periph(AT91_PIN_PE20, 0);	/* LCDD13 */
 	at91_set_A_periph(AT91_PIN_PE21, 0);	/* LCDD14 */
 	at91_set_A_periph(AT91_PIN_PE22, 0);	/* LCDD15 */
 	at91_set_A_periph(AT91_PIN_PE23, 0);	/* LCDD16 */
@@ -266,13 +268,14 @@ static void at91samm10g45ek_lcd_hw_init(void)
 	at91_set_A_periph(AT91_PIN_PE25, 0);	/* LCDD18 */
 	at91_set_A_periph(AT91_PIN_PE26, 0);	/* LCDD19 */
 	at91_set_A_periph(AT91_PIN_PE27, 0);	/* LCDD20 */
-	at91_set_B_periph(AT91_PIN_PE28, 0);	/* LCDD21 */
+	at91_set_A_periph(AT91_PIN_PE28, 0);	/* LCDD21 */
 	at91_set_A_periph(AT91_PIN_PE29, 0);	/* LCDD22 */
 	at91_set_A_periph(AT91_PIN_PE30, 0);	/* LCDD23 */
 
 	at91_sys_write(AT91_PMC_PCER, 1 << AT91SAM9G45_ID_LCDC);
 
-	gd->fb_base = AT91SAM9G45_SRAM_BASE;
+	//gd->fb_base = AT91SAM9G45_SRAM_BASE;
+	gd->fb_base = 0x71000000;
 }
 #endif
 

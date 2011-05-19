@@ -829,7 +829,7 @@ static void *lcd_logo (void)
 	sprintf (info, "%s", U_BOOT_VERSION);
 	lcd_drawchars (LCD_INFO_X, LCD_INFO_Y, (uchar *)info, strlen(info));
 
-	sprintf (info, "(C) 2008 ATMEL Corp");
+	sprintf (info, "(C) 2011 ATMEL Corp");
 	lcd_drawchars (LCD_INFO_X, LCD_INFO_Y + VIDEO_FONT_HEIGHT,
 					(uchar *)info, strlen(info));
 

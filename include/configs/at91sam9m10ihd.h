@@ -69,8 +69,8 @@
 #define CONFIG_USART3		1	/* USART 3 is DBGU */
 
 /* LCD */
-//#define CONFIG_LCD			1
-#undef CONFIG_LCD
+#define CONFIG_LCD			1
+//#undef CONFIG_LCD
 #define LCD_BPP				LCD_COLOR8
 #define CONFIG_LCD_LOGO			1
 #undef LCD_TEST_PATTERN
@@ -78,7 +78,7 @@
 #define CONFIG_LCD_INFO_BELOW_LOGO	1
 #define CFG_WHITE_ON_BLACK		1
 #define CONFIG_ATMEL_LCD		1
-#define CONFIG_ATMEL_LCD_BGR555		1
+//#define CONFIG_ATMEL_LCD_BGR555		1
 #define CFG_CONSOLE_IS_IN_ENV		1
 
 #define CONFIG_BOOTDELAY	3
