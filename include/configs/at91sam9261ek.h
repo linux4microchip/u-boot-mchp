@@ -142,9 +142,6 @@
 #define CFG_MEMTEST_START		PHYS_SDRAM
 #define CFG_MEMTEST_END			0x23e00000
 
-#define CFG_USE_DATAFLASH_CS0		1
-#undef CFG_USE_NANDFLASH
-
 #ifdef CFG_USE_DATAFLASH_CS0
 
 /* bootstrap + u-boot + env + linux in dataflash on CS0 */
@@ -154,6 +151,20 @@
 #define CFG_ENV_ADDR		(CFG_DATAFLASH_LOGIC_ADDR_CS0 + CFG_ENV_OFFSET)
 #define CFG_ENV_SIZE		0x4200
 #define CONFIG_BOOTCOMMAND	"cp.b 0xC0042000 0x22000000 0x210000; bootm"
+#define CONFIG_BOOTARGS		"console=ttyS0,115200 "			\
+				"root=/dev/mtdblock0 "			\
+				"mtdparts=at91_nand:-(root) "		\
+				"rw rootfstype=jffs2"
+
+#elif CFG_USE_DATAFLASH_CS3
+
+/* bootstrap + u-boot + env + linux in dataflash on CS3 */
+#define CFG_ENV_IS_IN_DATAFLASH	1
+#define CFG_MONITOR_BASE	(CFG_DATAFLASH_LOGIC_ADDR_CS3 + 0x8400)
+#define CFG_ENV_OFFSET		0x4200
+#define CFG_ENV_ADDR		(CFG_DATAFLASH_LOGIC_ADDR_CS3 + CFG_ENV_OFFSET)
+#define CFG_ENV_SIZE		0x4200
+#define CONFIG_BOOTCOMMAND	"cp.b 0xD0042000 0x22000000 0x210000; bootm"
 #define CONFIG_BOOTARGS		"console=ttyS0,115200 "			\
 				"root=/dev/mtdblock0 "			\
 				"mtdparts=at91_nand:-(root) "		\

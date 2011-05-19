@@ -186,6 +186,8 @@ static __inline__ int abortboot(int bootdelay)
 
 				presskey [i] = getc();
 			}
+		} else {
+			WATCHDOG_RESET();	/* Trigger watchdog, if needed */
 		}
 	}
 #  if DEBUG_BOOTKEYS
@@ -246,6 +248,8 @@ static __inline__ int abortboot(int bootdelay)
 				(void) getc();  /* consume input	*/
 # endif
 				break;
+			} else {
+				WATCHDOG_RESET();	/* Trigger watchdog, if needed */
 			}
 			udelay(10000);
 		}

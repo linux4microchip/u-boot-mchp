@@ -3,7 +3,7 @@
  * Stelian Pop <stelian.pop@leadtechdesign.com>
  * Lead Tech Design <www.leadtechdesign.com>
  *
- * Configuation settings for the AT91SAM9263EK board.
+ * Configuation settings for the AT91SAM9M10G45EK board(and AT91SAM9G45EKES).
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -28,16 +28,28 @@
 #define __CONFIG_H
 
 /* ARM asynchronous clock */
-#define AT91_CPU_NAME		"AT91SAM9263"
-#define AT91_MAIN_CLOCK		199919000	/* from 16.367 MHz crystal */
-#define AT91_MASTER_CLOCK	99959500	/* peripheral = main / 2 */
+#define AT91_CPU_NAME		"AT91SAM9G45"
+#define AT91_MAIN_CLOCK		400000000	/* from 12 MHz crystal */
+#define AT91_MASTER_CLOCK	133000000	/* peripheral = main / 3 */
 #define CFG_HZ			1000000		/* 1us resolution */
 
 #define AT91_SLOW_CLOCK		32768	/* slow clock */
 
 #define CONFIG_ARM926EJS	1	/* This is an ARM926EJS Core	*/
-#define CONFIG_AT91SAM9263	1	/* It's an Atmel AT91SAM9263 SoC*/
-#define CONFIG_AT91SAM9263EK	1	/* on an AT91SAM9263EK Board	*/
+#define CONFIG_AT91SAM9G45	1	/* It's an Atmel AT91SAM9G45 SoC*/
+
+#ifdef CFG_USE_AT91SAM9M10G45EK
+#define CONFIG_AT91SAM9M10G45EK	1	/* on an AT91SAM9M10G45EK Board	*/
+#endif
+
+#ifdef CFG_USE_AT91SAM9G45EKES
+#define CONFIG_AT91SAM9G45EKES	1	/* on an AT91SAM9G45EKES Board	*/
+#endif
+
+#ifdef CFG_USE_AT91SAM9M10EKES
+#define CONFIG_AT91SAM9M10EKES  1       /* on an AT91SAM9M10EKES Board  */
+#endif
+
 #undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff	*/
 
 #define CONFIG_CMDLINE_TAG	1	/* enable passing of ATAGs	*/
@@ -57,7 +69,8 @@
 #define CONFIG_USART3		1	/* USART 3 is DBGU */
 
 /* LCD */
-#define CONFIG_LCD			1
+//#define CONFIG_LCD			1
+#undef CONFIG_LCD
 #define LCD_BPP				LCD_COLOR8
 #define CONFIG_LCD_LOGO			1
 #undef LCD_TEST_PATTERN
@@ -96,8 +109,8 @@
 
 /* SDRAM */
 #define CONFIG_NR_DRAM_BANKS		1
-#define PHYS_SDRAM			0x20000000
-#define PHYS_SDRAM_SIZE			0x04000000	/* 64 megs */
+#define PHYS_SDRAM			0x70000000
+#define PHYS_SDRAM_SIZE			0x08000000	/* 128 megs */
 
 /* DataFlash */
 #define CONFIG_HAS_DATAFLASH		1
@@ -113,7 +126,7 @@
 #define CFG_NO_FLASH			1
 #else
 #define CFG_FLASH_CFI			1
-#define CFG_FLASH_CFI_DRIVER		1
+#define CONFIG_FLASH_CFI_DRIVER		1
 #define PHYS_FLASH_1			0x10000000
 #define CFG_FLASH_BASE			PHYS_FLASH_1
 #define CFG_MAX_FLASH_SECT		256
@@ -128,6 +141,7 @@
 
 /* Ethernet */
 #define CONFIG_MACB			1
+/* #define CONFIG_MII			1 */
 #define CONFIG_RMII			1
 #define CONFIG_NET_MULTI		1
 #define CONFIG_NET_RETRY_COUNT		20
@@ -138,8 +152,8 @@
 #define LITTLEENDIAN			1
 #define CONFIG_DOS_PARTITION		1
 #define CFG_USB_OHCI_CPU_INIT		1
-#define CFG_USB_OHCI_REGS_BASE		0x00a00000	/* AT91SAM9263_UHP_BASE */
-#define CFG_USB_OHCI_SLOT_NAME		"at91sam9263"
+#define CFG_USB_OHCI_REGS_BASE		0x00700000	/* AT91SAM9G45_UHP_OHCI_BASE */
+#define CFG_USB_OHCI_SLOT_NAME		"at91sam9g45"
 #define CFG_USB_OHCI_MAX_ROOT_PORTS	2
 #define CONFIG_USB_STORAGE		1
 

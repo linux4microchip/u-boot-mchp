@@ -241,6 +241,7 @@ LIBS += drivers/rtc/librtc.a
 LIBS += drivers/serial/libserial.a
 LIBS += drivers/usb/libusb.a
 LIBS += drivers/video/libvideo.a
+LIBS += drivers/watchdog/libwatchdog.a
 LIBS += common/libcommon.a
 LIBS += libfdt/libfdt.a
 LIBS += api/libapi.a
@@ -2353,15 +2354,6 @@ shannon_config	:	unconfig
 at91rm9200dk_config	:	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm920t at91rm9200dk atmel at91rm9200
 
-at91sam9261ek_config	:	unconfig
-	@$(MKCONFIG) $(@:_config=) arm arm926ejs at91sam9261ek atmel at91sam9
-
-at91sam9263ek_config	:	unconfig
-	@$(MKCONFIG) $(@:_config=) arm arm926ejs at91sam9263ek atmel at91sam9
-
-at91sam9rlek_config	:	unconfig
-	@$(MKCONFIG) $(@:_config=) arm arm926ejs at91sam9rlek atmel at91sam9
-
 cmc_pu2_config	:	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm920t cmc_pu2 NULL at91rm9200
 
@@ -2384,8 +2376,175 @@ mp2usb_config	:	unconfig
 at91cap9adk_config	:	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm926ejs at91cap9adk atmel at91sam9
 
+at91sam9260ek_nandflash_config \
+at91sam9260ek_dataflash_cs0_config \
+at91sam9260ek_dataflash_cs1_config \
 at91sam9260ek_config	:	unconfig
-	@$(MKCONFIG) $(@:_config=) arm arm926ejs at91sam9260ek atmel at91sam9
+	@mkdir -p $(obj)include
+	@if [ "$(findstring _nandflash,$@)" ] ; then \
+		echo "#define CFG_USE_NANDFLASH 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in NAND FLASH" ; \
+	elif [ "$(findstring dataflash_cs0,$@)" ] ; then \
+		echo "#define CFG_USE_DATAFLASH_CS0 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in SPI DATAFLASH CS0" ; \
+	else \
+		echo "#define CFG_USE_DATAFLASH_CS1 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in SPI DATAFLASH CS1" ; \
+	fi;
+	@$(MKCONFIG) -a at91sam9260ek arm arm926ejs at91sam9260ek atmel at91sam9
+
+at91sam9xeek_nandflash_config \
+at91sam9xeek_dataflash_cs0_config \
+at91sam9xeek_dataflash_cs1_config \
+at91sam9xeek_config	:	unconfig
+	@mkdir -p $(obj)include
+	@if [ "$(findstring _nandflash,$@)" ] ; then \
+		echo "#define CFG_USE_NANDFLASH 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in NAND FLASH" ; \
+	elif [ "$(findstring dataflash_cs0,$@)" ] ; then \
+		echo "#define CFG_USE_DATAFLASH_CS0 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in SPI DATAFLASH CS0" ; \
+	else \
+		echo "#define CFG_USE_DATAFLASH_CS1 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in SPI DATAFLASH CS1" ; \
+	fi;
+	@$(MKCONFIG) -n at91sam9xeek -a at91sam9260ek arm arm926ejs at91sam9260ek atmel at91sam9
+
+at91sam9g20ek_nandflash_config \
+at91sam9g20ek_dataflash_cs0_config \
+at91sam9g20ek_dataflash_cs1_config \
+at91sam9g20ek_2mmc_nandflash_config \
+at91sam9g20ek_2mmc_dataflash_cs0_config \
+at91sam9g20ek_2mmc_dataflash_cs1_config \
+at91sam9g20ek_config	:	unconfig
+	@mkdir -p $(obj)include
+	@if [ "$(findstring _nandflash,$@)" ] ; then \
+		echo "#define CFG_USE_NANDFLASH 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in NAND FLASH" ; \
+	elif [ "$(findstring dataflash_cs0,$@)" ] ; then \
+		echo "#define CFG_USE_DATAFLASH_CS0 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in SPI DATAFLASH CS0" ; \
+	else \
+		echo "#define CFG_USE_DATAFLASH_CS1 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in SPI DATAFLASH CS1" ; \
+	fi;
+	@if [ "$(findstring _2mmc_,$@)" ] ; then \
+		echo "#define CONFIG_AT91SAM9G20EK_2MMC 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... AT91SAM9G20EK board with two SD/MMC slots" ; \
+	else \
+		echo "#define CONFIG_AT91SAM9G20EK 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... AT91SAM9G20EK Board" ; \
+	fi;
+	@$(MKCONFIG) -a at91sam9g20ek arm arm926ejs at91sam9g20ek atmel at91sam9
+
+at91sam9261ek_nandflash_config \
+at91sam9261ek_dataflash_cs0_config \
+at91sam9261ek_dataflash_cs3_config \
+at91sam9261ek_config	:	unconfig
+	@mkdir -p $(obj)include
+	@if [ "$(findstring _nandflash,$@)" ] ; then \
+		echo "#define CFG_USE_NANDFLASH 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in NAND FLASH" ; \
+	elif [ "$(findstring dataflash_cs3,$@)" ] ; then \
+		echo "#define CFG_USE_DATAFLASH_CS3 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in SPI DATAFLASH CS3" ; \
+	else \
+		echo "#define CFG_USE_DATAFLASH_CS0 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in SPI DATAFLASH CS0" ; \
+	fi;
+	@$(MKCONFIG) -a at91sam9261ek arm arm926ejs at91sam9261ek atmel at91sam9
+
+at91sam9g10ek_nandflash_config \
+at91sam9g10ek_dataflash_cs0_config \
+at91sam9g10ek_dataflash_cs3_config \
+at91sam9g10ek_config   :   unconfig
+	@if [ "$(findstring _nandflash,$@)" ] ; then \
+		echo "#define CFG_USE_NANDFLASH 1"  >>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in NAND FLASH" ; \
+	elif [ "$(findstring dataflash_cs0,$@)" ] ; then \
+		echo "#define CFG_USE_DATAFLASH_CS0 1"  >>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in SPI DATAFLASH CS0" ; \
+	else \
+		echo "#define CFG_USE_DATAFLASH_CS3 1"  >>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in SPI DATAFLASH CS3" ; \
+	fi;
+	@$(MKCONFIG) -a at91sam9g10ek arm arm926ejs at91sam9g10ek atmel at91sam9
+
+at91sam9263ek_nandflash_config \
+at91sam9263ek_dataflash_config \
+at91sam9263ek_dataflash_cs0_config \
+at91sam9263ek_config	:	unconfig
+	@mkdir -p $(obj)include
+	@if [ "$(findstring _nandflash,$@)" ] ; then \
+		echo "#define CFG_USE_NANDFLASH 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in NAND FLASH" ; \
+	else \
+		echo "#define CFG_USE_DATAFLASH 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in SPI DATAFLASH CS0" ; \
+	fi;
+	@$(MKCONFIG) -a at91sam9263ek arm arm926ejs at91sam9263ek atmel at91sam9
+
+at91sam9rlek_nandflash_config \
+at91sam9rlek_dataflash_config \
+at91sam9rlek_dataflash_cs0_config \
+at91sam9rlek_config	:	unconfig
+	@mkdir -p $(obj)include
+	@if [ "$(findstring _nandflash,$@)" ] ; then \
+		echo "#define CFG_USE_NANDFLASH 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in NAND FLASH" ; \
+	else \
+		echo "#define CFG_USE_DATAFLASH 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in SPI DATAFLASH CS0" ; \
+	fi;
+	@$(MKCONFIG) -a at91sam9rlek arm arm926ejs at91sam9rlek atmel at91sam9
+
+at91sam9m10g45ek_nandflash_config \
+at91sam9m10g45ek_dataflash_config \
+at91sam9m10g45ek_dataflash_cs0_config \
+at91sam9m10g45ek_config	:	unconfig
+	@mkdir -p $(obj)include
+	@if [ "$(findstring _nandflash,$@)" ] ; then \
+		echo "#define CFG_USE_NANDFLASH 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in NAND FLASH" ; \
+		echo "#define CFG_USE_AT91SAM9M10G45EK 1"	>>$(obj)include/config.h ; \
+	else \
+		echo "#define CFG_USE_DATAFLASH 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in SPI DATAFLASH CS0" ; \
+		echo "#define CFG_USE_AT91SAM9M10G45EK 1"	>>$(obj)include/config.h ; \
+	fi;
+	@$(MKCONFIG) -a at91sam9m10g45ek arm arm926ejs at91sam9m10g45ek atmel at91sam9
+
+at91sam9g45ekes_nandflash_config \
+at91sam9g45ekes_dataflash_config \
+at91sam9g45ekes_dataflash_cs0_config \
+at91sam9g45ekes_config	:	unconfig
+	@mkdir -p $(obj)include
+	@if [ "$(findstring _nandflash,$@)" ] ; then \
+		echo "#define CFG_USE_NANDFLASH 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in NAND FLASH" ; \
+		echo "#define CFG_USE_AT91SAM9G45EKES 1"	>>$(obj)include/config.h ; \
+	else \
+		echo "#define CFG_USE_DATAFLASH 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in SPI DATAFLASH CS0" ; \
+		echo "#define CFG_USE_AT91SAM9G45EKES 1"	>>$(obj)include/config.h ; \
+	fi;
+	@$(MKCONFIG) -a at91sam9m10g45ek arm arm926ejs at91sam9m10g45ek atmel at91sam9
+
+at91sam9m10ekes_nandflash_config \
+at91sam9m10ekes_dataflash_config \
+at91sam9m10ekes_dataflash_cs0_config \
+at91sam9m10ekes_config	:	unconfig
+	@mkdir -p $(obj)include
+	@if [ "$(findstring _nandflash,$@)" ] ; then \
+		echo "#define CFG_USE_NANDFLASH 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in NAND FLASH" ; \
+		echo "#define CFG_USE_AT91SAM9M10EKES 1"	>>$(obj)include/config.h ; \
+	else \
+		echo "#define CFG_USE_DATAFLASH 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variable in SPI DATAFLASH CS0" ; \
+		echo "#define CFG_USE_AT91SAM9M10EKES 1"	>>$(obj)include/config.h ; \
+	fi;
+	@$(MKCONFIG) -a at91sam9m10g45ek arm arm926ejs at91sam9m10g45ek atmel at91sam9
 
 ########################################################################
 ## ARM Integrator boards - see doc/README-integrator for more info.

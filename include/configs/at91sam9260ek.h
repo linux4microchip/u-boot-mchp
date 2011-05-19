@@ -127,10 +127,6 @@
 #define CFG_MEMTEST_START		PHYS_SDRAM
 #define CFG_MEMTEST_END			0x23e00000
 
-#undef CFG_USE_DATAFLASH_CS0
-#define CFG_USE_DATAFLASH_CS1		1
-#undef CFG_USE_NANDFLASH
-
 #ifdef CFG_USE_DATAFLASH_CS0
 
 /* bootstrap + u-boot + env + linux in dataflash on CS0 */

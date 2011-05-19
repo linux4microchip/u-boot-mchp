@@ -1595,7 +1595,13 @@ extern unsigned int __machine_arch_type;
 #define MACH_TYPE_P300                 1602
 #define MACH_TYPE_XDACOMET             1603
 #define MACH_TYPE_DEXFLEX2             1604
+#define MACH_TYPE_AT91SAM9G20EK        1624
 #define MACH_TYPE_SFFSDR               1657
+#define MACH_TYPE_AT91SAM9M10G45EK     1830
+#define MACH_TYPE_AT91SAM9G10EK        2159
+#define MACH_TYPE_AT91SAM9G45EKES      2212
+#define MACH_TYPE_AT91SAM9G20EK_2MMC   2288
+#define MACH_TYPE_AT91SAM9M10EKES      2509
 
 #ifdef CONFIG_ARCH_EBSA110
 # ifdef machine_arch_type
@@ -11701,6 +11707,18 @@ extern unsigned int __machine_arch_type;
 # define machine_is_at91sam9261ek()	(0)
 #endif
 
+#ifdef CONFIG_MACH_AT91SAM9G10EK
+# ifdef machine_arch_type
+#  undef machine_arch_type
+#  define machine_arch_type    __machine_arch_type
+# else
+#  define machine_arch_type    MACH_TYPE_AT91SAM9G10EK
+# endif
+# define machine_is_at91sam9g10ek()    (machine_arch_type == MACH_TYPE_AT91SAM9G10EK)
+#else
+# define machine_is_at91sam9g10ek()    (0)
+#endif
+
 #ifdef CONFIG_MACH_LOFT
 # ifdef machine_arch_type
 #  undef machine_arch_type
@@ -20604,6 +20622,69 @@ extern unsigned int __machine_arch_type;
 #else
 # define machine_is_dexflex2()	(0)
 #endif
+
+#ifdef CONFIG_MACH_AT91SAM9G20EK
+# ifdef machine_arch_type
+#  undef machine_arch_type
+#  define machine_arch_type __machine_arch_type
+# else
+#  define machine_arch_type MACH_TYPE_AT91SAM9G20EK
+# endif
+# define machine_is_at91sam9g20ek() (machine_arch_type == MACH_TYPE_AT91SAM9G20EK)
+#else
+# define machine_is_at91sam9g20ek() (0)
+#endif
+
+
+#ifdef CONFIG_MACH_AT91SAM9M10G45EK
+# ifdef machine_arch_type
+#  undef machine_arch_type
+#  define machine_arch_type __machine_arch_type
+# else
+#  define machine_arch_type MACH_TYPE_AT91SAM9M10G45EK
+# endif
+# define machine_is_at91sam9m10g45ek() (machine_arch_type == MACH_TYPE_AT91SAM9M10G45EK)
+#else
+# define machine_is_at91sam9m10g45ek() (0)
+#endif
+
+#ifdef CONFIG_MACH_AT91SAM9G45EKES
+# ifdef machine_arch_type
+#  undef machine_arch_type
+#  define machine_arch_type	__machine_arch_type
+# else
+#  define machine_arch_type	MACH_TYPE_AT91SAM9G45EKES
+# endif
+# define machine_is_at91sam9g45ekes()	(machine_arch_type == MACH_TYPE_AT91SAM9G45EKES)
+#else
+# define machine_is_at91sam9g45ekes()	(0)
+#endif
+
+#ifdef CONFIG_MACH_AT91SAM9G20EK_2MMC
+# ifdef machine_arch_type
+#  undef machine_arch_type
+#  define machine_arch_type	__machine_arch_type
+# else
+#  define machine_arch_type	MACH_TYPE_AT91SAM9G20EK_2MMC
+# endif
+# define machine_is_at91sam9g20ek_2mmc()	(machine_arch_type == MACH_TYPE_AT91SAM9G20EK_2MMC)
+#else
+# define machine_is_at91sam9g20ek_2mmc()	(0)
+#endif
+
+#ifdef CONFIG_MACH_AT91SAM9M10EKES
+# ifdef machine_arch_type
+#  undef machine_arch_type
+#  define machine_arch_type	__machine_arch_type
+# else
+#  define machine_arch_type	MACH_TYPE_AT91SAM9M10EKES
+# endif
+# define machine_is_at91sam9m10ekes()	(machine_arch_type == MACH_TYPE_AT91SAM9M10EKES)
+#else
+# define machine_is_at91sam9m10ekes()	(0)
+#endif
+
+
 
 /*
  * These have not yet been registered
