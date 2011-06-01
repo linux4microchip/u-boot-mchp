@@ -36,7 +36,7 @@
  */
 #define TIMER_LOAD_VAL	0xfffff
 
-static ulong timestamp;
+static long long timestamp;
 static ulong lastinc;
 static ulong timer_freq;
 
