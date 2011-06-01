@@ -90,7 +90,7 @@
 #define	CONFIG_RED_LED		AT91_PIN_PD31	/* this is the user1 led */
 #define	CONFIG_GREEN_LED	AT91_PIN_PD0	/* this is the user2 led */
 
-#define CONFIG_BOOTDELAY	3
+#define CONFIG_BOOTDELAY	1
 
 /*
  * BOOTP options
@@ -190,11 +190,8 @@
 #define CONFIG_ENV_SIZE		0x3000
 #define CONFIG_ENV_SECT_SIZE	0x1000
 #define CONFIG_BOOTCOMMAND	"sf probe 0; " \
-				"sf read 0x22000000 0x42000 0x200000; " \
+				"sf read 0x22000000 0x42000 0x220000; " \
 				"bootm 0x22000000"
-#define CONFIG_BOOTARGS		"mem=128M console=ttyS0,115200 " \
-				"mtdparts=atmel_nand:8M(bootstrap/uboot/kernel)ro,-(rootfs) " \
-				"root=/dev/mtdblock1 rw rootfstype=jffs2 "
 #else /* CONFIG_SYS_USE_NANDFLASH */
 
 /* bootstrap + u-boot + env + linux in nandflash */
@@ -203,15 +200,15 @@
 #define CONFIG_ENV_OFFSET_REDUND	0x160000
 #define CONFIG_ENV_SIZE		0x20000		/* 1 sector = 128 kB */
 #define CONFIG_BOOTCOMMAND	"nand read.jffs2 " \
-				"0x22000000 0x200000 0x200000; " \
-				"bootm"
+				"0x22000000 0x200000 0x220000; " \
+				"bootm 0x22000000"
+#endif
+
 #define CONFIG_BOOTARGS		"mem=128M console=ttyS0,115200 " \
 				"mtdparts=atmel_nand:" \
-				"8M(bootstrap/uboot/kernel)ro," \
-				"-(rootfs) " \
-				"root=/dev/mtdblock1 rw rootfstype=jffs2"
-
-#endif
+				"8M(bootstrap/uboot/kernel)ro,-(rootfs) " \
+				"root=/dev/mtdblock1 rw " \
+				"rootfstype=ubifs ubi.mtd=1 root=ubi0:rootfs"
 
 #define CONFIG_BAUDRATE		115200
 #define CONFIG_SYS_BAUDRATE_TABLE	{115200 , 19200, 38400, 57600, 9600 }
