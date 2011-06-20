@@ -66,9 +66,6 @@
 #define AT91C_PIO_PA10        (1 << 10)	/* Pin Controlled by PA10 */
 #define AT91C_PA10_DTXD       (AT91C_PIO_PA10)
 
-#define USART3_CIDR	0x0040	/* 9x5 series chip id register */
-#define USART3_EXDR	0x0044	/* 9x5 series chip id extension register */
-
 /* LCD */
 //#define CONFIG_LCD			1
 #undef CONFIG_LCD

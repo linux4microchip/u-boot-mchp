@@ -34,11 +34,12 @@
 
 unsigned int get_chip_id(void)
 {
-	return usart3_readl(CIDR);
+	return (usart3_readl(CIDR) & ~AT91_CIDR_VERSION);
+
 }
 unsigned int get_extension_chip_id(void)
 {
-	return usart3_readl(EXDR);
+	return usart3_readl(EXID);
 }
 
 unsigned int has_emac1()

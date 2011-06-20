@@ -291,6 +291,14 @@
 /* Constants for FI_DI_RATIO */
 #define USART3_FI_DI_RATIO_DISABLE		0
 
+/* DBGU special registers */
+#define USART3_CIDR				0x40	/* Chip ID Register */
+#define USART3_EXID				0x44	/* Chip ID Extension Register */
+
+#define AT91_CIDR_VERSION	(0x1f << 0)		/* Version of the Device */
+#define AT91_CIDR_EXT		(1    << 31)		/* Extension Flag */
+
+
 /* Bit manipulation macros */
 #define USART3_BIT(name)				\
 	(1 << USART3_##name##_OFFSET)
