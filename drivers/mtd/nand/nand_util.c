@@ -470,14 +470,19 @@ static size_t drop_ffs(const nand_info_t *nand, const u_char *buf,
 	size_t i, l = *len;
 
 	for (i = l - 1; i >= 0; i--)
-		if (((const uint8_t *)buf)[i] != 0xFF)
+		if (buf[i] != 0xFF)
 			break;
 
 	/* The resulting length must be aligned to the minimum flash I/O size */
 	l = i + 1;
 	l = (l + nand->writesize - 1) / nand->writesize;
 	l *=  nand->writesize;
-	return l;
+
+	/*
+	 * since the input length may be unaligned, prevent access past the end
+	 * of the buffer
+	 */
+	return min(l, *len);
 }
 
 /**
