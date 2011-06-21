@@ -376,10 +376,7 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 			return 1;
 
 		s = strchr(cmd, '.');
-		if (!s || !strcmp(s, ".trimffs")) {
-			ret = nand_write_skip_bad(nand, off, &size,
-						(u_char *)addr, WITH_DROP_FFS);
-		} else if (!s || !strcmp(s, ".jffs2") ||
+		if (!s || !strcmp(s, ".jffs2") ||
 		    !strcmp(s, ".e") || !strcmp(s, ".i")) {
 			if (read)
 				ret = nand_read_skip_bad(nand, off, &size,
@@ -387,6 +384,13 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 			else
 				ret = nand_write_skip_bad(nand, off, &size,
 							  (u_char *)addr, 0);
+		} else if (!strcmp(s, ".trimffs")) {
+			if (read) {
+				printf("Unknown nand command suffix '%s'.\n", s);
+				return 1;
+			}
+			ret = nand_write_skip_bad(nand, off, &size,
+					(u_char *)addr, WITH_DROP_FFS);
 		} else if (!strcmp(s, ".oob")) {
 			/* out-of-band data */
 			mtd_oob_ops_t ops = {
