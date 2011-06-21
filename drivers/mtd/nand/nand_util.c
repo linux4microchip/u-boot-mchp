@@ -465,19 +465,19 @@ static size_t get_len_incl_bad (nand_info_t *nand, loff_t offset,
  * @param len		buffer length
  */
 static size_t drop_ffs(const nand_info_t *nand, const u_char *buf,
-                       const size_t *len)
+			const size_t *len)
 {
-       size_t i, l = *len;
+	size_t i, l = *len;
 
-       for (i = l - 1; i >= 0; i--)
-               if (((const uint8_t *)buf)[i] != 0xFF)
-                       break;
+	for (i = l - 1; i >= 0; i--)
+		if (((const uint8_t *)buf)[i] != 0xFF)
+			break;
 
-       /* The resulting length must be aligned to the minimum flash I/O size */
-       l = i + 1;
-       l = (l + nand->writesize - 1) / nand->writesize;
-       l *=  nand->writesize;
-       return l;
+	/* The resulting length must be aligned to the minimum flash I/O size */
+	l = i + 1;
+	l = (l + nand->writesize - 1) / nand->writesize;
+	l *=  nand->writesize;
+	return l;
 }
 
 /**
