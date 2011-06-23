@@ -187,7 +187,7 @@
 #define CONFIG_ENV_SIZE		0x3000
 #define CONFIG_ENV_SECT_SIZE	0x1000
 #define CONFIG_BOOTCOMMAND	"sf probe 0; " \
-				"sf read 0x22000000 0x42000 0x240000; " \
+				"sf read 0x22000000 0x42000 0x250000; " \
 				"bootm 0x22000000"
 #else /* CONFIG_SYS_USE_NANDFLASH */
 
@@ -197,7 +197,7 @@
 #define CONFIG_ENV_OFFSET_REDUND	0x160000
 #define CONFIG_ENV_SIZE		0x20000		/* 1 sector = 128 kB */
 #define CONFIG_BOOTCOMMAND	"nand read.jffs2 " \
-				"0x22000000 0x200000 0x240000; " \
+				"0x22000000 0x200000 0x250000; " \
 				"bootm 0x22000000"
 #endif
 
