@@ -2514,7 +2514,8 @@ at91sam9m10g45ek_config	:	unconfig
 	fi;
 	@$(MKCONFIG) -a at91sam9m10g45ek arm arm926ejs at91sam9m10g45ek atmel at91sam9
 
-at91sam9m10ihd_nandflash_config	:	unconfig
+at91sam9m10ihd_nandflash_config	\
+at91sam9m10ihd_config :		 unconfig
 	@mkdir -p $(obj)include
 	@if [ "$(findstring _nandflash,$@)" ] ; then \
 		echo "#define CFG_USE_NANDFLASH 1"	>>$(obj)include/config.h ; \
