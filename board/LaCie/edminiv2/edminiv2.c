@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Albert ARIBAUD <albert.aribaud@free.fr>
+ * Copyright (C) 2010 Albert ARIBAUD <albert.u.boot@aribaud.net>
  *
  * (C) Copyright 2009
  * Marvell Semiconductor <www.marvell.com>
@@ -27,6 +27,7 @@
 #include <common.h>
 #include <miiphy.h>
 #include <asm/arch/orion5x.h>
+#include "../common/common.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -90,3 +91,11 @@ int board_init(void)
 
 	return 0;
 }
+
+#if defined(CONFIG_CMD_NET) && defined(CONFIG_RESET_PHY_R)
+/* Configure and enable MV88E1116 PHY */
+void reset_phy(void)
+{
+	mv_phy_88e1116_init("egiga0");
+}
+#endif /* CONFIG_RESET_PHY_R */

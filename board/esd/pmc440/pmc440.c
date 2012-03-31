@@ -29,7 +29,7 @@
 #include <common.h>
 #include <libfdt.h>
 #include <fdt_support.h>
-#include <ppc440.h>
+#include <asm/ppc440.h>
 #include <asm/processor.h>
 #include <asm/io.h>
 #include <asm/bitops.h>
@@ -68,7 +68,7 @@ struct serial_device *default_serial_console(void)
 	 */
 	mfsdr(SDR0_PINSTP, val);
 	if (((val & 0xf0000000) >> 29) != 7)
-		return &serial1_device;
+		return &eserial2_device;
 
 	ulong scratchreg = in_be32((void*)GPIO0_ISR3L);
 	if (!(scratchreg & 0x80)) {
@@ -90,9 +90,9 @@ struct serial_device *default_serial_console(void)
 	}
 
 	if (scratchreg & 0x01)
-		return &serial1_device;
+		return &eserial2_device;
 	else
-		return &serial0_device;
+		return &eserial1_device;
 }
 
 int board_early_init_f(void)
@@ -426,8 +426,8 @@ int misc_init_r(void)
 	 * This fix will make the MAL burst disabling patch for the Linux
 	 * EMAC driver obsolete.
 	 */
-	reg = mfdcr(PLB4_ACR) & ~PLB4_ACR_WRP;
-	mtdcr(PLB4_ACR, reg);
+	reg = mfdcr(PLB4A0_ACR) & ~PLB4Ax_ACR_WRP_MASK;
+	mtdcr(PLB4A0_ACR, reg);
 
 #ifdef CONFIG_FPGA
 	pmc440_init_fpga();
@@ -574,8 +574,6 @@ void pci_target_init(struct pci_controller *hose)
 	/* No error reporting */
 	pci_hose_write_config_word(hose, 0, PCI_ERREN, 0);
 
-	pci_write_config_dword(0, PCI_BRDGOPT2, 0x00000101);
-
 	if (!is_monarch()) {
 		/* Program the board's subsystem id/classcode */
 		pci_hose_write_config_word(hose, 0, PCI_SUBSYSTEM_ID,
@@ -617,21 +615,6 @@ void pci_master_init(struct pci_controller *hose)
 
 static void wait_for_pci_ready(void)
 {
-	int i;
-	char *s = getenv("pcidelay");
-	/*
-	 * We have our own handling of the pcidelay variable.
-	 * Using CONFIG_PCI_BOOTDELAY enables pausing for host
-	 * and adapter devices. For adapter devices we do not
-	 * want this.
-	 */
-	if (s) {
-		int ms = simple_strtoul(s, NULL, 10);
-		printf("PCI:   Waiting for %d ms\n", ms);
-		for (i=0; i<ms; i++)
-			udelay(1000);
-	}
-
 	if (!(in_be32((void*)GPIO1_IR) & GPIO1_PPC_EREADY)) {
 		printf("PCI:   Waiting for EREADY (CTRL-C to skip) ... ");
 		while (1) {

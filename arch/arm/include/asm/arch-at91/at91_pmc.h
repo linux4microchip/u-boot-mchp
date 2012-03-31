@@ -17,11 +17,11 @@
 #ifndef AT91_PMC_H
 #define AT91_PMC_H
 
-#define	AT91_ASM_PMC_MOR	(AT91_PMC_BASE + 0x20)
-#define	AT91_ASM_PMC_PLLAR	(AT91_PMC_BASE + 0x28)
-#define	AT91_ASM_PMC_PLLBR	(AT91_PMC_BASE + 0x2c)
-#define AT91_ASM_PMC_MCKR	(AT91_PMC_BASE + 0x30)
-#define AT91_ASM_PMC_SR		(AT91_PMC_BASE + 0x68)
+#define	AT91_ASM_PMC_MOR	(ATMEL_BASE_PMC + 0x20)
+#define	AT91_ASM_PMC_PLLAR	(ATMEL_BASE_PMC + 0x28)
+#define	AT91_ASM_PMC_PLLBR	(ATMEL_BASE_PMC + 0x2c)
+#define AT91_ASM_PMC_MCKR	(ATMEL_BASE_PMC + 0x30)
+#define AT91_ASM_PMC_SR		(ATMEL_BASE_PMC + 0x68)
 
 #ifndef __ASSEMBLY__
 
@@ -35,13 +35,15 @@ typedef struct at91_pmc {
 	u32	pcer;		/* 0x10 Peripheral Clock Enable Register */
 	u32	pcdr;		/* 0x14 Peripheral Clock Disable Register */
 	u32	pcsr;		/* 0x18 Peripheral Clock Status Register */
-	u32	reserved1;
+	u32	uckr;		/* 0x1C UTMI Clock Register */
 	u32	mor;		/* 0x20 Main Oscilator Register */
 	u32	mcfr;		/* 0x24 Main Clock Frequency Register */
 	u32	pllar;		/* 0x28 PLL A Register */
 	u32	pllbr;		/* 0x2C PLL B Register */
 	u32	mckr;		/* 0x30 Master Clock Register */
-	u32	reserved2[3];
+	u32	reserved1;
+	u32	usb;		/* 0x38 USB Clock Register */
+	u32	reserved2;
 	u32	pck[4];		/* 0x40 Programmable Clock Register 0 - 3 */
 	u32	reserved3[4];
 	u32	ier;		/* 0x60 Interrupt Enable Register */
@@ -89,10 +91,18 @@ typedef struct at91_pmc {
 #define AT91_PMC_MCKR_PRES_64		0x00000018
 #define AT91_PMC_MCKR_PRES_MASK		0x0000001C
 
+#ifdef CONFIG_AT91RM9200
+#define AT91_PMC_MCKR_MDIV_1		0x00000000
+#define AT91_PMC_MCKR_MDIV_2		0x00000100
+#define AT91_PMC_MCKR_MDIV_3		0x00000200
+#define AT91_PMC_MCKR_MDIV_4		0x00000300
+#define AT91_PMC_MCKR_MDIV_MASK		0x00000300
+#else
 #define AT91_PMC_MCKR_MDIV_1		0x00000000
 #define AT91_PMC_MCKR_MDIV_2		0x00000100
 #define AT91_PMC_MCKR_MDIV_4		0x00000200
 #define AT91_PMC_MCKR_MDIV_MASK		0x00000300
+#endif
 
 #define AT91_PMC_MCKR_PLLADIV_1		0x00001000
 #define AT91_PMC_MCKR_PLLADIV_2		0x00002000
@@ -197,6 +207,14 @@ typedef struct at91_pmc {
 #define		AT91_PMC_PDIV		(1 << 12)		/* Processor Clock Division [some SAM9 only] */
 #define			AT91_PMC_PDIV_1			(0 << 12)
 #define			AT91_PMC_PDIV_2			(1 << 12)
+
+#ifdef CONFIG_AT91_LEGACY
+#define		AT91_PMC_USB			(AT91_PMC + 0x38)	/* USB Clock Register */
+#endif
+#define		AT91_PMC_USBS_USB_PLLA		(0x0)		/* USB Clock Input is PLLA */
+#define		AT91_PMC_USBS_USB_UPLL		(0x1)		/* USB Clock Input is UPLL */
+#define		AT91_PMC_USBDIV_8		(0x7 <<  8)	/* USB Clock divided by 8 */
+#define		AT91_PMC_USBDIV_10		(0x9 <<  8)	/* USB Clock divided by 10 */
 
 #ifdef CONFIG_AT91_LEGACY
 #define	AT91_PMC_PCKR(n)	(AT91_PMC + 0x40 + ((n) * 4))	/* Programmable Clock 0-3 Registers */

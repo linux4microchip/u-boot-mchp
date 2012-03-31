@@ -34,14 +34,13 @@
 #include <asm/processor.h>
 #include <asm/mmu.h>
 #include <asm/immap_85xx.h>
+#include <asm/fsl_pci.h>
 #include <asm/fsl_ddr_sdram.h>
 #include <ioports.h>
 #include <asm/io.h>
 #include <spd_sdram.h>
 #include <miiphy.h>
 #include <netdev.h>
-
-long int fixed_sdram (void);
 
 /*
  * I/O Port configuration table
@@ -238,16 +237,23 @@ reset_phy(void)
 #endif
 #if defined(CONFIG_MII) && defined(CONFIG_ETHER_ON_FCC)
 	/* reset PHY */
-	miiphy_reset("FCC1 ETHERNET", 0x0);
+	miiphy_reset("FCC1", 0x0);
 
 	/* change PHY address to 0x02 */
-	bb_miiphy_write(NULL, 0, PHY_MIPSCR, 0xf028);
+	bb_miiphy_write(NULL, 0, MII_MIPSCR, 0xf028);
 
-	bb_miiphy_write(NULL, 0x02, PHY_BMCR,
-			PHY_BMCR_AUTON | PHY_BMCR_RST_NEG);
+	bb_miiphy_write(NULL, 0x02, MII_BMCR,
+			BMCR_ANENABLE | BMCR_ANRESTART);
 #endif /* CONFIG_MII */
 #endif
 }
+
+#ifdef CONFIG_OF_BOARD_SETUP
+void ft_board_setup(void *blob, bd_t *bd)
+{
+	ft_cpu_setup (blob, bd);
+}
+#endif /* CONFIG_OF_BOARD_SETUP */
 
 int
 board_early_init_f(void)
@@ -293,37 +299,6 @@ show_activity(int flag)
 	eieio();
 	next_led_update += (get_tbclk() / 4);
 }
-
-phys_size_t
-initdram (int board_type)
-{
-	long dram_size = 0;
-
-#if defined(CONFIG_DDR_DLL)
-	{
-		volatile ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
-		uint temp_ddrdll = 0;
-
-		/* Work around to stabilize DDR DLL */
-		temp_ddrdll = gur->ddrdllcr;
-		gur->ddrdllcr = ((temp_ddrdll & 0xff) << 16) | 0x80000000;
-		asm("sync;isync;msync");
-	}
-#endif
-
-	dram_size = fsl_ddr_sdram();
-	dram_size = setup_ddr_tlbs(dram_size / 0x100000);
-	dram_size *= 0x100000;
-
-#if defined(CONFIG_DDR_ECC)
-	/* Initialize and enable DDR ECC.
-	*/
-	ddr_enable_ecc(dram_size);
-#endif
-
-	return dram_size;
-}
-
 
 #if defined(CONFIG_SYS_DRAM_TEST)
 int testdram (void)

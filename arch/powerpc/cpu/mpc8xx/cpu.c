@@ -40,6 +40,7 @@
 #include <commproc.h>
 #include <netdev.h>
 #include <asm/cache.h>
+#include <linux/compiler.h>
 
 #if defined(CONFIG_OF_LIBFDT)
 #include <libfdt.h>
@@ -185,7 +186,7 @@ static int check_CPU (long clock, uint pvr, uint immr)
 	uint k, m;
 	char buf[32];
 	char pre = 'X';
-	char *mid = "xx";
+	__maybe_unused char *mid = "xx";
 	char *suf;
 
 	/* the highest 16 bits should be 0x0050 for a 8xx */
@@ -478,7 +479,7 @@ void upmconfig (uint upm, uint * table, uint size)
 
 #ifndef CONFIG_LWMON
 
-int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	ulong msr, addr;
 
@@ -521,7 +522,7 @@ int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
  * and thus too short to reset the external hardware. So we  use  the
  * watchdog to reset the board.
  */
-int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	/* prevent triggering the watchdog */
 	disable_interrupts ();

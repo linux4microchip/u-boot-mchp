@@ -53,7 +53,6 @@
 #undef  CONFIG_SHOW_BOOT_PROGRESS
 
 /* SMC9118 */
-#define CONFIG_NET_MULTI
 #define CONFIG_SMC911X 1
 #define CONFIG_SMC911X_32_BIT 1
 #define CONFIG_SMC911X_BASE 0xB6080000
@@ -62,6 +61,8 @@
 #define AP325RXA_SDRAM_BASE		(0x88000000)
 #define AP325RXA_FLASH_BASE_1		(0xA0000000)
 #define AP325RXA_FLASH_BANK_SIZE	(128 * 1024 * 1024)
+
+#define CONFIG_SYS_TEXT_BASE	0x8FFC0000
 
 /* undef to save memory	*/
 #define CONFIG_SYS_LONGHELP
@@ -111,8 +112,6 @@
 #define CONFIG_SYS_MONITOR_LEN	(128 * 1024)
 /* Size of DRAM reserved for malloc() use */
 #define CONFIG_SYS_MALLOC_LEN	(256 * 1024)
-/* size in bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_SIZE	(256)
 #define CONFIG_SYS_BOOTMAPSZ	(8 * 1024 * 1024)
 
 /* FLASH */
@@ -138,6 +137,7 @@
 #define CONFIG_SYS_ATA_DATA_OFFSET	0x200	/* data reg offset */
 #define CONFIG_SYS_ATA_REG_OFFSET	0x200	/* reg offset */
 #define CONFIG_SYS_ATA_ALT_OFFSET	0x210	/* alternate register offset */
+#define CONFIG_IDE_SWAP_IO
 
 /* if you use all NOR Flash , you change dip-switch. Please see Manual. */
 #define CONFIG_SYS_MAX_FLASH_BANKS	1

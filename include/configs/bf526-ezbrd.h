@@ -53,7 +53,7 @@
 #define CONFIG_EBIU_AMBCTL0_VAL	(B1WAT_15 | B1RAT_15 | B1HT_3 | B1RDYPOL | B0WAT_15 | B0RAT_15 | B0HT_3 | B0RDYPOL)
 #define CONFIG_EBIU_AMBCTL1_VAL	(B3WAT_15 | B3RAT_15 | B3HT_3 | B3RDYPOL | B2WAT_15 | B2RAT_15 | B2HT_3 | B2RDYPOL)
 
-#define CONFIG_SYS_MONITOR_LEN	(512 * 1024)
+#define CONFIG_SYS_MONITOR_LEN	(768 * 1024)
 #define CONFIG_SYS_MALLOC_LEN	(512 * 1024)
 
 
@@ -62,7 +62,8 @@
  * (can't be used same time as ethernet)
  */
 #if (CONFIG_BFIN_BOOT_MODE == BFIN_BOOT_NAND)
-#define CONFIG_BFIN_NFC
+# define CONFIG_BFIN_NFC
+# define CONFIG_BFIN_NFC_BOOTROM_ECC
 #endif
 #ifdef CONFIG_BFIN_NFC
 #define CONFIG_BFIN_NFC_CTL_VAL	0x0033
@@ -83,7 +84,6 @@
 #define CONFIG_BFIN_MAC
 #define CONFIG_RMII
 #define CONFIG_NETCONSOLE	1
-#define CONFIG_NET_MULTI	1
 #endif
 #define CONFIG_HOSTNAME		bf526-ezbrd
 /* Uncomment next line to use fixed MAC address */
@@ -134,8 +134,6 @@
  */
 #define CONFIG_BFIN_TWI_I2C	1
 #define CONFIG_HARD_I2C		1
-#define CONFIG_SYS_I2C_SPEED	50000
-#define CONFIG_SYS_I2C_SLAVE	0
 
 
 /*
@@ -160,23 +158,19 @@
 /* define to enable run status via led */
 /* #define CONFIG_STATUS_LED */
 #ifdef CONFIG_STATUS_LED
+#define CONFIG_GPIO_LED
 #define CONFIG_BOARD_SPECIFIC_LED
-#ifndef __ASSEMBLY__
-typedef unsigned int led_id_t;
-void __led_init(led_id_t mask, int state);
-void __led_set(led_id_t mask, int state);
-void __led_toggle(led_id_t mask);
-#endif
 /* use LED0 to indicate booting/alive */
 #define STATUS_LED_BOOT 0
-#define STATUS_LED_BIT 1
+#define STATUS_LED_BIT GPIO_PF8
 #define STATUS_LED_STATE STATUS_LED_ON
 #define STATUS_LED_PERIOD (CONFIG_SYS_HZ / 4)
 /* use LED1 to indicate crash */
 #define STATUS_LED_CRASH 1
-#define STATUS_LED_BIT1 2
+#define STATUS_LED_BIT1 GPIO_PG11
 #define STATUS_LED_STATE1 STATUS_LED_ON
 #define STATUS_LED_PERIOD1 (CONFIG_SYS_HZ / 2)
+/* #define STATUS_LED_BIT2 GPIO_PG12 */
 #endif
 
 

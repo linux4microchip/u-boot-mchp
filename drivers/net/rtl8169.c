@@ -739,7 +739,6 @@ INIT - Look for an adapter, this routine's visible to the outside
 static int rtl_init(struct eth_device *dev, bd_t *bis)
 {
 	static int board_idx = -1;
-	static int printed_version = 0;
 	int i, rc;
 	int option = -1, Cap10_100 = 0, Cap1000 = 0;
 
@@ -750,8 +749,6 @@ static int rtl_init(struct eth_device *dev, bd_t *bis)
 	ioaddr = dev->iobase;
 
 	board_idx++;
-
-	printed_version = 1;
 
 	/* point to private storage */
 	tpc = &tpx;
@@ -894,7 +891,12 @@ int rtl8169_initialize(bd_t *bis)
 		debug ("rtl8169: REALTEK RTL8169 @0x%x\n", iobase);
 
 		dev = (struct eth_device *)malloc(sizeof *dev);
+		if (!dev) {
+			printf("Can not allocate memory of rtl8169\n");
+			break;
+		}
 
+		memset(dev, 0, sizeof(*dev));
 		sprintf (dev->name, "RTL8169#%d", card_number);
 
 		dev->priv = (void *) devno;

@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2000-2002
+# (C) Copyright 2000-2010
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
 # See file CREDITS for list of people who contributed to this
@@ -23,9 +23,9 @@
 
 CROSS_COMPILE ?= ppc_8xx-
 
-STANDALONE_LOAD_ADDR = 0x40000
-
-PLATFORM_RELFLAGS += -mrelocatable
+CONFIG_STANDALONE_LOAD_ADDR ?= 0x40000
+LDFLAGS_FINAL += --gc-sections
+PLATFORM_RELFLAGS += -fpic -mrelocatable -ffunction-sections -fdata-sections
 PLATFORM_CPPFLAGS += -DCONFIG_PPC -D__powerpc__
 PLATFORM_LDFLAGS  += -n
 

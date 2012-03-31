@@ -1,9 +1,10 @@
 #include <common.h>
 #include <exports.h>
+#include <spi.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
-static void dummy(void)
+__attribute__((unused)) static void dummy(void)
 {
 }
 
@@ -15,7 +16,7 @@ unsigned long get_version(void)
 /* Reuse _exports.h with a little trickery to avoid bitrot */
 #define EXPORT_FUNC(sym) gd->jt[XF_##sym] = (void *)sym;
 
-#if !defined(CONFIG_I386) && !defined(CONFIG_PPC)
+#if !defined(CONFIG_X86) && !defined(CONFIG_PPC)
 # define install_hdlr      dummy
 # define free_hdlr         dummy
 #else /* kludge for non-standard function naming */
@@ -33,9 +34,6 @@ unsigned long get_version(void)
 # define spi_claim_bus     dummy
 # define spi_release_bus   dummy
 # define spi_xfer          dummy
-#endif
-#ifndef CONFIG_HAS_UID
-# define forceenv          dummy
 #endif
 
 void jumptable_init(void)

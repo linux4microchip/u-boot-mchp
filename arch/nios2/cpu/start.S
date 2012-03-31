@@ -21,9 +21,8 @@
  * MA 02111-1307 USA
  */
 
-
+#include <asm-offsets.h>
 #include <config.h>
-#include <timestamp.h>
 #include <version.h>
 
 /*************************************************************************
@@ -100,12 +99,12 @@ _cur:	movhi	r5, %hi(_cur - _start)
 3:
 
 	/* ZERO BSS/SBSS -- bss and sbss are assumed to be adjacent
-	 * and between __bss_start and _end.
+	 * and between __bss_start and __bss_end__.
 	 */
 	 movhi	r5, %hi(__bss_start)
 	 ori	r5, r5, %lo(__bss_start)
-	 movhi	r6, %hi(_end)
-	 ori	r6, r6, %lo(_end)
+	 movhi	r6, %hi(__bss_end__)
+	 ori	r6, r6, %lo(__bss_end__)
 	 beq	r5, r6, 5f
 
 4:	stwio	r0, 0(r5)
@@ -196,14 +195,8 @@ dly_clks:
 	bge	r4, r0, dly_clks
 	ret
 
-
-#if !defined(CONFIG_IDENT_STRING)
-#define CONFIG_IDENT_STRING ""
-#endif
 	.data
 	.globl	version_string
 
 version_string:
-	.ascii U_BOOT_VERSION
-	.ascii " (", U_BOOT_DATE, " - ", U_BOOT_TIME, ")"
-	.ascii CONFIG_IDENT_STRING, "\0"
+	.ascii U_BOOT_VERSION_STRING, "\0"

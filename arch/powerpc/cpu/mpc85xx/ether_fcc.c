@@ -52,8 +52,7 @@
 #include <miiphy.h>
 #endif
 
-#if defined(CONFIG_ETHER_ON_FCC) && defined(CONFIG_CMD_NET) && \
-	defined(CONFIG_NET_MULTI)
+#if defined(CONFIG_ETHER_ON_FCC) && defined(CONFIG_CMD_NET)
 
 static struct ether_fcc_info_s
 {
@@ -446,7 +445,7 @@ int fec_initialize(bd_t *bis)
 		dev = (struct eth_device*) malloc(sizeof *dev);
 		memset(dev, 0, sizeof *dev);
 
-		sprintf(dev->name, "FCC%d ETHERNET",
+		sprintf(dev->name, "FCC%d",
 			ether_fcc_info[i].ether_index + 1);
 		dev->priv   = &ether_fcc_info[i];
 		dev->init   = fec_init;

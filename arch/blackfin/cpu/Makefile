@@ -11,13 +11,15 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)lib$(CPU).a
+LIB	= $(obj)lib$(CPU).o
 
-EXTRA    :=
+EXTRA    := init.elf
 CEXTRA   := initcode.o
 SEXTRA   := start.o
 SOBJS    := interrupt.o cache.o
+COBJS-$(CONFIG_BOOTCOUNT_LIMIT) += bootcount.o
 COBJS-y  += cpu.o
+COBJS-y  += gpio.o
 COBJS-y  += interrupts.o
 COBJS-$(CONFIG_JTAG_CONSOLE) += jtag-console.o
 COBJS-y  += os_log.o
@@ -25,10 +27,6 @@ COBJS-y  += reset.o
 COBJS-y  += serial.o
 COBJS-y  += traps.o
 COBJS-$(CONFIG_HW_WATCHDOG)  += watchdog.o
-
-ifeq ($(CONFIG_BFIN_BOOT_MODE),BFIN_BOOT_BYPASS)
-COBJS-y  += initcode.o
-endif
 
 SRCS     := $(SEXTRA:.o=.S) $(SOBJS:.o=.S) $(COBJS-y:.o=.c)
 OBJS     := $(addprefix $(obj),$(COBJS-y) $(SOBJS))
@@ -39,7 +37,7 @@ SEXTRA   := $(addprefix $(obj),$(SEXTRA))
 all:	$(obj).depend $(LIB) $(obj).depend $(EXTRA) $(CEXTRA) $(SEXTRA) check_initcode
 
 $(LIB):	$(OBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS)
+	$(call cmd_link_o_target, $(OBJS))
 
 $(OBJS): $(obj)bootrom-asm-offsets.h
 $(obj)bootrom-asm-offsets.c: bootrom-asm-offsets.c.in bootrom-asm-offsets.awk
@@ -62,6 +60,11 @@ ifneq ($(CONFIG_BFIN_BOOT_MODE),BFIN_BOOT_BYPASS)
 		exit 1 ; \
 	fi
 endif
+
+$(obj)init.lds: init.lds.S
+	$(CPP) $(CPPFLAGS) $(LDPPFLAGS) -ansi -D__ASSEMBLY__ -P $^ -o $@
+$(obj)init.elf: $(obj)init.lds $(obj)init.o $(obj)initcode.o
+	$(LD) $(LDFLAGS) -T $^ -o $@
 
 #########################################################################
 

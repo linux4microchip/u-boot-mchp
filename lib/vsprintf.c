@@ -7,18 +7,19 @@
 /* vsprintf.c -- Lars Wirzenius & Linus Torvalds. */
 /*
  * Wirzenius wrote this portably, Torvalds fucked it up :-)
+ *
+ * from hush: simple_itoa() was lifted from boa-0.93.15
  */
 
 #include <stdarg.h>
 #include <linux/types.h>
 #include <linux/string.h>
 #include <linux/ctype.h>
+#include <errno.h>
 
 #include <common.h>
 #if !defined (CONFIG_PANIC_HANG)
 #include <command.h>
-/*cmd_boot.c*/
-extern int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 #endif
 
 #include <div64.h>
@@ -61,6 +62,56 @@ unsigned long simple_strtoul(const char *cp,char **endp,unsigned int base)
 	if (endp)
 		*endp = (char *)cp;
 	return result;
+}
+
+/**
+ * strict_strtoul - convert a string to an unsigned long strictly
+ * @cp: The string to be converted
+ * @base: The number base to use
+ * @res: The converted result value
+ *
+ * strict_strtoul converts a string to an unsigned long only if the
+ * string is really an unsigned long string, any string containing
+ * any invalid char at the tail will be rejected and -EINVAL is returned,
+ * only a newline char at the tail is acceptible because people generally
+ * change a module parameter in the following way:
+ *
+ *      echo 1024 > /sys/module/e1000/parameters/copybreak
+ *
+ * echo will append a newline to the tail.
+ *
+ * It returns 0 if conversion is successful and *res is set to the converted
+ * value, otherwise it returns -EINVAL and *res is set to 0.
+ *
+ * simple_strtoul just ignores the successive invalid characters and
+ * return the converted value of prefix part of the string.
+ *
+ * Copied this function from Linux 2.6.38 commit ID:
+ * 521cb40b0c44418a4fd36dc633f575813d59a43d
+ *
+ */
+int strict_strtoul(const char *cp, unsigned int base, unsigned long *res)
+{
+	char *tail;
+	unsigned long val;
+	size_t len;
+
+	*res = 0;
+	len = strlen(cp);
+	if (len == 0)
+		return -EINVAL;
+
+	val = simple_strtoul(cp, &tail, base);
+	if (tail == cp)
+		return -EINVAL;
+
+	if ((*tail == '\0') ||
+		((len == (size_t)(tail - cp) + 1) && (*tail == '\n'))) {
+		*res = val;
+		return 0;
+	}
+
+	return -EINVAL;
 }
 
 long simple_strtol(const char *cp,char **endp,unsigned int base)
@@ -678,4 +729,28 @@ void panic(const char *fmt, ...)
 	udelay (100000);	/* allow messages to go out */
 	do_reset (NULL, 0, 0, NULL);
 #endif
+	while (1)
+		;
+}
+
+void __assert_fail(const char *assertion, const char *file, unsigned line,
+		   const char *function)
+{
+	/* This will not return */
+	panic("%s:%u: %s: Assertion `%s' failed.", file, line, function,
+	      assertion);
+}
+
+char *simple_itoa(ulong i)
+{
+	/* 21 digits plus null terminator, good for 64-bit or smaller ints */
+	static char local[22];
+	char *p = &local[21];
+
+	*p-- = '\0';
+	do {
+		*p-- = '0' + i % 10;
+		i /= 10;
+	} while (i > 0);
+	return p + 1;
 }

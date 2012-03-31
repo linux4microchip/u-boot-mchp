@@ -79,7 +79,7 @@ bmp_image_t *gunzip_bmp(unsigned long addr, unsigned long *lenp)
 		return NULL;
 	}
 
-	puts("Gzipped BMP image detected!\n");
+	debug("Gzipped BMP image detected!\n");
 
 	return bmp;
 }
@@ -90,7 +90,7 @@ bmp_image_t *gunzip_bmp(unsigned long addr, unsigned long *lenp)
 }
 #endif
 
-static int do_bmp_info(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+static int do_bmp_info(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	ulong addr;
 
@@ -102,14 +102,13 @@ static int do_bmp_info(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 		addr = simple_strtoul(argv[1], NULL, 16);
 		break;
 	default:
-		cmd_usage(cmdtp);
-		return 1;
+		return cmd_usage(cmdtp);
 	}
 
 	return (bmp_info(addr));
 }
 
-static int do_bmp_display(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+static int do_bmp_display(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	ulong addr;
 	int x = 0, y = 0;
@@ -127,8 +126,7 @@ static int do_bmp_display(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	        y = simple_strtoul(argv[3], NULL, 10);
 	        break;
 	default:
-		cmd_usage(cmdtp);
-		return 1;
+		return cmd_usage(cmdtp);
 	}
 
 	 return (bmp_display(addr, x, y));
@@ -138,6 +136,12 @@ static cmd_tbl_t cmd_bmp_sub[] = {
 	U_BOOT_CMD_MKENT(info, 3, 0, do_bmp_info, "", ""),
 	U_BOOT_CMD_MKENT(display, 5, 0, do_bmp_display, "", ""),
 };
+
+#ifdef CONFIG_NEEDS_MANUAL_RELOC
+void bmp_reloc(void) {
+	fixup_cmdtable(cmd_bmp_sub, ARRAY_SIZE(cmd_bmp_sub));
+}
+#endif
 
 /*
  * Subroutine:  do_bmp
@@ -149,7 +153,7 @@ static cmd_tbl_t cmd_bmp_sub[] = {
  * Return:      None
  *
  */
-static int do_bmp(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+static int do_bmp(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	cmd_tbl_t *c;
 
@@ -159,12 +163,10 @@ static int do_bmp(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 	c = find_cmd_tbl(argv[0], &cmd_bmp_sub[0], ARRAY_SIZE(cmd_bmp_sub));
 
-	if (c) {
+	if (c)
 		return  c->cmd(cmdtp, flag, argc, argv);
-	} else {
-		cmd_usage(cmdtp);
-		return 1;
-	}
+	else
+		return cmd_usage(cmdtp);
 }
 
 U_BOOT_CMD(
@@ -235,9 +237,7 @@ static int bmp_display(ulong addr, int x, int y)
 	}
 
 #if defined(CONFIG_LCD)
-	extern int lcd_display_bitmap (ulong, int, int);
-
-	ret = lcd_display_bitmap ((unsigned long)bmp, x, y);
+	ret = lcd_display_bitmap((ulong)bmp, x, y);
 #elif defined(CONFIG_VIDEO)
 	extern int video_display_bitmap (ulong, int, int);
 

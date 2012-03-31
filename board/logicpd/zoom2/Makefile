@@ -23,7 +23,7 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)lib$(BOARD).a
+LIB	= $(obj)lib$(BOARD).o
 
 COBJS-y := $(BOARD).o
 COBJS-y += debug_board.o
@@ -35,13 +35,7 @@ SRCS	:= $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS))
 
 $(LIB):	$(obj).depend $(OBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS)
-
-clean:
-	rm -f $(OBJS)
-
-distclean:	clean
-	rm -f $(LIB) core *.bak $(obj).depend
+	$(call cmd_link_o_target, $(OBJS))
 
 #########################################################################
 

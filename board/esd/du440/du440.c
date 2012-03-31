@@ -24,7 +24,7 @@
 #include <asm/bitops.h>
 #include <command.h>
 #include <i2c.h>
-#include <ppc440.h>
+#include <asm/ppc440.h>
 #include "du440.h"
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -265,8 +265,8 @@ int misc_init_r(void)
 	 * This fix will make the MAL burst disabling patch for the Linux
 	 * EMAC driver obsolete.
 	 */
-	reg = mfdcr(PLB4_ACR) & ~PLB4_ACR_WRP;
-	mtdcr(PLB4_ACR, reg);
+	reg = mfdcr(PLB4A0_ACR) & ~PLB4Ax_ACR_WRP_MASK;
+	mtdcr(PLB4A0_ACR, reg);
 
 	/*
 	 * release IO-RST#
@@ -350,7 +350,7 @@ int checkboard(void)
 
 	puts("Board: DU440");
 
-	if (getenv_r("serial#", serno, sizeof(serno)) > 0) {
+	if (getenv_f("serial#", serno, sizeof(serno)) > 0) {
 		puts(", serial# ");
 		puts(serno);
 	}
@@ -409,7 +409,7 @@ int dcf77_status(void)
 	return mv;
 }
 
-int do_dcf77(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_dcf77(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	int mv;
 	u32 pin, pinold;
@@ -490,7 +490,7 @@ int usbhub_init(void)
 	return ret;
 }
 
-int do_hubinit(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_hubinit(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	usbhub_init();
 	return 0;
@@ -573,7 +573,7 @@ int boot_eeprom_write (unsigned dev_addr,
 	return rcode;
 }
 
-int do_setup_boot_eeprom(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_setup_boot_eeprom(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	ulong sdsdp[4];
 
@@ -673,7 +673,7 @@ int eeprom_write_enable (unsigned dev_addr, int state)
 	return state;
 }
 
-int do_eep_wren (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_eep_wren (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	int query = argc == 1;
 	int state = 0;
@@ -727,7 +727,7 @@ static int pld_interrupt(u32 arg)
 	return rc;
 }
 
-int do_waitpwrirq(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_waitpwrirq(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	got_pldirq = 0;
 
@@ -795,7 +795,7 @@ int dvi_init(void)
 	return ret;
 }
 
-int do_dviinit(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_dviinit(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	dvi_init();
 	return 0;
@@ -810,7 +810,7 @@ U_BOOT_CMD(
  * TODO: 'time' command might be useful for others as well.
  *       Move to 'common' directory.
  */
-int do_time(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_time(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	unsigned long long start, end;
 	char c, cmd[CONFIG_SYS_CBSIZE];
@@ -874,7 +874,7 @@ unsigned int prng(unsigned int max)
 	return Y;
 }
 
-int do_gfxdemo(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_gfxdemo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	unsigned int color;
 	unsigned int x, y, dx, dy;

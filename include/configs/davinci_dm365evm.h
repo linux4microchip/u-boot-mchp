@@ -24,7 +24,6 @@
 #define DAVINCI_DM365EVM
 
 #define CONFIG_SKIP_LOWLEVEL_INIT	/* U-Boot is a 3rd stage loader */
-#define CONFIG_SKIP_RELOCATE_UBOOT
 #define CONFIG_SYS_NO_FLASH		/* that is, no *NOR* flash */
 #define CONFIG_SYS_CONSOLE_INFO_QUIET
 
@@ -64,7 +63,6 @@
 #define CONFIG_BOOTP_DNS2
 #define CONFIG_BOOTP_SEND_HOSTNAME
 #define CONFIG_NET_RETRY_COUNT	10
-#define CONFIG_NET_MULTI
 
 /* I2C */
 #define CONFIG_HARD_I2C
@@ -84,6 +82,13 @@
 /* socket has two chipselects, nCE0 gated by address BIT(14) */
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 #define CONFIG_SYS_NAND_MAX_CHIPS	2
+
+/* SD/MMC */
+#define CONFIG_MMC
+#define CONFIG_GENERIC_MMC
+#define CONFIG_DAVINCI_MMC
+#define CONFIG_DAVINCI_MMC_SD1
+#define CONFIG_MMC_MBLOCK
 
 #define PINMUX4_USBDRVBUS_BITCLEAR       0x3000
 #define PINMUX4_USBDRVBUS_BITSET         0x2000
@@ -137,6 +142,13 @@
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_SAVES
 
+#ifdef CONFIG_MMC
+#define CONFIG_DOS_PARTITION
+#define CONFIG_CMD_EXT2
+#define CONFIG_CMD_FAT
+#define CONFIG_CMD_MMC
+#endif
+
 #ifdef CONFIG_NAND_DAVINCI
 #define CONFIG_CMD_MTDPARTS
 #define CONFIG_MTD_PARTITIONS
@@ -152,7 +164,7 @@
 /* U-Boot general configuration */
 #undef CONFIG_USE_IRQ				/* No IRQ/FIQ in U-Boot */
 #define CONFIG_BOOTFILE		"uImage"	/* Boot file name */
-#define CONFIG_SYS_PROMPT	"DM365 EVM # "	/* Monitor Command Prompt */
+#define CONFIG_SYS_PROMPT	"DM36x EVM # "	/* Monitor Command Prompt */
 #define CONFIG_SYS_CBSIZE	1024		/* Console I/O Buffer Size  */
 #define CONFIG_SYS_PBSIZE			/* Print buffer size */ \
 		(CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
@@ -165,6 +177,14 @@
 #define CONFIG_ENV_SIZE		(256 << 10)	/* 256 KiB */
 #define CONFIG_ENV_IS_IN_NAND
 #define CONFIG_ENV_OFFSET	0x3C0000
+#undef CONFIG_ENV_IS_IN_FLASH
+#endif
+
+#if defined(CONFIG_MMC) && !defined(CONFIG_ENV_IS_IN_NAND)
+#define CONFIG_CMD_ENV
+#define CONFIG_ENV_SIZE		(16 << 10)	/* 16 KiB */
+#define CONFIG_ENV_OFFSET	(51 << 9)	/* Sector 51 */
+#define CONFIG_ENV_IS_IN_MMC
 #undef CONFIG_ENV_IS_IN_FLASH
 #endif
 
@@ -182,7 +202,6 @@
 /* U-Boot memory configuration */
 #define CONFIG_STACKSIZE		(256 << 10)	/* 256 KiB */
 #define CONFIG_SYS_MALLOC_LEN		(1 << 20)	/* 1 MiB */
-#define CONFIG_SYS_GBL_DATA_SIZE	128		/* for initial data */
 #define CONFIG_SYS_MEMTEST_START	0x87000000	/* physical address */
 #define CONFIG_SYS_MEMTEST_END		0x88000000	/* test 16MB RAM */
 
@@ -215,5 +234,11 @@
 
 #define MTDPARTS_DEFAULT	\
 	"mtdparts=davinci_nand.0:" PART_BOOT PART_KERNEL PART_REST
+
+#define CONFIG_MAX_RAM_BANK_SIZE	(256 << 20)	/* 256 MB */
+
+#define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
+#define CONFIG_SYS_INIT_SP_ADDR		\
+	(CONFIG_SYS_SDRAM_BASE + 0x1000 - GENERATED_GBL_DATA_SIZE)
 
 #endif /* __CONFIG_H */

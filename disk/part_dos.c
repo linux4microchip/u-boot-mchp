@@ -77,15 +77,17 @@ static int test_block_type(unsigned char *buffer)
 	    (buffer[DOS_PART_MAGIC_OFFSET + 1] != 0xaa) ) {
 		return (-1);
 	} /* no DOS Signature at all */
-	if(strncmp((char *)&buffer[DOS_PBR_FSTYPE_OFFSET],"FAT",3)==0)
+	if (strncmp((char *)&buffer[DOS_PBR_FSTYPE_OFFSET],"FAT",3)==0 ||
+	    strncmp((char *)&buffer[DOS_PBR32_FSTYPE_OFFSET],"FAT32",5)==0) {
 		return DOS_PBR; /* is PBR */
+	}
 	return DOS_MBR;	    /* Is MBR */
 }
 
 
 int test_part_dos (block_dev_desc_t *dev_desc)
 {
-	unsigned char buffer[DEFAULT_SECTOR_SIZE];
+	unsigned char buffer[dev_desc->blksz];
 
 	if ((dev_desc->block_read(dev_desc->dev, 0, 1, (ulong *) buffer) != 1) ||
 	    (buffer[DOS_PART_MAGIC_OFFSET + 0] != 0x55) ||
@@ -100,7 +102,7 @@ int test_part_dos (block_dev_desc_t *dev_desc)
 static void print_partition_extended (block_dev_desc_t *dev_desc, int ext_part_sector, int relative,
 							   int part_num)
 {
-	unsigned char buffer[DEFAULT_SECTOR_SIZE];
+	unsigned char buffer[dev_desc->blksz];
 	dos_partition_t *pt;
 	int i;
 
@@ -164,7 +166,7 @@ static int get_partition_info_extended (block_dev_desc_t *dev_desc, int ext_part
 				 int relative, int part_num,
 				 int which_part, disk_partition_t *info)
 {
-	unsigned char buffer[DEFAULT_SECTOR_SIZE];
+	unsigned char buffer[dev_desc->blksz];
 	dos_partition_t *pt;
 	int i;
 

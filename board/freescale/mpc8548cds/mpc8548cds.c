@@ -1,5 +1,5 @@
 /*
- * Copyright 2004, 2007, 200 Freescale Semiconductor, Inc.
+ * Copyright 2004, 2007, 2009-2011 Freescale Semiconductor, Inc.
  *
  * (C) Copyright 2002 Scott McNutt <smcnutt@artesyncp.com>
  *
@@ -29,19 +29,19 @@
 #include <asm/immap_85xx.h>
 #include <asm/fsl_pci.h>
 #include <asm/fsl_ddr_sdram.h>
-#include <spd_sdram.h>
+#include <asm/fsl_serdes.h>
 #include <miiphy.h>
 #include <libfdt.h>
 #include <fdt_support.h>
+#include <tsec.h>
+#include <fsl_mdio.h>
+#include <netdev.h>
 
 #include "../common/cadmus.h"
 #include "../common/eeprom.h"
 #include "../common/via.h"
 
-DECLARE_GLOBAL_DATA_PTR;
-
 void local_bus_init(void);
-void sdram_init(void);
 
 int checkboard (void)
 {
@@ -53,10 +53,10 @@ int checkboard (void)
 
 	uint cpu_board_rev = get_cpu_board_revision ();
 
-	printf ("Board: CDS Version 0x%02x, PCI Slot %d\n",
-		get_board_version (), pci_slot);
-
-	printf ("CPU Board Revision %d.%d (0x%04x)\n",
+	puts("Board: MPC8548CDS");
+	printf(" Carrier Rev: 0x%02x, PCI Slot %d\n",
+			get_board_version(), pci_slot);
+	printf("       Daughtercard Rev: %d.%d (0x%04x)\n",
 		MPC85XX_CPU_BOARD_MAJOR (cpu_board_rev),
 		MPC85XX_CPU_BOARD_MINOR (cpu_board_rev), cpu_board_rev);
 	/*
@@ -74,43 +74,6 @@ int checkboard (void)
 	return 0;
 }
 
-phys_size_t
-initdram(int board_type)
-{
-	long dram_size = 0;
-
-	puts("Initializing\n");
-
-#if defined(CONFIG_DDR_DLL)
-	{
-		/*
-		 * Work around to stabilize DDR DLL MSYNC_IN.
-		 * Errata DDR9 seems to have been fixed.
-		 * This is now the workaround for Errata DDR11:
-		 *    Override DLL = 1, Course Adj = 1, Tap Select = 0
-		 */
-
-		volatile ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
-
-		gur->ddrdllcr = 0x81000000;
-		asm("sync;isync;msync");
-		udelay(200);
-	}
-#endif
-
-	dram_size = fsl_ddr_sdram();
-	dram_size = setup_ddr_tlbs(dram_size / 0x100000);
-	dram_size *= 0x100000;
-
-	/*
-	 * SDRAM Initialization
-	 */
-	sdram_init();
-
-	puts("    DDR: ");
-	return dram_size;
-}
-
 /*
  * Initialize Local Bus
  */
@@ -118,15 +81,13 @@ void
 local_bus_init(void)
 {
 	volatile ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
-	volatile ccsr_lbc_t *lbc = (void *)(CONFIG_SYS_MPC85xx_LBC_ADDR);
+	volatile fsl_lbc_t *lbc = LBC_BASE_ADDR;
 
 	uint clkdiv;
-	uint lbc_hz;
 	sys_info_t sysinfo;
 
 	get_sys_info(&sysinfo);
 	clkdiv = (lbc->lcrr & LCRR_CLKDIV) * 2;
-	lbc_hz = sysinfo.freqSystemBus / 1000000 / clkdiv;
 
 	gur->lbiuiplldcr1 = 0x00078080;
 	if (clkdiv == 16) {
@@ -148,33 +109,26 @@ local_bus_init(void)
 /*
  * Initialize SDRAM memory on the Local Bus.
  */
-void
-sdram_init(void)
+void lbc_sdram_init(void)
 {
 #if defined(CONFIG_SYS_OR2_PRELIM) && defined(CONFIG_SYS_BR2_PRELIM)
 
 	uint idx;
-	volatile ccsr_lbc_t *lbc = (void *)(CONFIG_SYS_MPC85xx_LBC_ADDR);
+	volatile fsl_lbc_t *lbc = LBC_BASE_ADDR;
 	uint *sdram_addr = (uint *)CONFIG_SYS_LBC_SDRAM_BASE;
-	uint cpu_board_rev;
 	uint lsdmr_common;
 
-	puts("    SDRAM: ");
-
-	print_size (CONFIG_SYS_LBC_SDRAM_SIZE * 1024 * 1024, "\n");
+	puts("LBC SDRAM: ");
+	print_size(CONFIG_SYS_LBC_SDRAM_SIZE * 1024 * 1024,
+		   "\n");
 
 	/*
 	 * Setup SDRAM Base and Option Registers
 	 */
-	lbc->or2 = CONFIG_SYS_OR2_PRELIM;
-	asm("msync");
-
-	lbc->br2 = CONFIG_SYS_BR2_PRELIM;
-	asm("msync");
-
+	set_lbc_or(2, CONFIG_SYS_OR2_PRELIM);
+	set_lbc_br(2, CONFIG_SYS_BR2_PRELIM);
 	lbc->lbcr = CONFIG_SYS_LBC_LBCR;
 	asm("msync");
-
 
 	lbc->lsrt = CONFIG_SYS_LBC_LSRT;
 	lbc->mrtpr = CONFIG_SYS_LBC_MRTPR;
@@ -183,7 +137,6 @@ sdram_init(void)
 	/*
 	 * MPC8548 uses "new" 15-16 style addressing.
 	 */
-	cpu_board_rev = get_cpu_board_revision();
 	lsdmr_common = CONFIG_SYS_LBC_LSDMR_COMMON;
 	lsdmr_common |= LSDMR_BSMA1516;
 
@@ -250,28 +203,17 @@ static struct pci_config_table pci_mpc85xxcds_config_table[] = {
 	{},
 };
 
-static struct pci_controller pci1_hose = {
-	config_table: pci_mpc85xxcds_config_table};
+static struct pci_controller pci1_hose;
 #endif	/* CONFIG_PCI */
-
-#ifdef CONFIG_PCI2
-static struct pci_controller pci2_hose;
-#endif	/* CONFIG_PCI2 */
-
-#ifdef CONFIG_PCIE1
-static struct pci_controller pcie1_hose;
-#endif	/* CONFIG_PCIE1 */
 
 void pci_init_board(void)
 {
 	volatile ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
-	struct fsl_pci_info pci_info[4];
+	struct fsl_pci_info pci_info;
 	u32 devdisr, pordevsr, io_sel;
 	u32 porpllsr, pci_agent, pci_speed, pci_32, pci_arb, pci_clk_sel;
 	int first_free_busno = 0;
-	int num = 0;
-
-	int pcie_ep, pcie_configured;
+	char buf[32];
 
 	devdisr = in_be32(&gur->devdisr);
 	pordevsr = in_be32(&gur->pordevsr);
@@ -287,18 +229,23 @@ void pci_init_board(void)
 	pci_clk_sel = porpllsr & MPC85xx_PORDEVSR_PCI1_SPD;
 
 	if (!(devdisr & MPC85xx_DEVDISR_PCI1)) {
-		SET_STD_PCI_INFO(pci_info[num], 1);
-		pci_agent = fsl_setup_hose(&pci1_hose, pci_info[num].regs);
-		printf ("\n    PCI: %d bit, %s MHz, %s, %s, %s (base address %lx)\n",
+		SET_STD_PCI_INFO(pci_info, 1);
+		set_next_law(pci_info.mem_phys,
+			law_size_bits(pci_info.mem_size), pci_info.law);
+		set_next_law(pci_info.io_phys,
+			law_size_bits(pci_info.io_size), pci_info.law);
+
+		pci_agent = fsl_setup_hose(&pci1_hose, pci_info.regs);
+		printf("PCI1: %d bit, %s MHz, %s, %s, %s (base address %lx)\n",
 			(pci_32) ? 32 : 64,
-			(pci_speed == 33333000) ? "33" :
-			(pci_speed == 66666000) ? "66" : "unknown",
+			strmhz(buf, pci_speed),
 			pci_clk_sel ? "sync" : "async",
 			pci_agent ? "agent" : "host",
 			pci_arb ? "arbiter" : "external-arbiter",
-			pci_info[num].regs);
+			pci_info.regs);
 
-		first_free_busno = fsl_pci_init_port(&pci_info[num++],
+		pci1_hose.config_table = pci_mpc85xxcds_config_table;
+		first_free_busno = fsl_pci_init_port(&pci_info,
 					&pci1_hose, first_free_busno);
 
 #ifdef CONFIG_PCIX_CHECK
@@ -313,7 +260,7 @@ void pci_init_board(void)
 		}
 #endif
 	} else {
-		printf ("    PCI: disabled\n");
+		printf("PCI1: disabled\n");
 	}
 
 	puts("\n");
@@ -326,39 +273,20 @@ void pci_init_board(void)
 	uint pci2_clk_sel = porpllsr & 0x4000;	/* PORPLLSR[17] */
 	uint pci_dual = get_pci_dual ();	/* PCI DUAL in CM_PCI[3] */
 	if (pci_dual) {
-		printf ("    PCI2: 32 bit, 66 MHz, %s\n",
+		printf("PCI2: 32 bit, 66 MHz, %s\n",
 			pci2_clk_sel ? "sync" : "async");
 	} else {
-		printf ("    PCI2: disabled\n");
+		printf("PCI2: disabled\n");
 	}
 }
 #else
 	setbits_be32(&gur->devdisr, MPC85xx_DEVDISR_PCI2); /* disable */
 #endif /* CONFIG_PCI2 */
 
-#ifdef CONFIG_PCIE1
-	pcie_configured = is_fsl_pci_cfg(LAW_TRGT_IF_PCIE_1, io_sel);
-
-	if (pcie_configured && !(devdisr & MPC85xx_DEVDISR_PCIE)){
-		SET_STD_PCIE_INFO(pci_info[num], 1);
-		pcie_ep = fsl_setup_hose(&pcie1_hose, pci_info[num].regs);
-		printf ("    PCIE1 connected to Slot as %s (base addr %lx)\n",
-				pcie_ep ? "Endpoint" : "Root Complex",
-				pci_info[num].regs);
-
-		first_free_busno = fsl_pci_init_port(&pci_info[num++],
-					&pcie1_hose, first_free_busno);
-	} else {
-		printf ("    PCIE1: disabled\n");
-	}
-
-	puts("\n");
-#else
-	setbits_be32(&gur->devdisr, MPC85xx_DEVDISR_PCIE); /* disable */
-#endif
+	fsl_pcie_init_board(first_free_busno);
 }
 
-int last_stage_init(void)
+void configure_rgmii(void)
 {
 	unsigned short temp;
 
@@ -366,38 +294,81 @@ int last_stage_init(void)
 	/* This is needed to get the RGMII working for the 1.3+
 	 * CDS cards */
 	if (get_board_version() ==  0x13) {
-		miiphy_write(CONFIG_TSEC1_NAME,
+		miiphy_write(DEFAULT_MII_NAME,
 				TSEC1_PHY_ADDR, 29, 18);
 
-		miiphy_read(CONFIG_TSEC1_NAME,
+		miiphy_read(DEFAULT_MII_NAME,
 				TSEC1_PHY_ADDR, 30, &temp);
 
 		temp = (temp & 0xf03f);
 		temp |= 2 << 9;		/* 36 ohm */
 		temp |= 2 << 6;		/* 39 ohm */
 
-		miiphy_write(CONFIG_TSEC1_NAME,
+		miiphy_write(DEFAULT_MII_NAME,
 				TSEC1_PHY_ADDR, 30, temp);
 
-		miiphy_write(CONFIG_TSEC1_NAME,
+		miiphy_write(DEFAULT_MII_NAME,
 				TSEC1_PHY_ADDR, 29, 3);
 
-		miiphy_write(CONFIG_TSEC1_NAME,
+		miiphy_write(DEFAULT_MII_NAME,
 				TSEC1_PHY_ADDR, 30, 0x8000);
 	}
 
-	return 0;
+	return;
 }
 
+#ifdef CONFIG_TSEC_ENET
+int board_eth_init(bd_t *bis)
+{
+	struct fsl_pq_mdio_info mdio_info;
+	struct tsec_info_struct tsec_info[4];
+	int num = 0;
+
+#ifdef CONFIG_TSEC1
+	SET_STD_TSEC_INFO(tsec_info[num], 1);
+	num++;
+#endif
+#ifdef CONFIG_TSEC2
+	SET_STD_TSEC_INFO(tsec_info[num], 2);
+	num++;
+#endif
+#ifdef CONFIG_TSEC3
+	/* initialize TSEC3 only if Carrier is 1.3 or above on CDS */
+	if (get_board_version() >= 0x13) {
+		SET_STD_TSEC_INFO(tsec_info[num], 3);
+		tsec_info[num].interface = PHY_INTERFACE_MODE_RGMII_ID;
+		num++;
+	}
+#endif
+#ifdef CONFIG_TSEC4
+	/* initialize TSEC4 only if Carrier is 1.3 or above on CDS */
+	if (get_board_version() >= 0x13) {
+		SET_STD_TSEC_INFO(tsec_info[num], 4);
+		tsec_info[num].interface = PHY_INTERFACE_MODE_RGMII_ID;
+		num++;
+	}
+#endif
+
+	if (!num) {
+		printf("No TSECs initialized\n");
+
+		return 0;
+	}
+
+	mdio_info.regs = (struct tsec_mii_mng *)CONFIG_SYS_MDIO_BASE_ADDR;
+	mdio_info.name = DEFAULT_MII_NAME;
+	fsl_pq_mdio_init(bis, &mdio_info);
+
+	tsec_eth_init(bis, tsec_info, num);
+	configure_rgmii();
+
+	return pci_eth_init(bis);
+}
+#endif
 
 #if defined(CONFIG_OF_BOARD_SETUP)
 void ft_pci_setup(void *blob, bd_t *bd)
 {
-#ifdef CONFIG_PCI1
-	ft_fsl_pci_setup(blob, "pci0", &pci1_hose);
-#endif
-#ifdef CONFIG_PCIE1
-	ft_fsl_pci_setup(blob, "pci1", &pcie1_hose);
-#endif
+	FT_FSL_PCI_SETUP;
 }
 #endif

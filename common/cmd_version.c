@@ -23,18 +23,26 @@
 
 #include <common.h>
 #include <command.h>
+#include <version.h>
+#include <linux/compiler.h>
 
-extern char version_string[];
+const char __weak version_string[] = U_BOOT_VERSION_STRING;
 
-int do_version(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_version(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	printf("\n%s\n", version_string);
+#ifdef CC_VERSION_STRING
+	puts(CC_VERSION_STRING "\n");
+#endif
+#ifdef LD_VERSION_STRING
+	puts(LD_VERSION_STRING "\n");
+#endif
 
 	return 0;
 }
 
 U_BOOT_CMD(
 	version,	1,		1,	do_version,
-	"print monitor version",
+	"print monitor, compiler and linker version",
 	""
 );

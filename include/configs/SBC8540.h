@@ -34,7 +34,7 @@
 /*
  * Top level Makefile configuration choices
  */
-#ifdef CONFIG_MK_66
+#ifdef CONFIG_66
 #define CONFIG_PCI_66
 #endif
 
@@ -47,6 +47,8 @@
 #define CONFIG_E500		1	/* BOOKE e500 family		*/
 #define CONFIG_MPC85xx		1	/* MPC8540/MPC8560		*/
 #define CONFIG_MPC85xx_REV1	1	/* MPC85xx Rev 1.0 chip		*/
+
+#define	CONFIG_SYS_TEXT_BASE	0xfffc0000
 
 
 #define CONFIG_CPM2		1	/* has CPM2 */
@@ -92,20 +94,6 @@
 #error "You can only use ONE of PCI Ethernet Card or TSEC Ethernet or CPM FCC."
 #endif
 
-/*
- * Base addresses -- Note these are effective addresses where the
- * actual resources get mapped (not physical addresses)
- */
-#define CONFIG_SYS_CCSRBAR_DEFAULT	0xff700000	/* CCSRBAR Default	*/
-
-#if XXX
-  #define CONFIG_SYS_CCSRBAR		0xfdf00000	/* relocated CCSRBAR	*/
-#else
-  #define CONFIG_SYS_CCSRBAR		0xff700000	/* default CCSRBAR	*/
-#endif
-#define CONFIG_SYS_CCSRBAR_PHYS	CONFIG_SYS_CCSRBAR	/* physical addr of CCSRBAR */
-#define CONFIG_SYS_IMMR		CONFIG_SYS_CCSRBAR	/* PQII uses CONFIG_SYS_IMMR	*/
-
 #define CONFIG_SYS_SDRAM_SIZE		512		/* DDR is 512MB */
 
 /* DDR Setup */
@@ -116,7 +104,7 @@
 #undef  CONFIG_DDR_SPD
 
 #if defined(CONFIG_MPC85xx_REV1)
-  #define CONFIG_DDR_DLL			/* possible DLL fix needed	*/
+#define CONFIG_SYS_FSL_ERRATUM_DDR_MSYNC_IN	/* possible DLL fix needed */
 #endif
 
 #undef  CONFIG_DDR_ECC			    /* only for ECC DDR module */
@@ -191,10 +179,9 @@
 
 #define CONFIG_SYS_INIT_RAM_LOCK	1
 #define CONFIG_SYS_INIT_RAM_ADDR	0x70000000	/* Initial RAM address	*/
-#define CONFIG_SYS_INIT_RAM_END	0x4000		/* End of used area in RAM */
+#define CONFIG_SYS_INIT_RAM_SIZE	0x4000		/* Size of used area in RAM */
 
-#define CONFIG_SYS_GBL_DATA_SIZE	128		/* num bytes initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 #define CONFIG_SYS_MONITOR_LEN		(256 * 1024)	/* Reserve 256 kB for Mon */
@@ -205,7 +192,6 @@
 #undef	CONFIG_CONS_NONE			/* define if console on something else */
 
 #define CONFIG_CONS_INDEX     1
-#undef	CONFIG_SERIAL_SOFTWARE_FIFO
 #define CONFIG_SYS_NS16550
 #define CONFIG_SYS_NS16550_SERIAL
 #define CONFIG_SYS_NS16550_REG_SIZE	1
@@ -252,7 +238,6 @@
 
 #if defined(CONFIG_TSEC_ENET)		/* TSEC Ethernet port */
 
-#  define CONFIG_NET_MULTI	1
 #  define CONFIG_MPC85xx_TSEC1
 #  define CONFIG_MPC85xx_TSEC1_NAME	"TSEC0"
 #  define CONFIG_MII		1	/* MII PHY management		*/
@@ -275,8 +260,8 @@
      * - Select bus for bd/buffers
      * - Full duplex
      */
-    #define CONFIG_SYS_CMXFCR_MASK	(CMXFCR_FC2 | CMXFCR_RF2CS_MSK | CMXFCR_TF2CS_MSK)
-    #define CONFIG_SYS_CMXFCR_VALUE	(CMXFCR_RF2CS_CLK13 | CMXFCR_TF2CS_CLK14)
+    #define CONFIG_SYS_CMXFCR_MASK2	(CMXFCR_FC2 | CMXFCR_RF2CS_MSK | CMXFCR_TF2CS_MSK)
+    #define CONFIG_SYS_CMXFCR_VALUE2	(CMXFCR_RF2CS_CLK13 | CMXFCR_TF2CS_CLK14)
     #define CONFIG_SYS_CPMFCR_RAMTYPE	0
     #define CONFIG_SYS_FCC_PSMR	(FCC_PSMR_FDE)
 
@@ -325,7 +310,7 @@
 #define CONFIG_SYS_FLASH_ERASE_TOUT	200000		/* Timeout for Flash Erase (in ms)	*/
 #define CONFIG_SYS_FLASH_WRITE_TOUT	50000		/* Timeout for Flash Write (in ms)	*/
 
-#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE	/* start of monitor	*/
+#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE	/* start of monitor	*/
 
 #if 0
 /* XXX This doesn't work and I don't want to fix it */
@@ -380,6 +365,7 @@
 
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_I2C
+#define CONFIG_CMD_REGINFO
 
 #if defined(CONFIG_PCI)
     #define CONFIG_CMD_PCI
@@ -420,14 +406,6 @@
  */
 #define CONFIG_SYS_BOOTMAPSZ		(8 << 20) /* Initial Memory map for Linux */
 
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH */
-#define BOOTFLAG_WARM	0x02		/* Software reboot		*/
-
 #if defined(CONFIG_CMD_KGDB)
   #define CONFIG_KGDB_BAUDRATE	230400	/* speed to run kgdb serial port */
   #define CONFIG_KGDB_SER_INDEX	2	/* which serial port to use */
@@ -447,7 +425,7 @@
 #define CONFIG_GATEWAYIP	YourGatewayIP
 #define CONFIG_NETMASK		255.255.255.0
 #define CONFIG_HOSTNAME		SBC8560
-#define CONFIG_ROOTPATH		YourRootPath
-#define CONFIG_BOOTFILE		YourImageName
+#define CONFIG_ROOTPATH		"YourRootPath"
+#define CONFIG_BOOTFILE		"YourImageName"
 
 #endif	/* __CONFIG_H */

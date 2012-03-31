@@ -49,6 +49,9 @@
 #define CONFIG_MPC824X		1
 #define CONFIG_MPC8245		1
 #define CONFIG_UTX8245		1
+
+#define	CONFIG_SYS_TEXT_BASE	0xFFF00000
+
 #define DEBUG				1
 
 #define CONFIG_IDENT_STRING     " [UTX5] "
@@ -140,7 +143,6 @@ protect on ${u-boot_startaddr} ${u-boot_endaddr}"
 #define CONFIG_PCI				/* include pci support		*/
 #undef CONFIG_PCI_PNP
 #define CONFIG_PCI_SCAN_SHOW
-#define CONFIG_NET_MULTI
 #define CONFIG_EEPRO100
 #define CONFIG_SYS_RX_ETH_BUFFER	8               /* use 8 rx buffer on eepro100  */
 #define CONFIG_EEPRO100_SROM_WRITE
@@ -176,7 +178,7 @@ protect on ${u-boot_startaddr} ${u-boot_endaddr}"
 
 #define CONFIG_SYS_EUMB_ADDR	    0xFC000000
 
-#define CONFIG_SYS_MONITOR_BASE    TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE    CONFIG_SYS_TEXT_BASE
 
 #define CONFIG_SYS_MONITOR_LEN	    (256 << 10) /* Reserve 256 kB for Monitor	*/
 #define CONFIG_SYS_MALLOC_LEN	    (128 << 10) /* Reserve 128 kB for malloc()	*/
@@ -193,10 +195,9 @@ protect on ${u-boot_startaddr} ${u-boot_endaddr}"
 #define CONFIG_SYS_INIT_DATA_SIZE    128	/* Size in bytes reserved for */
 									/* initial data */
 #define CONFIG_SYS_INIT_RAM_ADDR     0x40000000
-#define CONFIG_SYS_INIT_RAM_END      0x1000
-#define CONFIG_SYS_INIT_DATA_OFFSET  (CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_INIT_DATA_SIZE)
-#define CONFIG_SYS_GBL_DATA_SIZE	128
-#define CONFIG_SYS_GBL_DATA_OFFSET  (CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE      0x1000
+#define CONFIG_SYS_INIT_DATA_OFFSET  (CONFIG_SYS_INIT_RAM_SIZE - CONFIG_SYS_INIT_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_OFFSET  (CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 
 /*--------------------------------------------------------------------
  * NS16550 Configuration
@@ -424,14 +425,5 @@ protect on ${u-boot_startaddr} ${u-boot_endaddr}"
 #if defined(CONFIG_CMD_KGDB)
 #  define CONFIG_SYS_CACHELINE_SHIFT	5	/* log base 2 of the above value	*/
 #endif
-
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH	*/
-#define BOOTFLAG_WARM		0x02	/* Software reboot			*/
-
 
 #endif	/* __CONFIG_H */

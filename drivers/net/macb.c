@@ -167,7 +167,7 @@ static u16 macb_mdio_read(struct macb_device *macb, u8 reg)
 
 #if defined(CONFIG_CMD_MII)
 
-int macb_miiphy_read(char *devname, u8 phy_adr, u8 reg, u16 *value)
+int macb_miiphy_read(const char *devname, u8 phy_adr, u8 reg, u16 *value)
 {
 	struct eth_device *dev = eth_get_dev_by_name(devname);
 	struct macb_device *macb = to_macb(dev);
@@ -180,7 +180,7 @@ int macb_miiphy_read(char *devname, u8 phy_adr, u8 reg, u16 *value)
 	return 0;
 }
 
-int macb_miiphy_write(char *devname, u8 phy_adr, u8 reg, u16 value)
+int macb_miiphy_write(const char *devname, u8 phy_adr, u8 reg, u16 value)
 {
 	struct eth_device *dev = eth_get_dev_by_name(devname);
 	struct macb_device *macb = to_macb(dev);
@@ -439,8 +439,6 @@ static int macb_init(struct eth_device *netdev, bd_t *bd)
 {
 	struct macb_device *macb = to_macb(netdev);
 	unsigned long paddr;
-	u32 hwaddr_bottom;
-	u16 hwaddr_top;
 	int i;
 
 	/*
@@ -469,25 +467,21 @@ static int macb_init(struct eth_device *netdev, bd_t *bd)
 	macb_writel(macb, RBQP, macb->rx_ring_dma);
 	macb_writel(macb, TBQP, macb->tx_ring_dma);
 
-	/* set hardware address */
-	hwaddr_bottom = cpu_to_le32(*((u32 *)netdev->enetaddr));
-	macb_writel(macb, SA1B, hwaddr_bottom);
-	hwaddr_top = cpu_to_le16(*((u16 *)(netdev->enetaddr + 4)));
-	macb_writel(macb, SA1T, hwaddr_top);
-
 	/* choose RMII or MII mode. This depends on the board */
 #ifdef CONFIG_RMII
-#if defined(CONFIG_AT91CAP9) || defined(CONFIG_AT91SAM9260) || \
-    defined(CONFIG_AT91SAM9263) || defined(CONFIG_AT91SAM9G20) || \
-	defined(CONFIG_AT91SAM9G45) || defined(CONFIG_AT91SAM9M10G45)
+#if	defined(CONFIG_AT91CAP9) || defined(CONFIG_AT91SAM9260) || \
+	defined(CONFIG_AT91SAM9263) || defined(CONFIG_AT91SAM9G20) || \
+	defined(CONFIG_AT91SAM9G45) || defined(CONFIG_AT91SAM9M10G45) || \
+	defined(CONFIG_AT91SAM9XE)
 	macb_writel(macb, USRIO, MACB_BIT(RMII) | MACB_BIT(CLKEN));
 #else
 	macb_writel(macb, USRIO, 0);
 #endif
 #else
-#if defined(CONFIG_AT91CAP9) || defined(CONFIG_AT91SAM9260) || \
-    defined(CONFIG_AT91SAM9263) || defined(CONFIG_AT91SAM9G20) || \
-	defined(CONFIG_AT91SAM9G45) || defined(CONFIG_AT91SAM9M10G45)
+#if	defined(CONFIG_AT91CAP9) || defined(CONFIG_AT91SAM9260) || \
+	defined(CONFIG_AT91SAM9263) || defined(CONFIG_AT91SAM9G20) || \
+	defined(CONFIG_AT91SAM9G45) || defined(CONFIG_AT91SAM9M10G45) || \
+	defined(CONFIG_AT91SAM9XE)
 	macb_writel(macb, USRIO, MACB_BIT(CLKEN));
 #else
 	macb_writel(macb, USRIO, MACB_BIT(MII));
@@ -519,6 +513,21 @@ static void macb_halt(struct eth_device *netdev)
 
 	/* Disable TX and RX, and clear statistics */
 	macb_writel(macb, NCR, MACB_BIT(CLRSTAT));
+}
+
+static int macb_write_hwaddr(struct eth_device *dev)
+{
+	struct macb_device *macb = to_macb(dev);
+	u32 hwaddr_bottom;
+	u16 hwaddr_top;
+
+	/* set hardware address */
+	hwaddr_bottom = dev->enetaddr[0] | dev->enetaddr[1] << 8 |
+			dev->enetaddr[2] << 16 | dev->enetaddr[3] << 24;
+	macb_writel(macb, SA1B, hwaddr_bottom);
+	hwaddr_top = dev->enetaddr[4] | dev->enetaddr[5] << 8;
+	macb_writel(macb, SA1T, hwaddr_top);
+	return 0;
 }
 
 int macb_eth_initialize(int id, void *regs, unsigned int phy_addr)
@@ -554,6 +563,7 @@ int macb_eth_initialize(int id, void *regs, unsigned int phy_addr)
 	netdev->halt = macb_halt;
 	netdev->send = macb_send;
 	netdev->recv = macb_recv;
+	netdev->write_hwaddr = macb_write_hwaddr;
 
 	/*
 	 * Do some basic initialization so that we at least can talk

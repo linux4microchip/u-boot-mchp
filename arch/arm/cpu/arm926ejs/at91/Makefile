@@ -23,17 +23,19 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)lib$(SOC).a
+LIB	= $(obj)lib$(SOC).o
 
 COBJS-$(CONFIG_AT91CAP9)	+= at91cap9_devices.o
 COBJS-$(CONFIG_AT91SAM9260)	+= at91sam9260_devices.o
 COBJS-$(CONFIG_AT91SAM9G20)	+= at91sam9260_devices.o
+COBJS-$(CONFIG_AT91SAM9XE)	+= at91sam9260_devices.o
 COBJS-$(CONFIG_AT91SAM9261)	+= at91sam9261_devices.o
 COBJS-$(CONFIG_AT91SAM9G10)	+= at91sam9261_devices.o
 COBJS-$(CONFIG_AT91SAM9263)	+= at91sam9263_devices.o
 COBJS-$(CONFIG_AT91SAM9RL)	+= at91sam9rl_devices.o
 COBJS-$(CONFIG_AT91SAM9M10G45)	+= at91sam9m10g45_devices.o
 COBJS-$(CONFIG_AT91SAM9G45)	+= at91sam9m10g45_devices.o
+COBJS-$(CONFIG_AT91_EFLASH)	+= eflash.o
 COBJS-$(CONFIG_AT91_LED)	+= led.o
 COBJS-y += clock.o
 COBJS-y += cpu.o
@@ -50,7 +52,7 @@ OBJS    := $(addprefix $(obj),$(SOBJS-y) $(COBJS-y))
 all:	$(obj).depend $(LIB)
 
 $(LIB):	$(OBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS)
+	$(call cmd_link_o_target, $(OBJS))
 
 #########################################################################
 

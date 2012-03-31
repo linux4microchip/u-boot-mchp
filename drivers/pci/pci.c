@@ -50,7 +50,6 @@ PCI_HOSE_OP(write, byte, u8)
 PCI_HOSE_OP(write, word, u16)
 PCI_HOSE_OP(write, dword, u32)
 
-#ifndef CONFIG_IXP425
 #define PCI_OP(rw, size, type, error_code)				\
 int pci_##rw##_config_##size(pci_dev_t dev, int offset, type value)	\
 {									\
@@ -71,7 +70,6 @@ PCI_OP(read, dword, u32 *, *value = 0xffffffff)
 PCI_OP(write, byte, u8, )
 PCI_OP(write, word, u16, )
 PCI_OP(write, dword, u32, )
-#endif	/* CONFIG_IXP425 */
 
 #define PCI_READ_VIA_DWORD_OP(size, type, off_mask)			\
 int pci_hose_read_config_##size##_via_dword(struct pci_controller *hose,\
@@ -139,7 +137,7 @@ void *pci_map_bar(pci_dev_t pdev, int bar, int flags)
  *
  */
 
-static struct pci_controller* hose_head = NULL;
+static struct pci_controller* hose_head;
 
 void pci_register_hose(struct pci_controller* hose)
 {
@@ -165,6 +163,18 @@ struct pci_controller *pci_bus_to_hose (int bus)
 	return NULL;
 }
 
+struct pci_controller *find_hose_by_cfg_addr(void *cfg_addr)
+{
+	struct pci_controller *hose;
+
+	for (hose = hose_head; hose; hose = hose->next) {
+		if (hose->cfg_addr == cfg_addr)
+			return hose;
+	}
+
+	return NULL;
+}
+
 int pci_last_busno(void)
 {
 	struct pci_controller *hose = hose_head;
@@ -178,7 +188,6 @@ int pci_last_busno(void)
 	return hose->last_busno;
 }
 
-#ifndef CONFIG_IXP425
 pci_dev_t pci_find_devices(struct pci_device_id *ids, int index)
 {
 	struct pci_controller * hose;
@@ -234,7 +243,6 @@ pci_dev_t pci_find_devices(struct pci_device_id *ids, int index)
 
 	return (-1);
 }
-#endif	/* CONFIG_IXP425 */
 
 pci_dev_t pci_find_device(unsigned int vendor, unsigned int device, int index)
 {
@@ -510,6 +518,71 @@ void pci_cfgfunc_do_nothing(struct pci_controller *hose,
 extern int pciauto_config_device(struct pci_controller *hose, pci_dev_t dev);
 extern void pciauto_config_init(struct pci_controller *hose);
 
+#if defined(CONFIG_CMD_PCI) || defined(CONFIG_PCI_SCAN_SHOW)
+const char * pci_class_str(u8 class)
+{
+	switch (class) {
+	case PCI_CLASS_NOT_DEFINED:
+		return "Build before PCI Rev2.0";
+		break;
+	case PCI_BASE_CLASS_STORAGE:
+		return "Mass storage controller";
+		break;
+	case PCI_BASE_CLASS_NETWORK:
+		return "Network controller";
+		break;
+	case PCI_BASE_CLASS_DISPLAY:
+		return "Display controller";
+		break;
+	case PCI_BASE_CLASS_MULTIMEDIA:
+		return "Multimedia device";
+		break;
+	case PCI_BASE_CLASS_MEMORY:
+		return "Memory controller";
+		break;
+	case PCI_BASE_CLASS_BRIDGE:
+		return "Bridge device";
+		break;
+	case PCI_BASE_CLASS_COMMUNICATION:
+		return "Simple comm. controller";
+		break;
+	case PCI_BASE_CLASS_SYSTEM:
+		return "Base system peripheral";
+		break;
+	case PCI_BASE_CLASS_INPUT:
+		return "Input device";
+		break;
+	case PCI_BASE_CLASS_DOCKING:
+		return "Docking station";
+		break;
+	case PCI_BASE_CLASS_PROCESSOR:
+		return "Processor";
+		break;
+	case PCI_BASE_CLASS_SERIAL:
+		return "Serial bus controller";
+		break;
+	case PCI_BASE_CLASS_INTELLIGENT:
+		return "Intelligent controller";
+		break;
+	case PCI_BASE_CLASS_SATELLITE:
+		return "Satellite controller";
+		break;
+	case PCI_BASE_CLASS_CRYPT:
+		return "Cryptographic device";
+		break;
+	case PCI_BASE_CLASS_SIGNAL_PROCESSING:
+		return "DSP";
+		break;
+	case PCI_CLASS_OTHERS:
+		return "Does not fit any class";
+		break;
+	default:
+	return  "???";
+		break;
+	};
+}
+#endif /* CONFIG_CMD_PCI || CONFIG_PCI_SCAN_SHOW */
+
 int __pci_skip_dev(struct pci_controller *hose, pci_dev_t dev)
 {
 	/*
@@ -551,6 +624,9 @@ int pci_hose_scan_bus(struct pci_controller *hose, int bus)
 	unsigned char header_type;
 	struct pci_config_table *cfg;
 	pci_dev_t dev;
+#ifdef CONFIG_PCI_SCAN_SHOW
+	static int indent = 0;
+#endif
 
 	sub_bus = bus;
 
@@ -568,44 +644,50 @@ int pci_hose_scan_bus(struct pci_controller *hose, int bus)
 
 		pci_hose_read_config_word(hose, dev, PCI_VENDOR_ID, &vendor);
 
-		if (vendor != 0xffff && vendor != 0x0000) {
+		if (vendor == 0xffff || vendor == 0x0000)
+			continue;
 
-			if (!PCI_FUNC(dev))
-				found_multi = header_type & 0x80;
+		if (!PCI_FUNC(dev))
+			found_multi = header_type & 0x80;
 
-			debug ("PCI Scan: Found Bus %d, Device %d, Function %d\n",
-				PCI_BUS(dev), PCI_DEV(dev), PCI_FUNC(dev) );
+		debug ("PCI Scan: Found Bus %d, Device %d, Function %d\n",
+			PCI_BUS(dev), PCI_DEV(dev), PCI_FUNC(dev) );
 
-			pci_hose_read_config_word(hose, dev, PCI_DEVICE_ID, &device);
-			pci_hose_read_config_word(hose, dev, PCI_CLASS_DEVICE, &class);
-
-			cfg = pci_find_config(hose, class, vendor, device,
-					      PCI_BUS(dev), PCI_DEV(dev), PCI_FUNC(dev));
-			if (cfg) {
-				cfg->config_device(hose, dev, cfg);
-				sub_bus = max(sub_bus, hose->current_busno);
-#ifdef CONFIG_PCI_PNP
-			} else {
-				int n = pciauto_config_device(hose, dev);
-
-				sub_bus = max(sub_bus, n);
-#endif
-			}
-			if (hose->fixup_irq)
-				hose->fixup_irq(hose, dev);
+		pci_hose_read_config_word(hose, dev, PCI_DEVICE_ID, &device);
+		pci_hose_read_config_word(hose, dev, PCI_CLASS_DEVICE, &class);
 
 #ifdef CONFIG_PCI_SCAN_SHOW
-			if (pci_print_dev(hose, dev)) {
-				unsigned char int_line;
+		indent++;
 
-				pci_hose_read_config_byte(hose, dev, PCI_INTERRUPT_LINE,
-							  &int_line);
-				printf("        %02x  %02x  %04x  %04x  %04x  %02x\n",
-				       PCI_BUS(dev), PCI_DEV(dev), vendor, device, class,
-				       int_line);
-			}
+		/* Print leading space, including bus indentation */
+		printf("%*c", indent + 1, ' ');
+
+		if (pci_print_dev(hose, dev)) {
+			printf("%02x:%02x.%-*x - %04x:%04x - %s\n",
+			       PCI_BUS(dev), PCI_DEV(dev), 6 - indent, PCI_FUNC(dev),
+			       vendor, device, pci_class_str(class >> 8));
+		}
+#endif
+
+		cfg = pci_find_config(hose, class, vendor, device,
+				      PCI_BUS(dev), PCI_DEV(dev), PCI_FUNC(dev));
+		if (cfg) {
+			cfg->config_device(hose, dev, cfg);
+			sub_bus = max(sub_bus, hose->current_busno);
+#ifdef CONFIG_PCI_PNP
+		} else {
+			int n = pciauto_config_device(hose, dev);
+
+			sub_bus = max(sub_bus, n);
 #endif
 		}
+
+#ifdef CONFIG_PCI_SCAN_SHOW
+		indent--;
+#endif
+
+		if (hose->fixup_irq)
+			hose->fixup_irq(hose, dev);
 	}
 
 	return sub_bus;
@@ -613,6 +695,23 @@ int pci_hose_scan_bus(struct pci_controller *hose, int bus)
 
 int pci_hose_scan(struct pci_controller *hose)
 {
+#if defined(CONFIG_PCI_BOOTDELAY)
+	static int pcidelay_done;
+	char *s;
+	int i;
+
+	if (!pcidelay_done) {
+		/* wait "pcidelay" ms (if defined)... */
+		s = getenv("pcidelay");
+		if (s) {
+			int val = simple_strtoul(s, NULL, 10);
+			for (i = 0; i < val; i++)
+				udelay(1000);
+		}
+		pcidelay_done = 1;
+	}
+#endif /* CONFIG_PCI_BOOTDELAY */
+
 	/* Start scan at current_busno.
 	 * PCIe will start scan at first_busno+1.
 	 */
@@ -627,18 +726,7 @@ int pci_hose_scan(struct pci_controller *hose)
 
 void pci_init(void)
 {
-#if defined(CONFIG_PCI_BOOTDELAY)
-	char *s;
-	int i;
-
-	/* wait "pcidelay" ms (if defined)... */
-	s = getenv ("pcidelay");
-	if (s) {
-		int val = simple_strtoul (s, NULL, 10);
-		for (i=0; i<val; i++)
-			udelay (1000);
-	}
-#endif /* CONFIG_PCI_BOOTDELAY */
+	hose_head = NULL;
 
 	/* now call board specific pci_init()... */
 	pci_init_board();

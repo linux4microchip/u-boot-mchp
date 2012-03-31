@@ -74,8 +74,14 @@ static long fixed_sdram(void)
 	 */
 	__udelay(50000);
 
-	im->ddr.csbnds[0].csbnds = (msize - 1) >> 24;
-	im->ddr.cs_config[0] = CONFIG_SYS_DDR_CONFIG;
+#if ((CONFIG_SYS_DDR_SDRAM_BASE & 0x00FFFFFF) != 0)
+#warning Chip select bounds is only configurable in 16MB increments
+#endif
+	im->ddr.csbnds[0].csbnds =
+		((CONFIG_SYS_DDR_SDRAM_BASE >> CSBNDS_SA_SHIFT) & CSBNDS_SA) |
+		(((CONFIG_SYS_DDR_SDRAM_BASE + msize - 1) >> CSBNDS_EA_SHIFT) &
+			CSBNDS_EA);
+	im->ddr.cs_config[0] = CONFIG_SYS_DDR_CS0_CONFIG;
 
 	/* Currently we use only one CS, so disable the other bank. */
 	im->ddr.cs_config[1] = 0;
@@ -110,7 +116,7 @@ static long fixed_sdram(void)
 phys_size_t initdram(int board_type)
 {
 	volatile immap_t *im = (volatile immap_t *)CONFIG_SYS_IMMR;
-	volatile fsl_lbus_t *lbc = &im->lbus;
+	volatile fsl_lbc_t *lbc = &im->im_lbc;
 	u32 msize;
 
 	if ((im->sysconf.immrbar & IMMRBAR_BASE_ADDR) != (u32)im)

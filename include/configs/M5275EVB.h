@@ -87,7 +87,6 @@
 
 #define CONFIG_MCFFEC
 #ifdef CONFIG_MCFFEC
-#define CONFIG_NET_MULTI	1
 #define CONFIG_MII		1
 #define CONFIG_MII_INIT		1
 #define CONFIG_SYS_DISCOVER_PHY
@@ -173,9 +172,8 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	0x20000000
-#define CONFIG_SYS_INIT_RAM_END	0x10000	/* End of used area in internal SRAM */
-#define CONFIG_SYS_GBL_DATA_SIZE	1000	/* bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE	0x10000	/* Size of used area in internal SRAM */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -222,9 +220,9 @@
 #define CONFIG_SYS_CACHELINE_SIZE	16
 
 #define ICACHE_STATUS			(CONFIG_SYS_INIT_RAM_ADDR + \
-					 CONFIG_SYS_INIT_RAM_END - 8)
+					 CONFIG_SYS_INIT_RAM_SIZE - 8)
 #define DCACHE_STATUS			(CONFIG_SYS_INIT_RAM_ADDR + \
-					 CONFIG_SYS_INIT_RAM_END - 4)
+					 CONFIG_SYS_INIT_RAM_SIZE - 4)
 #define CONFIG_SYS_ICACHE_INV		(CF_CACR_CINV | CF_CACR_INVI)
 #define CONFIG_SYS_CACHE_ACR0		(CONFIG_SYS_SDRAM_BASE | \
 					 CF_ADDRMASK(CONFIG_SYS_SDRAM_SIZE) | \

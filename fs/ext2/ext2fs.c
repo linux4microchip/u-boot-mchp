@@ -364,7 +364,7 @@ static int ext2fs_read_block (ext2fs_node_t node, int fileblock) {
 			indir2_size = blksz;
 		}
 		if ((__le32_to_cpu (indir1_block[rblock / perblock]) <<
-		     log2_blksz) != indir1_blkno) {
+		     log2_blksz) != indir2_blkno) {
 			status = ext2fs_devread (__le32_to_cpu(indir1_block[rblock / perblock]) << log2_blksz,
 						 0, blksz,
 						 (char *) indir2_block);
@@ -749,7 +749,7 @@ int ext2fs_find_file
 }
 
 
-int ext2fs_ls (char *dirname) {
+int ext2fs_ls (const char *dirname) {
 	ext2fs_node_t dirnode;
 	int status;
 
@@ -769,7 +769,7 @@ int ext2fs_ls (char *dirname) {
 }
 
 
-int ext2fs_open (char *filename) {
+int ext2fs_open (const char *filename) {
 	ext2fs_node_t fdiro = NULL;
 	int status;
 	int len;

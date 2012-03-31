@@ -1,6 +1,7 @@
 #include <common.h>
 #include <mpc8xx.h>
 #include <pcmcia.h>
+#include <linux/compiler.h>
 
 #undef	CONFIG_PCMCIA
 
@@ -57,12 +58,6 @@ static const u_int m8xx_size_to_gray[M8XX_SIZES_NO] =
 
 /* -------------------------------------------------------------------- */
 
-#ifdef	CONFIG_HMI10
-#define	HMI10_FRAM_TIMING	(	PCMCIA_SHT(2)	\
-				|	PCMCIA_SST(2)	\
-				|	PCMCIA_SL(4))
-#endif
-
 #if	defined(CONFIG_LWMON) || defined(CONFIG_NSCU)
 #define	CONFIG_SYS_PCMCIA_TIMING	(	PCMCIA_SHT(9)	\
 				|	PCMCIA_SST(3)	\
@@ -79,8 +74,8 @@ int pcmcia_on (void)
 {
 	u_long reg, base;
 	pcmcia_win_t *win;
-	u_int slotbit;
 	u_int rc, slot;
+	__maybe_unused u_int slotbit;
 	int i;
 
 	debug ("Enable PCMCIA " PCMCIA_SLOT_MSG "\n");
@@ -106,17 +101,6 @@ int pcmcia_on (void)
 		switch (i) {
 #ifdef	CONFIG_IDE_8xx_PCCARD
 		case 4:
-#ifdef	CONFIG_HMI10
-		{	/* map FRAM area */
-			win->or = (	PCMCIA_BSIZE_256K
-				|	PCMCIA_PPS_8
-				|	PCMCIA_PRS_ATTR
-				|	slotbit
-				|	PCMCIA_PV
-				|	HMI10_FRAM_TIMING );
-			break;
-		}
-#endif
 		case 0:	{	/* map attribute memory */
 			win->or = (	PCMCIA_BSIZE_64M
 				|	PCMCIA_PPS_8
@@ -147,18 +131,6 @@ int pcmcia_on (void)
 			break;
 		}
 #endif	/* CONFIG_IDE_8xx_PCCARD */
-#ifdef	CONFIG_HMI10
-		case 3: {	/* map I/O window for 4xUART data/ctrl */
-			win->br += 0x40000;
-			win->or = (	PCMCIA_BSIZE_256K
-				|	PCMCIA_PPS_8
-				|	PCMCIA_PRS_IO
-				|	slotbit
-				|	PCMCIA_PV
-				|	CONFIG_SYS_PCMCIA_TIMING );
-			break;
-		}
-#endif	/* CONFIG_HMI10 */
 		default:	/* set to not valid */
 			win->or = 0;
 			break;

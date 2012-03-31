@@ -2,7 +2,7 @@
  * esd vme8349 U-Boot configuration file
  * Copyright (c) 2008, 2009 esd gmbh Hannover Germany
  *
- * (C) Copyright 2006
+ * (C) Copyright 2006-2010
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
  * reinhard.arlt@esd-electronics.de
@@ -37,7 +37,7 @@
 /*
  * Top level Makefile configuration choices
  */
-#ifdef CONFIG_MK_caddy2
+#ifdef CONFIG_CADDY2
 #define VME_CADDY2
 #endif
 
@@ -50,21 +50,23 @@
 #define CONFIG_MPC8349		1	/* MPC8349 specific */
 #define CONFIG_VME8349		1	/* ESD VME8349 board specific */
 
+#define	CONFIG_SYS_TEXT_BASE	0xFFF00000
+
 #define CONFIG_MISC_INIT_R
 
 #define CONFIG_PCI
 /* Don't enable PCI2 on vme834x - it doesn't exist physically. */
 #undef CONFIG_MPC83XX_PCI2		/* support for 2nd PCI controller */
 
-#define PCI_66M
-#ifdef PCI_66M
+#define CONFIG_PCI_66M
+#ifdef CONFIG_PCI_66M
 #define CONFIG_83XX_CLKIN	66000000	/* in Hz */
 #else
 #define CONFIG_83XX_CLKIN	33000000	/* in Hz */
 #endif
 
 #ifndef CONFIG_SYS_CLK_FREQ
-#ifdef PCI_66M
+#ifdef CONFIG_PCI_66M
 #define CONFIG_SYS_CLK_FREQ	66000000
 #define HRCWL_CSB_TO_CLKIN	HRCWL_CSB_TO_CLKIN_4X1
 #else
@@ -104,10 +106,13 @@
 #define CONFIG_SYS_DDR_BASE		0x00000000	/* DDR is sys memory*/
 #define CONFIG_SYS_SDRAM_BASE		CONFIG_SYS_DDR_BASE
 #define CONFIG_SYS_DDR_SDRAM_BASE	CONFIG_SYS_DDR_BASE
-#define CONFIG_SYS_DDR_SDRAM_CLK_CNTL	(DDR_SDRAM_CLK_CNTL_SS_EN | \
-					 DDR_SDRAM_CLK_CNTL_CLK_ADJUST_075)
+#define CONFIG_SYS_DDR_SDRAM_CLK_CNTL	(DDR_SDRAM_CLK_CNTL_SS_EN \
+					| DDR_SDRAM_CLK_CNTL_CLK_ADJUST_075)
 #define CONFIG_DDR_2T_TIMING
-#define CONFIG_SYS_DDRCDR		0x80080001
+#define CONFIG_SYS_DDRCDR		(DDRCDR_DHC_EN \
+					| DDRCDR_ODT \
+					| DDRCDR_Q_DRN)
+					/* 0x80080001 */
 
 /*
  * FLASH on the Local Bus
@@ -118,29 +123,56 @@
 #define CONFIG_SYS_FLASH_BASE		0xffc00000	/* start of FLASH   */
 #define CONFIG_SYS_FLASH_SIZE		4		/* flash size in MB */
 #define CONFIG_SYS_BR0_PRELIM		(CONFIG_SYS_FLASH_BASE | \
-					 (2 << BR_PS_SHIFT) |	/*  16bit */ \
-					 BR_V)			/* valid */
+					 BR_PS_16 |	/*  16bit */ \
+					 BR_MS_GPCM |	/*  MSEL = GPCM */ \
+					 BR_V)		/* valid */
 
-#define CONFIG_SYS_OR0_PRELIM		0xffc06ff7	/*   4 MB flash size */
+#define CONFIG_SYS_OR0_PRELIM		(MEG_TO_AM(CONFIG_SYS_FLASH_SIZE) \
+					| OR_GPCM_XAM \
+					| OR_GPCM_CSNT \
+					| OR_GPCM_ACS_DIV2 \
+					| OR_GPCM_XACS \
+					| OR_GPCM_SCY_15 \
+					| OR_GPCM_TRLX_SET \
+					| OR_GPCM_EHTR_SET \
+					| OR_GPCM_EAD)
+					/* 0xffc06ff7 */
 #define CONFIG_SYS_LBLAWBAR0_PRELIM	CONFIG_SYS_FLASH_BASE
-#define CONFIG_SYS_LBLAWAR0_PRELIM	0x80000015	/*   4 MB window size */
+#define CONFIG_SYS_LBLAWAR0_PRELIM	(LBLAWAR_EN | LBLAWAR_4MB)
 #else
 #define CONFIG_SYS_FLASH_BASE		0xf8000000	/* start of FLASH   */
 #define CONFIG_SYS_FLASH_SIZE		128		/* flash size in MB */
 #define CONFIG_SYS_BR0_PRELIM		(CONFIG_SYS_FLASH_BASE | \
-					 (2 << BR_PS_SHIFT) |	/*  16bit */ \
-					 BR_V)			/* valid */
+					 BR_PS_16 |	/*  16bit */ \
+					 BR_MS_GPCM |	/*  MSEL = GPCM */ \
+					 BR_V)		/* valid */
 
-#define CONFIG_SYS_OR0_PRELIM		0xf8006ff7	/* 128 MB flash size */
+#define CONFIG_SYS_OR0_PRELIM		(MEG_TO_AM(CONFIG_SYS_FLASH_SIZE) \
+					| OR_GPCM_XAM \
+					| OR_GPCM_CSNT \
+					| OR_GPCM_ACS_DIV2 \
+					| OR_GPCM_XACS \
+					| OR_GPCM_SCY_15 \
+					| OR_GPCM_TRLX_SET \
+					| OR_GPCM_EHTR_SET \
+					| OR_GPCM_EAD)
+					/* 0xf8006ff7 */
 #define CONFIG_SYS_LBLAWBAR0_PRELIM	CONFIG_SYS_FLASH_BASE
-#define CONFIG_SYS_LBLAWAR0_PRELIM	0x8000001a	/* 128 MB window size */
+#define CONFIG_SYS_LBLAWAR0_PRELIM	(LBLAWAR_EN | LBLAWAR_128MB)
 #endif
 /* #define CONFIG_SYS_FLASH_USE_BUFFER_WRITE */
 
-#define CONFIG_SYS_BR1_PRELIM		(0xf0000000 | 0x00001801)
-#define CONFIG_SYS_OR1_PRELIM		(0xfffc0008 | 0x00000200)
-#define CONFIG_SYS_LBLAWBAR1_PRELIM	0xf0000000
-#define CONFIG_SYS_LBLAWAR1_PRELIM	(0x80000000 | 0x00000011)
+#define CONFIG_SYS_WINDOW1_BASE		0xf0000000
+#define CONFIG_SYS_BR1_PRELIM		(CONFIG_SYS_WINDOW1_BASE \
+					| BR_PS_32 \
+					| BR_MS_GPCM \
+					| BR_V)
+					/* 0xF0001801 */
+#define CONFIG_SYS_OR1_PRELIM		(OR_AM_256KB \
+					| OR_GPCM_SETA)
+					/* 0xfffc0208 */
+#define CONFIG_SYS_LBLAWBAR1_PRELIM	CONFIG_SYS_WINDOW1_BASE
+#define CONFIG_SYS_LBLAWAR1_PRELIM	(LBLAWAR_EN | LBLAWAR_256KB)
 
 #define CONFIG_SYS_MAX_FLASH_BANKS	1	/* number of banks */
 #define CONFIG_SYS_MAX_FLASH_SECT	1024	/* sectors per device*/
@@ -149,7 +181,7 @@
 #define CONFIG_SYS_FLASH_ERASE_TOUT	60000	/* Flash Erase TO (ms) */
 #define CONFIG_SYS_FLASH_WRITE_TOUT	500	/* Flash Write TO (ms) */
 
-#define CONFIG_SYS_MONITOR_BASE	        TEXT_BASE	/* start of monitor */
+#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE	/* start of monitor */
 
 #if (CONFIG_SYS_MONITOR_BASE < CONFIG_SYS_FLASH_BASE)
 #define CONFIG_SYS_RAMBOOT
@@ -159,11 +191,10 @@
 
 #define CONFIG_SYS_INIT_RAM_LOCK	1
 #define CONFIG_SYS_INIT_RAM_ADDR	0xF7000000	/* Initial RAM addr */
-#define CONFIG_SYS_INIT_RAM_END		0x1000		/* size */
+#define CONFIG_SYS_INIT_RAM_SIZE		0x1000		/* size */
 
-#define CONFIG_SYS_GBL_DATA_SIZE	0x100		/* size init data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - \
-					 CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - \
+					 GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 #define CONFIG_SYS_MONITOR_LEN		(256 * 1024)	/* Reserve 256 kB */
@@ -184,14 +215,13 @@
  * Serial Port
  */
 #define CONFIG_CONS_INDEX	1
-#undef CONFIG_SERIAL_SOFTWARE_FIFO
 #define CONFIG_SYS_NS16550
 #define CONFIG_SYS_NS16550_SERIAL
 #define CONFIG_SYS_NS16550_REG_SIZE	1
 #define CONFIG_SYS_NS16550_CLK		get_bus_freq(0)
 
 #define CONFIG_SYS_BAUDRATE_TABLE  \
-	{300, 600, 1200, 2400, 4800, 9600, 19200, 38400, 115200}
+		{300, 600, 1200, 2400, 4800, 9600, 19200, 38400, 115200}
 
 #define CONFIG_SYS_NS16550_COM1		(CONFIG_SYS_IMMR + 0x4500)
 #define CONFIG_SYS_NS16550_COM2		(CONFIG_SYS_IMMR + 0x4600)
@@ -217,7 +247,7 @@
 #define CONFIG_I2C_CMD_TREE
 #define CONFIG_SYS_I2C_SPEED	400000	/* I2C speed and slave address */
 #define CONFIG_SYS_I2C_SLAVE	0x7F
-#define CONFIG_SYS_I2C_NOPROBES	{{0, 0x69}} /* Don't probe these addrs */
+#define CONFIG_SYS_I2C_NOPROBES	{ {0, 0x69} } /* Don't probe these addrs */
 #define CONFIG_SYS_I2C1_OFFSET	0x3000
 #define CONFIG_SYS_I2C2_OFFSET	0x3100
 #define CONFIG_SYS_I2C_OFFSET	CONFIG_SYS_I2C1_OFFSET
@@ -266,7 +296,6 @@
 #endif
 
 #ifndef VME_CADDY2
-#define CONFIG_NET_MULTI
 #endif
 #define CONFIG_PCI_PNP		/* do pci plug-and-play */
 
@@ -294,9 +323,6 @@
 #endif
 
 #if defined(CONFIG_TSEC_ENET)
-#ifndef CONFIG_NET_MULTI
-#define CONFIG_NET_MULTI
-#endif
 
 #define CONFIG_GMII			/* MII PHY management */
 #define CONFIG_TSEC1
@@ -315,12 +341,6 @@
 #define CONFIG_ETHPRIME		"TSEC0"
 
 #endif	/* CONFIG_TSEC_ENET */
-
-#if defined(CONFIG_E1000)
-#ifndef CONFIG_NET_MULTI
-#define CONFIG_NET_MULTI
-#endif
-#endif
 
 /*
  * Environment
@@ -402,10 +422,10 @@
 
 /*
  * For booting Linux, the board info and command line data
- * have to be in the first 8 MB of memory, since this is
+ * have to be in the first 256 MB of memory, since this is
  * the maximum mapped by the Linux kernel during initialization.
  */
-#define CONFIG_SYS_BOOTMAPSZ	(8 << 20)	/* Init Memory map for Linux*/
+#define CONFIG_SYS_BOOTMAPSZ	(256 << 20)	/* Init Memory map for Linux*/
 
 #define CONFIG_SYS_RCWH_PCIHOST 0x80000000 /* PCIHOST  */
 
@@ -465,18 +485,18 @@
 #define CONFIG_HIGH_BATS		/* High BATs supported */
 
 /* DDR @ 0x00000000 */
-#define CONFIG_SYS_IBAT0L	(CONFIG_SYS_SDRAM_BASE | BATL_PP_10 | \
+#define CONFIG_SYS_IBAT0L	(CONFIG_SYS_SDRAM_BASE | BATL_PP_RW | \
 				 BATL_MEMCOHERENCE)
 #define CONFIG_SYS_IBAT0U	(CONFIG_SYS_SDRAM_BASE | BATU_BL_256M | \
 				 BATU_VS | BATU_VP)
 
 /* PCI @ 0x80000000 */
 #ifdef CONFIG_PCI
-#define CONFIG_SYS_IBAT1L	(CONFIG_SYS_PCI1_MEM_BASE | BATL_PP_10 | \
+#define CONFIG_SYS_IBAT1L	(CONFIG_SYS_PCI1_MEM_BASE | BATL_PP_RW | \
 				 BATL_MEMCOHERENCE)
 #define CONFIG_SYS_IBAT1U	(CONFIG_SYS_PCI1_MEM_BASE | BATU_BL_256M | \
 				 BATU_VS | BATU_VP)
-#define CONFIG_SYS_IBAT2L	(CONFIG_SYS_PCI1_MMIO_BASE | BATL_PP_10 | \
+#define CONFIG_SYS_IBAT2L	(CONFIG_SYS_PCI1_MMIO_BASE | BATL_PP_RW | \
 				 BATL_CACHEINHIBIT | BATL_GUARDEDSTORAGE)
 #define CONFIG_SYS_IBAT2U	(CONFIG_SYS_PCI1_MMIO_BASE | BATU_BL_256M | \
 				 BATU_VS | BATU_VP)
@@ -488,11 +508,11 @@
 #endif
 
 #ifdef CONFIG_MPC83XX_PCI2
-#define CONFIG_SYS_IBAT3L	(CONFIG_SYS_PCI2_MEM_BASE | BATL_PP_10 | \
+#define CONFIG_SYS_IBAT3L	(CONFIG_SYS_PCI2_MEM_BASE | BATL_PP_RW | \
 				 BATL_MEMCOHERENCE)
 #define CONFIG_SYS_IBAT3U	(CONFIG_SYS_PCI2_MEM_BASE | BATU_BL_256M | \
 				 BATU_VS | BATU_VP)
-#define CONFIG_SYS_IBAT4L	(CONFIG_SYS_PCI2_MMIO_BASE | BATL_PP_10 | \
+#define CONFIG_SYS_IBAT4L	(CONFIG_SYS_PCI2_MMIO_BASE | BATL_PP_RW | \
 				 BATL_CACHEINHIBIT | BATL_GUARDEDSTORAGE)
 #define CONFIG_SYS_IBAT4U	(CONFIG_SYS_PCI2_MMIO_BASE | BATU_BL_256M | \
 				 BATU_VS | BATU_VP)
@@ -504,17 +524,17 @@
 #endif
 
 /* IMMRBAR @ 0xE0000000, PCI IO @ 0xE2000000 */
-#define CONFIG_SYS_IBAT5L	(CONFIG_SYS_IMMR | BATL_PP_10 | \
+#define CONFIG_SYS_IBAT5L	(CONFIG_SYS_IMMR | BATL_PP_RW | \
 				 BATL_CACHEINHIBIT | BATL_GUARDEDSTORAGE)
 #define CONFIG_SYS_IBAT5U	(CONFIG_SYS_IMMR | BATU_BL_256M | \
 				 BATU_VS | BATU_VP)
 
-#define CONFIG_SYS_IBAT6L	(0xF0000000 | BATL_PP_10 | BATL_MEMCOHERENCE)
+#define CONFIG_SYS_IBAT6L	(0xF0000000 | BATL_PP_RW | BATL_MEMCOHERENCE)
 #define CONFIG_SYS_IBAT6U	(0xF0000000 | BATU_BL_256M | BATU_VS | BATU_VP)
 
 #if (CONFIG_SYS_DDR_SIZE == 512)
 #define CONFIG_SYS_IBAT7L	(CONFIG_SYS_SDRAM_BASE+0x10000000 | \
-				 BATL_PP_10 | BATL_MEMCOHERENCE)
+				 BATL_PP_RW | BATL_MEMCOHERENCE)
 #define CONFIG_SYS_IBAT7U	(CONFIG_SYS_SDRAM_BASE+0x10000000 | \
 				 BATU_BL_256M | BATU_VS | BATU_VP)
 #else
@@ -539,14 +559,6 @@
 #define CONFIG_SYS_DBAT7L	CONFIG_SYS_IBAT7L
 #define CONFIG_SYS_DBAT7U	CONFIG_SYS_IBAT7U
 
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD	0x01	/* Normal Power-On: Boot from FLASH */
-#define BOOTFLAG_WARM	0x02	/* Software reboot */
-
 #if defined(CONFIG_CMD_KGDB)
 #define CONFIG_KGDB_BAUDRATE	230400	/* speed of kgdb serial port */
 #define CONFIG_KGDB_SER_INDEX	2	/* which serial port to use */
@@ -563,8 +575,8 @@
 #endif
 
 #define CONFIG_HOSTNAME		VME8349
-#define CONFIG_ROOTPATH		/tftpboot/rootfs
-#define CONFIG_BOOTFILE		uImage
+#define CONFIG_ROOTPATH		"/tftpboot/rootfs"
+#define CONFIG_BOOTFILE		"uImage"
 
 #define CONFIG_LOADADDR		800000	/* def location for tftp and bootm */
 
@@ -597,22 +609,23 @@
 	"fdtfile=vme8349.dtb\0"						\
 	""
 
-#define CONFIG_NFSBOOTCOMMAND	                                        \
-   "setenv bootargs root=/dev/nfs rw "                                  \
-      "nfsroot=$serverip:$rootpath "                                    \
-      "ip=$ipaddr:$serverip:$gatewayip:$netmask:$hostname:$netdev:off " \
-      "console=$consoledev,$baudrate $othbootargs;"                     \
-   "tftp $loadaddr $bootfile;"                                          \
-   "tftp $fdtaddr $fdtfile;"						\
-   "bootm $loadaddr - $fdtaddr"
+#define CONFIG_NFSBOOTCOMMAND						\
+	"setenv bootargs root=/dev/nfs rw "				\
+		"nfsroot=$serverip:$rootpath "				\
+		"ip=$ipaddr:$serverip:$gatewayip:$netmask:$hostname:"	\
+							"$netdev:off "	\
+		"console=$consoledev,$baudrate $othbootargs;"		\
+	"tftp $loadaddr $bootfile;"					\
+	"tftp $fdtaddr $fdtfile;"					\
+	"bootm $loadaddr - $fdtaddr"
 
 #define CONFIG_RAMBOOTCOMMAND						\
-   "setenv bootargs root=/dev/ram rw "                                  \
-      "console=$consoledev,$baudrate $othbootargs;"                     \
-   "tftp $ramdiskaddr $ramdiskfile;"                                    \
-   "tftp $loadaddr $bootfile;"                                          \
-   "tftp $fdtaddr $fdtfile;"						\
-   "bootm $loadaddr $ramdiskaddr $fdtaddr"
+	"setenv bootargs root=/dev/ram rw "				\
+		"console=$consoledev,$baudrate $othbootargs;"		\
+	"tftp $ramdiskaddr $ramdiskfile;"				\
+	"tftp $loadaddr $bootfile;"					\
+	"tftp $fdtaddr $fdtfile;"					\
+	"bootm $loadaddr $ramdiskaddr $fdtaddr"
 
 #define CONFIG_BOOTCOMMAND	"run flash_self"
 

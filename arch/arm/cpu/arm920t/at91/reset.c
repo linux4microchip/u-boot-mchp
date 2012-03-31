@@ -35,18 +35,16 @@
 #include <asm/arch/hardware.h>
 #include <asm/arch/at91_st.h>
 
-void board_reset(void) __attribute__((__weak__));
+void  __attribute__((weak)) board_reset(void)
+{
+	/* true empty function for defining weak symbol */
+}
 
 void reset_cpu(ulong ignored)
 {
-	at91_st_t *st = (at91_st_t *) AT91_ST_BASE;
-#if defined(CONFIG_AT91RM9200_USART)
-	/*shutdown the console to avoid strange chars during reset */
-	serial_exit();
-#endif
+	at91_st_t *st = (at91_st_t *) ATMEL_BASE_ST;
 
-	if (board_reset)
-		board_reset();
+	board_reset();
 
 	/* Reset the cpu by setting up the watchdog timer */
 	writel(AT91_ST_WDMR_RSTEN | AT91_ST_WDMR_EXTEN | AT91_ST_WDMR_WDV(2),

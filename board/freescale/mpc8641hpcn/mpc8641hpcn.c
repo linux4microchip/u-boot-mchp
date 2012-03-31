@@ -1,5 +1,5 @@
 /*
- * Copyright 2006, 2007 Freescale Semiconductor.
+ * Copyright 2006, 2007, 2010-2011 Freescale Semiconductor.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -26,17 +26,13 @@
 #include <asm/immap_86xx.h>
 #include <asm/fsl_pci.h>
 #include <asm/fsl_ddr_sdram.h>
+#include <asm/fsl_serdes.h>
 #include <asm/io.h>
 #include <libfdt.h>
 #include <fdt_support.h>
 #include <netdev.h>
 
 phys_size_t fixed_sdram(void);
-
-int board_early_init_f(void)
-{
-	return 0;
-}
 
 int checkboard(void)
 {
@@ -60,7 +56,6 @@ int checkboard(void)
 	return 0;
 }
 
-
 phys_size_t
 initdram(int board_type)
 {
@@ -74,7 +69,7 @@ initdram(int board_type)
 
 	setup_ddr_bat(dram_size);
 
-	puts("    DDR: ");
+	debug("    DDR: ");
 	return dram_size;
 }
 
@@ -127,119 +122,18 @@ fixed_sdram(void)
 }
 #endif	/* !defined(CONFIG_SPD_EEPROM) */
 
-
-#if defined(CONFIG_PCI)
-static struct pci_controller pci1_hose;
-#endif /* CONFIG_PCI */
-
-#ifdef CONFIG_PCI2
-static struct pci_controller pci2_hose;
-#endif	/* CONFIG_PCI2 */
-
-int first_free_busno = 0;
-
 void pci_init_board(void)
 {
-#ifdef CONFIG_PCI1
-{
-	volatile ccsr_fsl_pci_t *pci = (ccsr_fsl_pci_t *) CONFIG_SYS_PCI1_ADDR;
-	struct pci_controller *hose = &pci1_hose;
-	struct pci_region *r = hose->regions;
-	volatile immap_t *immap = (immap_t *) CONFIG_SYS_CCSRBAR;
-	volatile ccsr_gur_t *gur = &immap->im_gur;
-	uint devdisr = gur->devdisr;
-	uint io_sel = (gur->pordevsr & MPC8641_PORDEVSR_IO_SEL)
-		>> MPC8641_PORDEVSR_IO_SEL_SHIFT;
-	int pcie_configured = is_fsl_pci_cfg(LAW_TRGT_IF_PCIE_1, io_sel);
+	fsl_pcie_init_board(0);
 
-#ifdef DEBUG
-	uint host1_agent = (gur->porbmsr & MPC8641_PORBMSR_HA)
-		>> MPC8641_PORBMSR_HA_SHIFT;
-	uint pex1_agent = (host1_agent == 0) || (host1_agent == 1);
-#endif
-	if (pcie_configured && !(devdisr & MPC86xx_DEVDISR_PCIEX1)) {
-		debug("PCI-EXPRESS 1: %s \n", pex1_agent ? "Agent" : "Host");
-		debug("0x%08x=0x%08x ", &pci->pme_msg_det, pci->pme_msg_det);
-		if (pci->pme_msg_det) {
-			pci->pme_msg_det = 0xffffffff;
-			debug(" with errors.  Clearing.  Now 0x%08x",
-			      pci->pme_msg_det);
-		}
-		debug("\n");
-
-		/* outbound memory */
-		pci_set_region(r++,
-			       CONFIG_SYS_PCI1_MEM_BUS,
-			       CONFIG_SYS_PCI1_MEM_PHYS,
-			       CONFIG_SYS_PCI1_MEM_SIZE,
-			       PCI_REGION_MEM);
-
-		/* outbound io */
-		pci_set_region(r++,
-			       CONFIG_SYS_PCI1_IO_BUS,
-			       CONFIG_SYS_PCI1_IO_PHYS,
-			       CONFIG_SYS_PCI1_IO_SIZE,
-			       PCI_REGION_IO);
-
-		hose->region_count = r - hose->regions;
-
-		hose->first_busno=first_free_busno;
-
-		fsl_pci_init(hose, (u32)&pci->cfg_addr, (u32)&pci->cfg_data);
-
-		first_free_busno=hose->last_busno+1;
-		printf ("    PCI-EXPRESS 1 on bus %02x - %02x\n",
-			hose->first_busno,hose->last_busno);
-
+#ifdef CONFIG_PCIE1
 		/*
 		 * Activate ULI1575 legacy chip by performing a fake
 		 * memory access.  Needed to make ULI RTC work.
 		 */
-		in_be32((unsigned *) ((char *)(CONFIG_SYS_PCI1_MEM_VIRT
-				       + CONFIG_SYS_PCI1_MEM_SIZE - 0x1000000)));
-
-	} else {
-		puts("PCI-EXPRESS 1: Disabled\n");
-	}
-}
-#else
-	puts("PCI-EXPRESS1: Disabled\n");
-#endif /* CONFIG_PCI1 */
-
-#ifdef CONFIG_PCI2
-{
-	volatile ccsr_fsl_pci_t *pci = (ccsr_fsl_pci_t *) CONFIG_SYS_PCI2_ADDR;
-	struct pci_controller *hose = &pci2_hose;
-	struct pci_region *r = hose->regions;
-
-	/* outbound memory */
-	pci_set_region(r++,
-		       CONFIG_SYS_PCI2_MEM_BUS,
-		       CONFIG_SYS_PCI2_MEM_PHYS,
-		       CONFIG_SYS_PCI2_MEM_SIZE,
-		       PCI_REGION_MEM);
-
-	/* outbound io */
-	pci_set_region(r++,
-		       CONFIG_SYS_PCI2_IO_BUS,
-		       CONFIG_SYS_PCI2_IO_PHYS,
-		       CONFIG_SYS_PCI2_IO_SIZE,
-		       PCI_REGION_IO);
-
-	hose->region_count = r - hose->regions;
-
-	hose->first_busno=first_free_busno;
-
-	fsl_pci_init(hose, (u32)&pci->cfg_addr, (u32)&pci->cfg_data);
-
-	first_free_busno=hose->last_busno+1;
-	printf ("    PCI-EXPRESS 2 on bus %02x - %02x\n",
-		hose->first_busno,hose->last_busno);
-}
-#else
-	puts("PCI-EXPRESS 2: Disabled\n");
-#endif /* CONFIG_PCI2 */
-
+		in_be32((unsigned *) ((char *)(CONFIG_SYS_PCIE1_MEM_VIRT
+				       + CONFIG_SYS_PCIE1_MEM_SIZE - 0x1000000)));
+#endif /* CONFIG_PCIE1 */
 }
 
 
@@ -253,12 +147,7 @@ ft_board_setup(void *blob, bd_t *bd)
 
 	ft_cpu_setup(blob, bd);
 
-#ifdef CONFIG_PCI1
-	ft_fsl_pci_setup(blob, "pci0", &pci1_hose);
-#endif
-#ifdef CONFIG_PCI2
-	ft_fsl_pci_setup(blob, "pci1", &pci2_hose);
-#endif
+	FT_FSL_PCI_SETUP;
 
 	/*
 	 * Warn if it looks like the device tree doesn't match u-boot.
@@ -367,12 +256,3 @@ void board_reset(void)
 	while (1)
 		;
 }
-
-#ifdef CONFIG_MP
-extern void cpu_mp_lmb_reserve(struct lmb *lmb);
-
-void board_lmb_reserve(struct lmb *lmb)
-{
-	cpu_mp_lmb_reserve(lmb);
-}
-#endif

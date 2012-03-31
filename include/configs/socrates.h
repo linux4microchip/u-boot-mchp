@@ -45,6 +45,8 @@
 #define CONFIG_MPC8544		1
 #define CONFIG_SOCRATES		1
 
+#define	CONFIG_SYS_TEXT_BASE	0xfff80000
+
 #define CONFIG_PCI
 
 #define CONFIG_TSEC_ENET		/* tsec ethernet support	*/
@@ -89,14 +91,8 @@
 #define CONFIG_SYS_MEMTEST_START	0x00400000
 #define CONFIG_SYS_MEMTEST_END		0x00C00000
 
-/*
- * Base addresses -- Note these are effective addresses where the
- * actual resources get mapped (not physical addresses)
- */
-#define CONFIG_SYS_CCSRBAR_DEFAULT	0xFF700000	/* CCSRBAR Default	*/
-#define CONFIG_SYS_CCSRBAR		0xE0000000	/* relocated CCSRBAR	*/
-#define CONFIG_SYS_CCSRBAR_PHYS	CONFIG_SYS_CCSRBAR	/* physical addr of CCSRBAR */
-#define CONFIG_SYS_IMMR		CONFIG_SYS_CCSRBAR	/* PQII uses CONFIG_SYS_IMMR	*/
+#define CONFIG_SYS_CCSRBAR		0xE0000000
+#define CONFIG_SYS_CCSRBAR_PHYS_LOW	CONFIG_SYS_CCSRBAR
 
 /* DDR Setup */
 #define CONFIG_FSL_DDR2
@@ -159,7 +155,7 @@
 #define CONFIG_SYS_FLASH_ERASE_TOUT	60000	/* Flash Erase Timeout (ms)	*/
 #define CONFIG_SYS_FLASH_WRITE_TOUT	500	/* Flash Write Timeout (ms)	*/
 
-#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE	/* start of monitor	*/
+#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE	/* start of monitor	*/
 
 #define CONFIG_SYS_LBC_LCRR		0x00030004    /* LB clock ratio reg	*/
 #define CONFIG_SYS_LBC_LBCR		0x00000000    /* LB config reg		*/
@@ -168,10 +164,9 @@
 
 #define CONFIG_SYS_INIT_RAM_LOCK	1
 #define CONFIG_SYS_INIT_RAM_ADDR	0xe4010000	/* Initial RAM address	*/
-#define CONFIG_SYS_INIT_RAM_END	0x4000		/* End used area in RAM	*/
+#define CONFIG_SYS_INIT_RAM_SIZE	0x4000		/* Size used area in RAM*/
 
-#define CONFIG_SYS_GBL_DATA_SIZE	128		/* num bytes initial data*/
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 #define CONFIG_SYS_MONITOR_LEN		(384 * 1024)	/* Reserve 384KiB for Mon */
@@ -218,7 +213,6 @@
 /* Serial Port */
 
 #define CONFIG_CONS_INDEX     1
-#undef	CONFIG_SERIAL_SOFTWARE_FIFO
 #define CONFIG_SYS_NS16550
 #define CONFIG_SYS_NS16550_SERIAL
 #define CONFIG_SYS_NS16550_REG_SIZE	1
@@ -233,6 +227,7 @@
 	{300, 600, 1200, 2400, 4800, 9600, 19200, 38400,115200}
 
 #define CONFIG_CMDLINE_EDITING	1	/* add command line history	*/
+#define CONFIG_AUTO_COMPLETE	1	/* add autocompletion support */
 #define CONFIG_SYS_HUSH_PARSER		1	/* Use the HUSH parser		*/
 #ifdef	CONFIG_SYS_HUSH_PARSER
 #define	CONFIG_SYS_PROMPT_HUSH_PS2	"> "
@@ -289,7 +284,6 @@
 #endif	/* CONFIG_PCI */
 
 
-#define CONFIG_NET_MULTI	1
 #define CONFIG_MII		1	/* MII PHY management */
 #define CONFIG_TSEC1	1
 #define CONFIG_TSEC1_NAME	"TSEC0"
@@ -355,6 +349,7 @@
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_SNTP
 #define CONFIG_CMD_USB
+#define CONFIG_CMD_REGINFO
 
 #if defined(CONFIG_PCI)
     #define CONFIG_CMD_PCI
@@ -386,14 +381,6 @@
  * the maximum mapped by the Linux kernel during initialization.
  */
 #define CONFIG_SYS_BOOTMAPSZ	(8 << 20)	/* Initial Memory map for Linux	*/
-
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD	0x01		/* Power-On: Boot from FLASH	*/
-#define BOOTFLAG_WARM	0x02		/* Software reboot		*/
 
 #if defined(CONFIG_CMD_KGDB)
 #define CONFIG_KGDB_BAUDRATE	230400	/* speed to run kgdb serial port*/

@@ -23,7 +23,7 @@
 
 #include <common.h>
 #include <command.h>
-#include <ppc4xx.h>
+#include <asm/ppc4xx.h>
 #include <asm/processor.h>
 #include <asm/ppc4xx-isram.h>
 #include <spd_sdram.h>
@@ -105,13 +105,14 @@ int misc_init_r(void)
  ************************************************************************/
 int checkboard(void)
 {
-	char *s = getenv("serial#");
+	char buf[64];
+	int i = getenv_f("serial#", buf, sizeof(buf));
 
 	printf("Board: Luan - AMCC PPC440SP Evaluation Board");
 
-	if (s != NULL) {
+	if (i > 0) {
 		puts(", serial# ");
-		puts(s);
+		puts(buf);
 	}
 	putc('\n');
 
@@ -207,7 +208,7 @@ static int l2cache_status(void)
  *  int do_l2cache()
  *
  ************************************************************************/
-int do_l2cache( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[] )
+int do_l2cache( cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[] )
 {
 	switch (argc) {
 	case 2:			/* on / off	*/
@@ -223,8 +224,7 @@ int do_l2cache( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[] )
 			l2cache_status() ? "ON" : "OFF");
 		return 0;
 	default:
-		cmd_usage(cmdtp);
-		return 1;
+		return cmd_usage(cmdtp);
 	}
 
 	return  0;

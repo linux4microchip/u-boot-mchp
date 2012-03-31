@@ -5,7 +5,7 @@
  * Ronetix GmbH <www.ronetix.at>
  *
  * (C) Copyright 2007-2008
- * Stelian Pop <stelian.pop@leadtechdesign.com>
+ * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
  *
  * Configuation settings for the PM9G45 board.
@@ -32,13 +32,23 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#define CONFIG_ARM926EJS	1	/* This is an ARM926EJS Core */
+/*
+ * SoC must be defined first, before hardware.h is included.
+ * In this case SoC is defined in boards.cfg.
+ */
+#include <asm/hardware.h>
+
 #define CONFIG_PM9G45		1	/* It's an Ronetix PM9G45 */
-#define CONFIG_AT91SAM9G45	1	/* It's an Atmel AT91SAM9G45 SoC */
+#define CONFIG_SYS_AT91_CPU_NAME	"AT91SAM9G45"
+
+#define MACH_TYPE_PM9G45	2672
+#define CONFIG_MACH_TYPE	MACH_TYPE_PM9G45
 
 /* ARM asynchronous clock */
 #define CONFIG_SYS_AT91_MAIN_CLOCK	12000000 /* from 12 MHz crystal */
+#define CONFIG_SYS_AT91_SLOW_CLOCK	32768		/* slow clock xtal */
 #define CONFIG_SYS_HZ			1000
+#define CONFIG_SYS_TEXT_BASE		0x73f00000
 
 #define CONFIG_ARCH_CPU_INIT
 
@@ -47,14 +57,15 @@
 #define CONFIG_INITRD_TAG	1
 
 #define CONFIG_SKIP_LOWLEVEL_INIT
-#define CONFIG_SKIP_RELOCATE_UBOOT
+#define CONFIG_BOARD_EARLY_INIT_F
 
 /*
  * Hardware drivers
  */
 #define CONFIG_AT91_GPIO	1
 #define CONFIG_ATMEL_USART	1
-#define CONFIG_USART3		1	/* USART 3 is DBGU */
+#define CONFIG_USART_BASE		ATMEL_BASE_DBGU
+#define	CONFIG_USART_ID			ATMEL_ID_SYS
 
 #define CONFIG_SYS_USE_NANDFLASH	1
 
@@ -80,6 +91,7 @@
 #undef CONFIG_CMD_FPGA
 #undef CONFIG_CMD_IMLS
 
+#define CONFIG_CMD_CACHE
 #define CONFIG_CMD_PING		1
 #define CONFIG_CMD_DHCP		1
 #define CONFIG_CMD_NAND		1
@@ -120,7 +132,6 @@
 /* Ethernet */
 #define CONFIG_MACB			1
 #define CONFIG_RMII			1
-#define CONFIG_NET_MULTI		1
 #define CONFIG_NET_RETRY_COUNT		20
 #define CONFIG_RESET_PHY_R		1
 
@@ -175,7 +186,10 @@
  */
 #define CONFIG_SYS_MALLOC_LEN		ROUND(3 * CONFIG_ENV_SIZE + 128*1024,\
 					0x1000)
-#define CONFIG_SYS_GBL_DATA_SIZE	128 /* 128 bytes for initial data */
+
+#define CONFIG_SYS_SDRAM_BASE	PHYS_SDRAM
+#define CONFIG_SYS_INIT_SP_ADDR	(CONFIG_SYS_SDRAM_BASE + 0x1000 - \
+				GENERATED_GBL_DATA_SIZE)
 
 #define CONFIG_STACKSIZE		(32*1024)	/* regular stack */
 

@@ -21,8 +21,8 @@
  * MA 02111-1307 USA
  */
 
-#include <version.h>
 #include <common.h>
+#include <version.h>
 #include <mpc824x.h>
 #include <asm/io.h>
 #include <ns16550.h>
@@ -32,11 +32,12 @@
 #include <pci.h>
 #endif
 
+DECLARE_GLOBAL_DATA_PTR;
+
 extern void init_AVR_DUART(void);
 
 int checkboard (void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
 	char *p;
 	bd_t *bd = gd->bd;
 

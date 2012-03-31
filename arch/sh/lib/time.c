@@ -2,7 +2,7 @@
  * (C) Copyright 2009
  * Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
  *
- * (C) Copyright 2007-2008
+ * (C) Copyright 2007-2010
  * Nobobuhiro Iwamatsu <iwamatsu@nigauri.org>
  *
  * (C) Copyright 2003
@@ -36,6 +36,8 @@
 #define TMU_MAX_COUNTER (~0UL)
 
 static ulong timer_freq;
+static unsigned long last_tcnt;
+static unsigned long long overflow_ticks;
 
 static inline unsigned long long tick_to_time(unsigned long long tick)
 {
@@ -97,12 +99,26 @@ int timer_init (void)
 	tmu_timer_stop(0);
 	tmu_timer_start(0);
 
+	last_tcnt = 0;
+	overflow_ticks = 0;
+
 	return 0;
 }
 
 unsigned long long get_ticks (void)
 {
-	return 0 - readl(TCNT0);
+	unsigned long tcnt = 0 - readl(TCNT0);
+	unsigned long ticks;
+
+	if (last_tcnt > tcnt) { /* overflow */
+		overflow_ticks++;
+		ticks = (0xffffffff - last_tcnt) + tcnt;
+	} else {
+		ticks = tcnt;
+	}
+	last_tcnt = tcnt;
+
+	return (overflow_ticks << 32) | tcnt;
 }
 
 void __udelay (unsigned long usec)
@@ -121,18 +137,6 @@ unsigned long get_timer (unsigned long base)
 {
 	/* return msec */
 	return tick_to_time(get_ticks()) - base;
-}
-
-void set_timer (unsigned long t)
-{
-	writel((0 - t), TCNT0);
-}
-
-void reset_timer (void)
-{
-	tmu_timer_stop(0);
-	set_timer (0);
-	tmu_timer_start(0);
 }
 
 unsigned long get_tbclk (void)

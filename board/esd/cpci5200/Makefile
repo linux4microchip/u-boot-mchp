@@ -26,7 +26,7 @@ include $(TOPDIR)/config.mk
 # $(shell mkdir -p $(obj)../common/xilinx_jtag)
 # endif
 
-LIB	= $(obj)lib$(BOARD).a
+LIB	= $(obj)lib$(BOARD).o
 
 # Objects for Xilinx JTAG programming (CPLD)
 # CPLD  = ../common/xilinx_jtag/lenval.o \
@@ -41,13 +41,7 @@ OBJS	:= $(addprefix $(obj),$(COBJS))
 SOBJS	:= $(addprefix $(obj),$(SOBJS))
 
 $(LIB):	$(obj).depend $(OBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS)
-
-clean:
-	rm -f $(SOBJS) $(OBJS)
-
-distclean:	clean
-	rm -f $(LIB) core *.bak $(obj).depend
+	$(call cmd_link_o_target, $(OBJS))
 
 #########################################################################
 

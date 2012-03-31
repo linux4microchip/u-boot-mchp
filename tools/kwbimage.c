@@ -33,7 +33,7 @@
  * Supported commands for configuration file
  */
 static table_entry_t kwbimage_cmds[] = {
-	{CMD_BOOT_FROM,		"BOOT_FROM",		"boot comand",	},
+	{CMD_BOOT_FROM,		"BOOT_FROM",		"boot command",	},
 	{CMD_NAND_ECC_MODE,	"NAND_ECC_MODE",	"NAND mode",	},
 	{CMD_NAND_PAGE_SIZE,	"NAND_PAGE_SIZE",	"NAND size",	},
 	{CMD_SATA_PIO_MODE,	"SATA_PIO_MODE",	"SATA mode",	},
@@ -356,7 +356,7 @@ static int kwbimage_verify_header (unsigned char *ptr, int image_size,
 
 	calc_exthdrcsum = kwbimage_checksum8 ((void *)exthdr,
 			sizeof(extbhr_t) - sizeof(uint8_t), 0);
-	if (calc_hdrcsum != mhdr->checkSum)
+	if (calc_exthdrcsum != exthdr->checkSum)
 		return -FDT_ERR_BADSTRUCTURE; /* exthdr csum not matched */
 
 	return 0;

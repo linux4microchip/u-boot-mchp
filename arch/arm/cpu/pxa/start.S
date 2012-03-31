@@ -1,13 +1,20 @@
 /*
- *  armboot - Startup Code for XScale
+ *  armboot - Startup Code for XScale CPU-core
  *
  *  Copyright (C) 1998	Dan Malek <dmalek@jlc.net>
  *  Copyright (C) 1999	Magnus Damm <kieraypc01.p.y.kie.era.ericsson.se>
  *  Copyright (C) 2000	Wolfgang Denk <wd@denx.de>
  *  Copyright (C) 2001	Alex Zuepke <azu@sysgo.de>
+ *  Copyright (C) 2001	Marius Groger <mag@sysgo.de>
+ *  Copyright (C) 2002	Alex Zupke <azu@sysgo.de>
+ *  Copyright (C) 2002	Gary Jennejohn <garyj@denx.de>
  *  Copyright (C) 2002	Kyle Harris <kharris@nexus-tech.net>
- *  Copyright (C) 2003	Robert Schwebel <r.schwebel@pengutronix.de>
  *  Copyright (C) 2003	Kai-Uwe Bloem <kai-uwe.bloem@auerswald.de>
+ *  Copyright (C) 2003	Kshitij <kshitij@ti.com>
+ *  Copyright (C) 2003	Richard Woodruff <r-woodruff2@ti.com>
+ *  Copyright (C) 2003	Robert Schwebel <r.schwebel@pengutronix.de>
+ *  Copyright (C) 2004	Texas Instruments <r-woodruff2@ti.com>
+ *  Copyright (C) 2010	Marek Vasut <marek.vasut@gmail.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -28,12 +35,37 @@
  * MA 02111-1307 USA
  */
 
+#include <asm-offsets.h>
 #include <config.h>
 #include <version.h>
-#include <asm/arch/pxa-regs.h>
+
+#ifdef CONFIG_CPU_PXA25X
+#if ((CONFIG_SYS_INIT_SP_ADDR) != 0xfffff800)
+#error "Init SP address must be set to 0xfffff800 for PXA250"
+#endif
+#endif
 
 .globl _start
 _start: b	reset
+#ifdef CONFIG_SPL_BUILD
+	ldr	pc, _hang
+	ldr	pc, _hang
+	ldr	pc, _hang
+	ldr	pc, _hang
+	ldr	pc, _hang
+	ldr	pc, _hang
+	ldr	pc, _hang
+
+_hang:
+	.word	do_hang
+	.word	0x12345678
+	.word	0x12345678
+	.word	0x12345678
+	.word	0x12345678
+	.word	0x12345678
+	.word	0x12345678
+	.word	0x12345678	/* now 16*4=64 */
+#else
 	ldr	pc, _undefined_instruction
 	ldr	pc, _software_interrupt
 	ldr	pc, _prefetch_abort
@@ -49,36 +81,50 @@ _data_abort:		.word data_abort
 _not_used:		.word not_used
 _irq:			.word irq
 _fiq:			.word fiq
+_pad:			.word 0x12345678 /* now 16*4=64 */
+#endif	/* CONFIG_SPL_BUILD */
+.global _end_vect
+_end_vect:
 
 	.balignl 16,0xdeadbeef
-
-
 /*
+ *************************************************************************
+ *
  * Startup Code (reset vector)
  *
- * do important init only if we don't start from RAM!
- * - relocate armboot to RAM
- * - setup stack
- * - jump to second stage
+ * do important init only if we don't start from memory!
+ * setup Memory and board specific bits prior to relocation.
+ * relocate armboot to ram
+ * setup stack
+ *
+ *************************************************************************
  */
 
+.globl _TEXT_BASE
 _TEXT_BASE:
-	.word	TEXT_BASE
-
-.globl _armboot_start
-_armboot_start:
-	.word _start
+#ifdef	CONFIG_SPL_BUILD
+	.word	CONFIG_SPL_TEXT_BASE
+#else
+	.word	CONFIG_SYS_TEXT_BASE
+#endif
 
 /*
  * These are defined in the board-specific linker script.
+ * Subtracting _start from them lets the linker put their
+ * relative position in the executable instead of leaving
+ * them null.
  */
-.globl _bss_start
-_bss_start:
-	.word __bss_start
+.globl _bss_start_ofs
+_bss_start_ofs:
+	.word __bss_start - _start
 
-.globl _bss_end
-_bss_end:
-	.word _end
+.globl _bss_end_ofs
+_bss_end_ofs:
+	.word __bss_end__ - _start
+
+.globl _end_ofs
+_end_ofs:
+	.word _end - _start
 
 #ifdef CONFIG_USE_IRQ
 /* IRQ stack memory (calculated at run-time) */
@@ -90,221 +136,210 @@ IRQ_STACK_START:
 .globl FIQ_STACK_START
 FIQ_STACK_START:
 	.word 0x0badc0de
-#endif /* CONFIG_USE_IRQ */
+#endif
 
+/* IRQ stack memory (calculated at run-time) + 8 bytes */
+.globl IRQ_STACK_START_IN
+IRQ_STACK_START_IN:
+	.word	0x0badc0de
 
-/****************************************************************************/
-/*									    */
-/* the actual reset code						    */
-/*									    */
-/****************************************************************************/
+/*
+ * the actual reset code
+ */
 
 reset:
-	mrs	r0,cpsr			/* set the CPU to SVC32 mode	    */
-	bic	r0,r0,#0x1f		/* (superviser mode, M=10011)	    */
-	orr	r0,r0,#0x13
+	/*
+	 * set the cpu to SVC32 mode
+	 */
+	mrs	r0,cpsr
+	bic	r0,r0,#0x1f
+	orr	r0,r0,#0xd3
 	msr	cpsr,r0
 
-	/*
-	 * we do sys-critical inits only at reboot,
-	 * not when booting from RAM!
-	 */
 #ifndef CONFIG_SKIP_LOWLEVEL_INIT
-	bl	cpu_init_crit		/* we do sys-critical inits	    */
-#endif /* !CONFIG_SKIP_LOWLEVEL_INIT */
+	bl  cpu_init_crit
+#endif
 
-#ifndef CONFIG_SKIP_RELOCATE_UBOOT
-relocate:				/* relocate U-Boot to RAM	    */
-	adr	r0, _start		/* r0 <- current position of code   */
-	ldr	r1, _TEXT_BASE		/* test if we run from flash or RAM */
-	cmp	r0, r1			/* don't reloc during debug	    */
-	beq	stack_setup
+#ifdef	CONFIG_CPU_PXA25X
+	bl	lock_cache_for_stack
+#endif
 
-	ldr	r2, _armboot_start
-	ldr	r3, _bss_start
-	sub	r2, r3, r2		/* r2 <- size of armboot	    */
-	add	r2, r0, r2		/* r2 <- source end address	    */
+/* Set stackpointer in internal RAM to call board_init_f */
+call_board_init_f:
+	ldr	sp, =(CONFIG_SYS_INIT_SP_ADDR)
+	bic	sp, sp, #7 /* 8-byte alignment for ABI compliance */
+	ldr	r0, =0x00000000
+	bl	board_init_f
 
-copy_loop:
-	ldmia	r0!, {r3-r10}		/* copy from source address [r0]    */
-	stmia	r1!, {r3-r10}		/* copy to   target address [r1]    */
-	cmp	r0, r2			/* until source end address [r2]    */
-	ble	copy_loop
-#endif /* !CONFIG_SKIP_RELOCATE_UBOOT */
+/*------------------------------------------------------------------------------*/
+#ifndef CONFIG_SPL_BUILD
+/*
+ * void relocate_code (addr_sp, gd, addr_moni)
+ *
+ * This "function" does not return, instead it continues in RAM
+ * after relocating the monitor code.
+ *
+ */
+	.globl	relocate_code
+relocate_code:
+	mov	r4, r0	/* save addr_sp */
+	mov	r5, r1	/* save addr of gd */
+	mov	r6, r2	/* save addr of destination */
 
 	/* Set up the stack						    */
 stack_setup:
-	ldr	r0, _TEXT_BASE		/* upper 128 KiB: relocated uboot   */
-	sub	r0, r0, #CONFIG_SYS_MALLOC_LEN /* malloc area			    */
-	sub	r0, r0, #CONFIG_SYS_GBL_DATA_SIZE /* bdinfo			    */
-#ifdef CONFIG_USE_IRQ
-	sub	r0, r0, #(CONFIG_STACKSIZE_IRQ+CONFIG_STACKSIZE_FIQ)
-#endif /* CONFIG_USE_IRQ */
-	sub	sp, r0, #12		/* leave 3 words for abort-stack    */
-	bic	sp, sp, #7		/* 8-byte alignment for ABI compliance */
+	mov	sp, r4
+
+/* Disable the Dcache RAM lock for stack now */
+#ifdef	CONFIG_CPU_PXA25X
+	bl	cpu_init_crit
+#endif
+
+	adr	r0, _start
+	cmp	r0, r6
+	beq	clear_bss		/* skip relocation */
+	mov	r1, r6			/* r1 <- scratch for copy_loop */
+	ldr	r3, _bss_start_ofs
+	add	r2, r0, r3		/* r2 <- source end address	    */
+
+copy_loop:
+	ldmia	r0!, {r9-r10}		/* copy from source address [r0]    */
+	stmia	r1!, {r9-r10}		/* copy to   target address [r1]    */
+	cmp	r0, r2			/* until source end address [r2]    */
+	blo	copy_loop
+
+#ifndef CONFIG_SPL_BUILD
+	/*
+	 * fix .rel.dyn relocations
+	 */
+	ldr	r0, _TEXT_BASE		/* r0 <- Text base */
+	sub	r9, r6, r0		/* r9 <- relocation offset */
+	ldr	r10, _dynsym_start_ofs	/* r10 <- sym table ofs */
+	add	r10, r10, r0		/* r10 <- sym table in FLASH */
+	ldr	r2, _rel_dyn_start_ofs	/* r2 <- rel dyn start ofs */
+	add	r2, r2, r0		/* r2 <- rel dyn start in FLASH */
+	ldr	r3, _rel_dyn_end_ofs	/* r3 <- rel dyn end ofs */
+	add	r3, r3, r0		/* r3 <- rel dyn end in FLASH */
+fixloop:
+	ldr	r0, [r2]		/* r0 <- location to fix up, IN FLASH! */
+	add	r0, r0, r9		/* r0 <- location to fix up in RAM */
+	ldr	r1, [r2, #4]
+	and	r7, r1, #0xff
+	cmp	r7, #23			/* relative fixup? */
+	beq	fixrel
+	cmp	r7, #2			/* absolute fixup? */
+	beq	fixabs
+	/* ignore unknown type of fixup */
+	b	fixnext
+fixabs:
+	/* absolute fix: set location to (offset) symbol value */
+	mov	r1, r1, LSR #4		/* r1 <- symbol index in .dynsym */
+	add	r1, r10, r1		/* r1 <- address of symbol in table */
+	ldr	r1, [r1, #4]		/* r1 <- symbol value */
+	add	r1, r1, r9		/* r1 <- relocated sym addr */
+	b	fixnext
+fixrel:
+	/* relative fix: increase location by offset */
+	ldr	r1, [r0]
+	add	r1, r1, r9
+fixnext:
+	str	r1, [r0]
+	add	r2, r2, #8		/* each rel.dyn entry is 8 bytes */
+	cmp	r2, r3
+	blo	fixloop
+#endif
 
 clear_bss:
-	ldr	r0, _bss_start		/* find start of bss segment	    */
-	ldr	r1, _bss_end		/* stop here			    */
+#ifndef CONFIG_SPL_BUILD
+	ldr	r0, _bss_start_ofs
+	ldr	r1, _bss_end_ofs
+	mov	r4, r6			/* reloc addr */
+	add	r0, r0, r4
+	add	r1, r1, r4
 	mov	r2, #0x00000000		/* clear			    */
 
 clbss_l:str	r2, [r0]		/* clear loop...		    */
 	add	r0, r0, #4
 	cmp	r0, r1
-	ble	clbss_l
+	bne	clbss_l
+#endif	/* #ifndef CONFIG_SPL_BUILD */
 
-	ldr	pc, _start_armboot
-
-_start_armboot: .word start_armboot
-
-
-/****************************************************************************/
-/*									    */
-/* CPU_init_critical registers						    */
-/*									    */
-/* - setup important registers						    */
-/* - setup memory timing						    */
-/*									    */
-/****************************************************************************/
-/* mk@tbd: Fix this! */
-#undef RCSR
-#undef ICMR
-#undef OSMR3
-#undef OSCR
-#undef OWER
-#undef OIER
-#undef CCCR
-
-/* Interrupt-Controller base address					    */
-IC_BASE:	   .word	   0x40d00000
-#define ICMR	0x04
-
-/* Reset-Controller */
-RST_BASE:	.word	0x40f00030
-#define RCSR	0x00
-
-/* Operating System Timer */
-OSTIMER_BASE:	.word	0x40a00000
-#define OSMR3	0x0C
-#define OSCR	0x10
-#define OWER	0x18
-#define OIER	0x1C
-
-/* Clock Manager Registers						    */
-#ifdef CONFIG_CPU_MONAHANS
-# ifndef CONFIG_SYS_MONAHANS_RUN_MODE_OSC_RATIO
-#  error "You have to define CONFIG_SYS_MONAHANS_RUN_MODE_OSC_RATIO!!"
-# endif /* !CONFIG_SYS_MONAHANS_RUN_MODE_OSC_RATIO */
-# ifndef CONFIG_SYS_MONAHANS_TURBO_RUN_MODE_RATIO
-#  define CONFIG_SYS_MONAHANS_TURBO_RUN_MODE_RATIO 0x1
-# endif /* !CONFIG_SYS_MONAHANS_TURBO_RUN_MODE_RATIO */
-#else /* !CONFIG_CPU_MONAHANS */
-#ifdef CONFIG_SYS_CPUSPEED
-CC_BASE:	.word	0x41300000
-#define CCCR	0x00
-cpuspeed:	.word	CONFIG_SYS_CPUSPEED
-#else /* !CONFIG_SYS_CPUSPEED */
-#error "You have to define CONFIG_SYS_CPUSPEED!!"
-#endif /* CONFIG_SYS_CPUSPEED */
-#endif /* CONFIG_CPU_MONAHANS */
-
-	/* takes care the CP15 update has taken place */
-	.macro CPWAIT reg
-	mrc  p15,0,\reg,c2,c0,0
-	mov  \reg,\reg
-	sub  pc,pc,#4
-	.endm
-
-cpu_init_crit:
-
-	/* mask all IRQs						    */
-#ifndef CONFIG_CPU_MONAHANS
-	ldr	r0, IC_BASE
-	mov	r1, #0x00
-	str	r1, [r0, #ICMR]
-#else /* CONFIG_CPU_MONAHANS */
-	/* Step 1 - Enable CP6 permission */
-	mrc	p15, 0, r1, c15, c1, 0	@ read CPAR
-	orr	r1, r1, #0x40
-		mcr	p15, 0, r1, c15, c1, 0
-	CPWAIT	r1
-
-	/* Step 2 - Mask ICMR & ICMR2 */
-	mov	r1, #0
-	mcr	p6, 0, r1, c1, c0, 0	@ ICMR
-	mcr	p6, 0, r1, c7, c0, 0	@ ICMR2
-
-	/* turn off all clocks but the ones we will definitly require */
-	ldr	r1, =CKENA
-	ldr	r2, =(CKENA_22_FFUART | CKENA_10_SRAM | CKENA_9_SMC | CKENA_8_DMC)
-	str	r2, [r1]
-	ldr	r1, =CKENB
-	ldr	r2, =(CKENB_6_IRQ)
-	str	r2, [r1]
-#endif /* !CONFIG_CPU_MONAHANS */
-
-	/* set clock speed */
-#ifdef CONFIG_CPU_MONAHANS
-	ldr	r0, =ACCR
-	ldr	r1, =(((CONFIG_SYS_MONAHANS_TURBO_RUN_MODE_RATIO<<8) & ACCR_XN_MASK) | (CONFIG_SYS_MONAHANS_RUN_MODE_OSC_RATIO & ACCR_XL_MASK))
-	str	r1, [r0]
-#else /* !CONFIG_CPU_MONAHANS */
-#ifdef CONFIG_SYS_CPUSPEED
-	ldr	r0, CC_BASE
-	ldr	r1, cpuspeed
-	str	r1, [r0, #CCCR]
-	mov	r0, #2
-	mcr	p14, 0, r0, c6, c0, 0
-
-setspeed_done:
-
-#endif /* CONFIG_SYS_CPUSPEED */
-#endif /* CONFIG_CPU_MONAHANS */
-
-	/*
-	 * before relocating, we have to setup RAM timing
-	 * because memory timing is board-dependend, you will
-	 * find a lowlevel_init.S in your board directory.
-	 */
-	mov	ip,	lr
-	bl	lowlevel_init
-	mov	lr,	ip
-
-	/* Memory interfaces are working. Disable MMU and enable I-cache.   */
-	/* mk: hmm, this is not in the monahans docs, leave it now but
-	 *     check here if it doesn't work :-) */
-
-	ldr	r0, =0x2001		/* enable access to all coproc.	    */
-	mcr	p15, 0, r0, c15, c1, 0
-	CPWAIT r0
-
-	mcr	p15, 0, r0, c7, c10, 4	/* drain the write & fill buffers   */
-	CPWAIT r0
-
-	mcr	p15, 0, r0, c7, c7, 0	/* flush Icache, Dcache and BTB	    */
-	CPWAIT r0
-
-	mcr	p15, 0, r0, c8, c7, 0	/* flush instuction and data TLBs   */
-	CPWAIT r0
-
-	/* Enable the Icache						    */
 /*
-	mrc	p15, 0, r0, c1, c0, 0
-	orr	r0, r0, #0x1800
-	mcr	p15, 0, r0, c1, c0, 0
-	CPWAIT
-*/
+ * We are done. Do not return, instead branch to second part of board
+ * initialization, now running from RAM.
+ */
+#ifdef CONFIG_ONENAND_SPL
+	ldr     r0, _onenand_boot_ofs
+	mov	pc, r0
+
+_onenand_boot_ofs:
+	.word onenand_boot
+#else
+jump_2_ram:
+	ldr	r0, _board_init_r_ofs
+	ldr     r1, _TEXT_BASE
+	add	lr, r0, r1
+	add	lr, lr, r9
+	/* setup parameters for board_init_r */
+	mov	r0, r5		/* gd_t */
+	mov	r1, r6		/* dest_addr */
+	/* jump to it ... */
 	mov	pc, lr
 
+_board_init_r_ofs:
+	.word board_init_r - _start
+#endif
 
-/****************************************************************************/
-/*									    */
-/* Interrupt handling							    */
-/*									    */
-/****************************************************************************/
+_rel_dyn_start_ofs:
+	.word __rel_dyn_start - _start
+_rel_dyn_end_ofs:
+	.word __rel_dyn_end - _start
+_dynsym_start_ofs:
+	.word __dynsym_start - _start
+#endif
+/*
+ *************************************************************************
+ *
+ * CPU_init_critical registers
+ *
+ * setup important registers
+ * setup memory timing
+ *
+ *************************************************************************
+ */
+#if !defined(CONFIG_SKIP_LOWLEVEL_INIT) || defined(CONFIG_CPU_PXA25X)
+cpu_init_crit:
+	/*
+	 * flush v4 I/D caches
+	 */
+	mov	r0, #0
+	mcr	p15, 0, r0, c7, c7, 0	/* Invalidate I+D+BTB caches */
+	mcr	p15, 0, r0, c8, c7, 0	/* Invalidate Unified TLB */
 
-/* IRQ stack frame							    */
+	/*
+	 * disable MMU stuff and caches
+	 */
+	mrc	p15, 0, r0, c1, c0, 0
+	bic	r0, r0, #0x00002300	@ clear bits 13, 9:8 (--V- --RS)
+	bic	r0, r0, #0x00000087	@ clear bits 7, 2:0 (B--- -CAM)
+	orr	r0, r0, #0x00000002	@ set bit 2 (A) Align
+	orr	r0, r0, #0x00001000	@ set bit 12 (I) I-Cache
+	mcr	p15, 0, r0, c1, c0, 0
 
+	mov	pc, lr		/* back to my caller */
+#endif /* !CONFIG_SKIP_LOWLEVEL_INIT || CONFIG_CPU_PXA25X */
+
+#ifndef CONFIG_SPL_BUILD
+/*
+ *************************************************************************
+ *
+ * Interrupt handling
+ *
+ *************************************************************************
+ */
+@
+@ IRQ stack frame.
+@
 #define S_FRAME_SIZE	72
 
 #define S_OLD_R0	68
@@ -328,39 +363,36 @@ setspeed_done:
 #define S_R0		0
 
 #define MODE_SVC 0x13
+#define I_BIT	 0x80
 
-	/* use bad_save_user_regs for abort/prefetch/undef/swi ...	    */
+/*
+ * use bad_save_user_regs for abort/prefetch/undef/swi ...
+ * use irq_save_user_regs / irq_restore_user_regs for IRQ/FIQ handling
+ */
 
 	.macro	bad_save_user_regs
-	sub	sp, sp, #S_FRAME_SIZE
-	stmia	sp, {r0 - r12}			/* Calling r0-r12	    */
-	add	r8, sp, #S_PC
+	sub	sp, sp, #S_FRAME_SIZE		@ carve out a frame on current user stack
+	stmia	sp, {r0 - r12}			@ Save user registers (now in svc mode) r0-r12
 
-	ldr	r2, _armboot_start
-	sub	r2, r2, #(CONFIG_STACKSIZE+CONFIG_SYS_MALLOC_LEN)
-	sub	r2, r2, #(CONFIG_SYS_GBL_DATA_SIZE+8)	@ set base 2 words into abort stack
-	ldmia	r2, {r2 - r4}			/* get pc, cpsr, old_r0	    */
-	add	r0, sp, #S_FRAME_SIZE		/* restore sp_SVC	    */
+	ldr	r2, IRQ_STACK_START_IN		@ set base 2 words into abort stack
+	ldmia	r2, {r2 - r3}			@ get values for "aborted" pc and cpsr (into parm regs)
+	add	r0, sp, #S_FRAME_SIZE		@ grab pointer to old stack
 
 	add	r5, sp, #S_SP
 	mov	r1, lr
-	stmia	r5, {r0 - r4}			/* save sp_SVC, lr_SVC, pc, cpsr, old_r */
-	mov	r0, sp
+	stmia	r5, {r0 - r3}			@ save sp_SVC, lr_SVC, pc, cpsr
+	mov	r0, sp				@ save current stack into r0 (param register)
 	.endm
-
-
-	/* use irq_save_user_regs / irq_restore_user_regs for		     */
-	/* IRQ/FIQ handling						     */
 
 	.macro	irq_save_user_regs
 	sub	sp, sp, #S_FRAME_SIZE
-	stmia	sp, {r0 - r12}			/* Calling r0-r12	     */
-	add	r8, sp, #S_PC
-	stmdb	r8, {sp, lr}^			/* Calling SP, LR	     */
-	str	lr, [r8, #0]			/* Save calling PC	     */
+	stmia	sp, {r0 - r12}			@ Calling r0-r12
+	add	r8, sp, #S_PC			@ !!!! R8 NEEDS to be saved !!!! a reserved stack spot would be good.
+	stmdb	r8, {sp, lr}^			@ Calling SP, LR
+	str	lr, [r8, #0]			@ Save calling PC
 	mrs	r6, spsr
-	str	r6, [r8, #4]			/* Save CPSR		     */
-	str	r0, [r8, #8]			/* Save OLD_R0		     */
+	str	r6, [r8, #4]			@ Save CPSR
+	str	r0, [r8, #8]			@ Save OLD_R0
 	mov	r0, sp
 	.endm
 
@@ -373,18 +405,28 @@ setspeed_done:
 	.endm
 
 	.macro get_bad_stack
-	ldr	r13, _armboot_start		@ setup our mode stack
-	sub	r13, r13, #(CONFIG_STACKSIZE+CONFIG_SYS_MALLOC_LEN)
-	sub	r13, r13, #(CONFIG_SYS_GBL_DATA_SIZE+8) @ reserved a couple spots in abort stack
+	ldr	r13, IRQ_STACK_START_IN		@ setup our mode stack (enter in banked mode)
 
-	str	lr, [r13]			@ save caller lr / spsr
-	mrs	lr, spsr
-	str	lr, [r13, #4]
+	str	lr, [r13]			@ save caller lr in position 0 of saved stack
+	mrs	lr, spsr			@ get the spsr
+	str	lr, [r13, #4]			@ save spsr in position 1 of saved stack
 
 	mov	r13, #MODE_SVC			@ prepare SVC-Mode
-	msr	spsr_c, r13
-	mov	lr, pc
-	movs	pc, lr
+	@ msr	spsr_c, r13
+	msr	spsr, r13			@ switch modes, make sure moves will execute
+	mov	lr, pc				@ capture return pc
+	movs	pc, lr				@ jump to next instruction & switch modes.
+	.endm
+
+	.macro get_bad_stack_swi
+	sub	r13, r13, #4			@ space on current stack for scratch reg.
+	str	r0, [r13]			@ save R0's value.
+	ldr	r0, IRQ_STACK_START_IN		@ get data regions start
+	str	lr, [r0]			@ save caller lr in position 0 of saved stack
+	mrs	r0, spsr			@ get the spsr
+	str	lr, [r0, #4]			@ save spsr in position 1 of saved stack
+	ldr	r0, [r13]			@ restore r0
+	add	r13, r13, #4			@ pop stack entry
 	.endm
 
 	.macro get_irq_stack			@ setup IRQ stack
@@ -394,14 +436,17 @@ setspeed_done:
 	.macro get_fiq_stack			@ setup FIQ stack
 	ldr	sp, FIQ_STACK_START
 	.endm
+#endif	/* CONFIG_SPL_BUILD */
 
-
-/****************************************************************************/
-/*									    */
-/* exception handlers							    */
-/*									    */
-/****************************************************************************/
-
+/*
+ * exception handlers
+ */
+#ifdef CONFIG_SPL_BUILD
+	.align	5
+do_hang:
+	ldr	sp, _TEXT_BASE			/* use 32 words about stack */
+	bl	hang				/* hang and never return */
+#else	/* !CONFIG_SPL_BUILD */
 	.align	5
 undefined_instruction:
 	get_bad_stack
@@ -410,7 +455,7 @@ undefined_instruction:
 
 	.align	5
 software_interrupt:
-	get_bad_stack
+	get_bad_stack_swi
 	bad_save_user_regs
 	bl	do_software_interrupt
 
@@ -444,11 +489,12 @@ irq:
 	.align	5
 fiq:
 	get_fiq_stack
-	irq_save_user_regs		/* someone ought to write a more    */
-	bl	do_fiq			/* effiction fiq_save_user_regs	    */
+	/* someone ought to write a more effiction fiq_save_user_regs */
+	irq_save_user_regs
+	bl	do_fiq
 	irq_restore_user_regs
 
-#else /* !CONFIG_USE_IRQ */
+#else
 
 	.align	5
 irq:
@@ -462,38 +508,98 @@ fiq:
 	bad_save_user_regs
 	bl	do_fiq
 
-#endif /* CONFIG_USE_IRQ */
+#endif
+	.align 5
+#endif	/* CONFIG_SPL_BUILD */
 
-/****************************************************************************/
-/*									    */
-/* Reset function: the PXA250 doesn't have a reset function, so we have to  */
-/* perform a watchdog timeout for a soft reset.				    */
-/*									    */
-/****************************************************************************/
 
-	.align	5
-.globl reset_cpu
+/*
+ * Enable MMU to use DCache as DRAM.
+ *
+ * This is useful on PXA25x and PXA26x in early bootstages, where there is no
+ * other possible memory available to hold stack.
+ */
+#ifdef CONFIG_CPU_PXA25X
+.macro CPWAIT reg
+	mrc	p15, 0, \reg, c2, c0, 0
+	mov	\reg, \reg
+	sub	pc, pc, #4
+.endm
+lock_cache_for_stack:
+	/* Domain access -- enable for all CPs */
+	ldr	r0, =0x0000ffff
+	mcr	p15, 0, r0, c3, c0, 0
 
-	/* FIXME: this code is PXA250 specific. How is this handled on	    */
-	/*	  other XScale processors?				    */
+	/* Point TTBR to MMU table */
+	ldr	r0, =mmutable
+	mcr	p15, 0, r0, c2, c0, 0
 
-reset_cpu:
+	/* Kick in MMU, ICache, DCache, BTB */
+	mrc	p15, 0, r0, c1, c0, 0
+	bic	r0, #0x1b00
+	bic	r0, #0x0087
+	orr	r0, #0x1800
+	orr	r0, #0x0005
+	mcr	p15, 0, r0, c1, c0, 0
+	CPWAIT	r0
 
-	/* We set OWE:WME (watchdog enable) and wait until timeout happens  */
+	/* Unlock Icache, Dcache */
+	mcr	p15, 0, r0, c9, c1, 1
+	mcr	p15, 0, r0, c9, c2, 1
 
-	ldr	r0, OSTIMER_BASE
-	ldr	r1, [r0, #OWER]
-	orr	r1, r1, #0x0001			/* bit0: WME		    */
-	str	r1, [r0, #OWER]
+	/* Flush Icache, Dcache, BTB */
+	mcr	p15, 0, r0, c7, c7, 0
 
-	/* OS timer does only wrap every 1165 seconds, so we have to set    */
-	/* the match register as well.					    */
+	/* Unlock I-TLB, D-TLB */
+	mcr	p15, 0, r0, c10, c4, 1
+	mcr	p15, 0, r0, c10, c8, 1
 
-	ldr	r1, [r0, #OSCR]			/* read OS timer	    */
-	add	r1, r1, #0x800			/* let OSMR3 match after    */
-	add	r1, r1, #0x800			/* 4096*(1/3.6864MHz)=1ms   */
-	str	r1, [r0, #OSMR3]
+	/* Flush TLB */
+	mcr	p15, 0, r0, c8, c7, 0
 
-reset_endless:
+	/* Allocate 4096 bytes of Dcache as RAM */
 
-	b	reset_endless
+	/* Drain pending loads and stores */
+	mcr	p15, 0, r0, c7, c10, 4
+
+	mov	r4, #0x00
+	mov	r5, #0x00
+	mov	r2, #0x01
+	mcr	p15, 0, r0, c9, c2, 0
+	CPWAIT	r0
+
+	/* 128 lines reserved (128 x 32bytes = 4096 bytes total) */
+	mov	r0, #128
+	ldr	r1, =0xfffff000
+
+alloc:
+	mcr	p15, 0, r1, c7, c2, 5
+	/* Drain pending loads and stores */
+	mcr	p15, 0, r0, c7, c10, 4
+	strd	r4, [r1], #8
+	strd	r4, [r1], #8
+	strd	r4, [r1], #8
+	strd	r4, [r1], #8
+	subs	r0, #0x01
+	bne	alloc
+	/* Drain pending loads and stores */
+	mcr	p15, 0, r0, c7, c10, 4
+	mov	r2, #0x00
+	mcr	p15, 0, r2, c9, c2, 0
+	CPWAIT	r0
+
+	mov	pc, lr
+
+.section .mmutable, "a"
+mmutable:
+	.align	14
+	/* 0x00000000 - 0xffe00000 : 1:1, uncached mapping */
+	.set	__base, 0
+	.rept	0xfff
+	.word	(__base << 20) | 0xc12
+	.set	__base, __base + 1
+	.endr
+
+	/* 0xfff00000 : 1:1, cached mapping */
+	.word	(0xfff << 20) | 0x1c1e
+#endif	/* CONFIG_CPU_PXA25X */

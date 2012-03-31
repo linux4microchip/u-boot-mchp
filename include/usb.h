@@ -42,6 +42,12 @@
 
 #define USB_CNTL_TIMEOUT 100 /* 100ms timeout */
 
+/*
+ * This is the timeout to allow for submitting an urb in ms. We allow more
+ * time for a BULK device to react - some are slow.
+ */
+#define USB_TIMEOUT_MS(pipe) (usb_pipebulk(pipe) ? 5000 : 1000)
+
 /* device request (setup) */
 struct devrequest {
 	unsigned char	requesttype;
@@ -133,7 +139,7 @@ struct usb_device {
 	defined(CONFIG_USB_SL811HS) || defined(CONFIG_USB_ISP116X_HCD) || \
 	defined(CONFIG_USB_R8A66597_HCD) || defined(CONFIG_USB_DAVINCI) || \
 	defined(CONFIG_USB_OMAP3) || defined(CONFIG_USB_DA8XX) || \
-	defined(CONFIG_USB_BLACKFIN)
+	defined(CONFIG_USB_BLACKFIN) || defined(CONFIG_USB_AM35X)
 
 int usb_lowlevel_init(void);
 int usb_lowlevel_stop(void);
@@ -162,6 +168,13 @@ int usb_stor_info(void);
 
 #endif
 
+#ifdef CONFIG_USB_HOST_ETHER
+
+#define USB_MAX_ETH_DEV 5
+int usb_host_eth_scan(int mode);
+
+#endif
+
 #ifdef CONFIG_USB_KEYBOARD
 
 int drv_usb_kbd_init(void);
@@ -185,7 +198,7 @@ int usb_bulk_msg(struct usb_device *dev, unsigned int pipe,
 			void *data, int len, int *actual_length, int timeout);
 int usb_submit_int_msg(struct usb_device *dev, unsigned long pipe,
 			void *buffer, int transfer_len, int interval);
-void usb_disable_asynch(int disable);
+int usb_disable_asynch(int disable);
 int usb_maxpacket(struct usb_device *dev, unsigned long pipe);
 inline void wait_ms(unsigned long ms);
 int usb_get_configuration_no(struct usb_device *dev, unsigned char *buffer,

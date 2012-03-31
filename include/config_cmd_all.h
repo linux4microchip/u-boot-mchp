@@ -70,6 +70,7 @@
 #define CONFIG_CMD_PORTIO	/* Port I/O			*/
 #define CONFIG_CMD_REGINFO	/* Register dump		*/
 #define CONFIG_CMD_REISER	/* Reiserfs support		*/
+#define CONFIG_CMD_RARP		/* rarpboot support		*/
 #define CONFIG_CMD_RUN		/* run command in env variable	*/
 #define CONFIG_CMD_SAVEENV	/* saveenv			*/
 #define CONFIG_CMD_SAVES	/* save S record dump		*/
@@ -86,7 +87,6 @@
 #define CONFIG_CMD_UNIVERSE	/* Tundra Universe Support	*/
 #define CONFIG_CMD_UNZIP	/* unzip from memory to memory	*/
 #define CONFIG_CMD_USB		/* USB Support			*/
-#define CONFIG_CMD_VFD		/* VFD support (TRAB)		*/
 #define CONFIG_CMD_XIMG		/* Load part of Multi Image	*/
 
 #endif	/* _CONFIG_CMD_ALL_H */

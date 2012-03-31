@@ -43,7 +43,7 @@ static inline ulong READ_TIMER(void)
 {
 	struct s3c24x0_timers *timers = s3c24x0_get_base_timers();
 
-	return readl(&timers->TCNTO4) & 0xffff;
+	return readl(&timers->tcnto4) & 0xffff;
 }
 
 static ulong timestamp;
@@ -56,7 +56,7 @@ int timer_init(void)
 
 	/* use PWM Timer 4 because it has no output */
 	/* prescaler for Timer 4 is 16 */
-	writel(0x0f00, &timers->TCFG0);
+	writel(0x0f00, &timers->tcfg0);
 	if (timer_load_val == 0) {
 		/*
 		 * for 10 ms clock period @ PCLK with 4 bit divider = 1/2
@@ -68,13 +68,13 @@ int timer_init(void)
 	}
 	/* load value for 10 ms timeout */
 	lastdec = timer_load_val;
-	writel(timer_load_val, &timers->TCNTB4);
-	/* auto load, manual update of Timer 4 */
-	tmr = (readl(&timers->TCON) & ~0x0700000) | 0x0600000;
-	writel(tmr, &timers->TCON);
-	/* auto load, start Timer 4 */
+	writel(timer_load_val, &timers->tcntb4);
+	/* auto load, manual update of timer 4 */
+	tmr = (readl(&timers->tcon) & ~0x0700000) | 0x0600000;
+	writel(tmr, &timers->tcon);
+	/* auto load, start timer 4 */
 	tmr = (tmr & ~0x0700000) | 0x0500000;
-	writel(tmr, &timers->TCON);
+	writel(tmr, &timers->tcon);
 	timestamp = 0;
 
 	return (0);
@@ -83,20 +83,9 @@ int timer_init(void)
 /*
  * timer without interrupts
  */
-
-void reset_timer(void)
-{
-	reset_timer_masked();
-}
-
 ulong get_timer(ulong base)
 {
 	return get_timer_masked() - base;
-}
-
-void set_timer(ulong t)
-{
-	timestamp = t;
 }
 
 void __udelay (unsigned long usec)
@@ -110,13 +99,6 @@ void __udelay (unsigned long usec)
 
 	while ((ulong) (get_ticks() - start) < tmo)
 		/*NOP*/;
-}
-
-void reset_timer_masked(void)
-{
-	/* reset time */
-	lastdec = READ_TIMER();
-	timestamp = 0;
 }
 
 ulong get_timer_masked(void)
@@ -177,10 +159,11 @@ ulong get_tbclk(void)
 {
 	ulong tbclk;
 
-#if defined(CONFIG_SMDK2400) || defined(CONFIG_TRAB)
+#if defined(CONFIG_SMDK2400)
 	tbclk = timer_load_val * 100;
 #elif defined(CONFIG_SBC2410X) || \
       defined(CONFIG_SMDK2410) || \
+	defined(CONFIG_S3C2440) || \
       defined(CONFIG_VCMA9)
 	tbclk = CONFIG_SYS_HZ;
 #else
@@ -197,22 +180,16 @@ void reset_cpu(ulong ignored)
 {
 	struct s3c24x0_watchdog *watchdog;
 
-#ifdef CONFIG_TRAB
-	extern void disable_vfd(void);
-
-	disable_vfd();
-#endif
-
 	watchdog = s3c24x0_get_base_watchdog();
 
 	/* Disable watchdog */
-	writel(0x0000, &watchdog->WTCON);
+	writel(0x0000, &watchdog->wtcon);
 
 	/* Initialize watchdog timer count register */
-	writel(0x0001, &watchdog->WTCNT);
+	writel(0x0001, &watchdog->wtcnt);
 
 	/* Enable watchdog timer; assert reset at timer timeout */
-	writel(0x0021, &watchdog->WTCON);
+	writel(0x0021, &watchdog->wtcon);
 
 	while (1)
 		/* loop forever and wait for reset to happen */;

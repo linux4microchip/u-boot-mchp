@@ -82,7 +82,6 @@
 #define CONFIG_BFIN_MAC
 #define CONFIG_RMII
 #define CONFIG_NETCONSOLE	1
-#define CONFIG_NET_MULTI	1
 #endif
 #define CONFIG_HOSTNAME		bf527-ezkit
 /* Uncomment next line to use fixed MAC address */
@@ -138,8 +137,6 @@
  */
 #define CONFIG_BFIN_TWI_I2C	1
 #define CONFIG_HARD_I2C		1
-#define CONFIG_SYS_I2C_SPEED	50000
-#define CONFIG_SYS_I2C_SLAVE	0
 
 
 /*
@@ -157,7 +154,7 @@
 /*
  * Video Settings
  */
-#ifdef CONFIG_MK_BF527_EZKIT_REV_2_1
+#ifdef CONFIG_BF527_EZKIT_REV_2_1
 # define CONFIG_LQ035Q1_SPI_BUS	0
 # define CONFIG_LQ035Q1_SPI_CS	7
 #endif

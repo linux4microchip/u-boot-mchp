@@ -46,15 +46,6 @@ extern unsigned long search_exception_table(unsigned long);
  */
 #define END_OF_MEM	(gd->bd->bi_memstart + gd->bd->bi_memsize)
 
-static __inline__ void set_tsr(unsigned long val)
-{
-#if defined(CONFIG_440)
-	asm volatile("mtspr 0x150, %0" : : "r" (val));
-#else
-	asm volatile("mttsr %0" : : "r" (val));
-#endif
-}
-
 static __inline__ unsigned long get_esr(void)
 {
 	unsigned long val;
@@ -209,6 +200,22 @@ MachineCheckException(struct pt_regs *regs)
 		/* Clear MCSR */
 		mtspr(SPRN_MCSR, val);
 	}
+
+#if defined(CONFIG_DDR_ECC) && defined(CONFIG_SDRAM_PPC4xx_IBM_DDR2)
+	/*
+	 * Read and print ECC status register/info:
+	 * The faulting address is only known upon uncorrectable ECC
+	 * errors.
+	 */
+	mfsdram(SDRAM_ECCES, val);
+	if (val & SDRAM_ECCES_CE)
+		printf("ECC: Correctable error\n");
+	if (val & SDRAM_ECCES_UE) {
+		printf("ECC: Uncorrectable error at 0x%02x%08x\n",
+		       mfdcr(SDRAM_ERRADDULL), mfdcr(SDRAM_ERRADDLLL));
+	}
+#endif /* CONFIG_DDR_ECC ... */
+
 #if defined(CONFIG_440EPX) || defined(CONFIG_440GRX)
 	mfsdram(DDR0_00, val) ;
 	printf("DDR0: DDR0_00 %lx\n", val);
@@ -348,7 +355,7 @@ DecrementerPITException(struct pt_regs *regs)
 	/*
 	 * Reset PIT interrupt
 	 */
-	set_tsr(0x08000000);
+	mtspr(SPRN_TSR, 0x08000000);
 
 	/*
 	 * Call timer_interrupt routine in interrupts.c

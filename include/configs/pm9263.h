@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2007-2008
- * Stelian Pop <stelian.pop@leadtechdesign.com>
+ * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
  * Ilko Iliev <www.ronetix.at>
  *
@@ -28,6 +28,12 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+/*
+ * SoC must be defined first, before hardware.h is included.
+ * In this case SoC is defined in boards.cfg.
+ */
+#include <asm/hardware.h>
+
 /* ARM asynchronous clock */
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
@@ -36,14 +42,18 @@
 #define MASTER_PLL_MUL		65
 #define MAIN_PLL_DIV		2	/* 2 or 4 */
 #define CONFIG_SYS_AT91_MAIN_CLOCK	18432000
+#define CONFIG_SYS_AT91_SLOW_CLOCK	32768		/* slow clock xtal */
 
 #define CONFIG_SYS_HZ		1000
 
-#define CONFIG_ARM926EJS	1	/* This is an ARM926EJS Core	*/
-#define CONFIG_AT91SAM9263	1	/* It's an Atmel AT91SAM9263 SoC*/
+#define CONFIG_SYS_AT91_CPU_NAME	"AT91SAM9263"
 #define CONFIG_PM9263		1	/* on a Ronetix PM9263 Board	*/
 #define CONFIG_ARCH_CPU_INIT
 #undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff	*/
+#define CONFIG_SYS_TEXT_BASE	0
+
+#define MACH_TYPE_PM9263	1475
+#define CONFIG_MACH_TYPE	MACH_TYPE_PM9263
 
 /* clocks */
 #define CONFIG_SYS_MOR_VAL						\
@@ -161,18 +171,16 @@
 #define CONFIG_INITRD_TAG	1
 
 #undef CONFIG_SKIP_LOWLEVEL_INIT
-#undef CONFIG_SKIP_RELOCATE_UBOOT
 #define CONFIG_USER_LOWLEVEL_INIT	1
+#define CONFIG_BOARD_EARLY_INIT_F
 
 /*
  * Hardware drivers
  */
 #define CONFIG_AT91_GPIO	1
 #define CONFIG_ATMEL_USART	1
-#undef CONFIG_USART0
-#undef CONFIG_USART1
-#undef CONFIG_USART2
-#define CONFIG_USART3		1	/* USART 3 is DBGU */
+#define CONFIG_USART_BASE		ATMEL_BASE_DBGU
+#define	CONFIG_USART_ID			ATMEL_ID_SYS
 
 /* LCD */
 #define CONFIG_LCD			1
@@ -213,6 +221,7 @@
 #undef CONFIG_CMD_LOADS
 #undef CONFIG_CMD_IMLS
 
+#define CONFIG_CMD_CACHE
 #define CONFIG_CMD_PING		1
 #define CONFIG_CMD_DHCP		1
 #define CONFIG_CMD_NAND		1
@@ -276,7 +285,6 @@
 /* Ethernet */
 #define CONFIG_MACB			1
 #define CONFIG_RMII			1
-#define CONFIG_NET_MULTI		1
 #define CONFIG_NET_RETRY_COUNT		20
 #define CONFIG_RESET_PHY_R		1
 
@@ -348,7 +356,7 @@
 #define CONFIG_SYS_JFFS2_FIRST_SECTOR	11
 
 #define CONFIG_BOOTCOMMAND		"run flashboot"
-#define CONFIG_ROOTPATH			/ronetix/rootfs
+#define CONFIG_ROOTPATH			"/ronetix/rootfs"
 #define CONFIG_AUTOBOOT_PROMPT		"autoboot in %d seconds\n"
 
 #define CONFIG_CON_ROT			"fbcon=rotate:3 "
@@ -401,7 +409,10 @@
  * Size of malloc() pool
  */
 #define CONFIG_SYS_MALLOC_LEN	ROUND(3 * CONFIG_ENV_SIZE + 128 * 1024, 0x1000)
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* 128 bytes for initial data */
+
+#define CONFIG_SYS_SDRAM_BASE	PHYS_SDRAM
+#define CONFIG_SYS_INIT_SP_ADDR	(CONFIG_SYS_SDRAM_BASE + 0x1000 - \
+				GENERATED_GBL_DATA_SIZE)
 
 #define CONFIG_STACKSIZE		(32 * 1024)	/* regular stack */
 

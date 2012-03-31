@@ -199,6 +199,12 @@ static int alt_sgdma_do_async_transfer(volatile struct alt_sgdma_registers *dev,
 		debug("Timeout waiting sgdma in do async!\n");
 
 	/*
+	 * Clear the RUN bit in the control register. This is needed
+	 * to restart the SGDMA engine later on.
+	 */
+	dev->control = 0;
+
+	/*
 	 * Clear any (previous) status register information
 	 * that might occlude our error checking later.
 	 */
@@ -317,6 +323,8 @@ static int tse_eth_rx(struct eth_device *dev)
 
 		/* setup the sgdma */
 		alt_sgdma_do_async_transfer(priv->sgdma_rx, &rx_desc[0]);
+
+		return packet_length;
 	}
 
 	return -1;
@@ -351,8 +359,8 @@ static void tse_eth_reset(struct eth_device *dev)
 
 	if (counter >= ALT_TSE_SGDMA_BUSY_WATCHDOG_CNTR) {
 		debug("Timeout waiting for rx sgdma!\n");
-		rx_sgdma->control &= ALT_SGDMA_CONTROL_SOFTWARERESET_MSK;
-		rx_sgdma->control &= ALT_SGDMA_CONTROL_SOFTWARERESET_MSK;
+		rx_sgdma->control = ALT_SGDMA_CONTROL_SOFTWARERESET_MSK;
+		rx_sgdma->control = ALT_SGDMA_CONTROL_SOFTWARERESET_MSK;
 	}
 
 	counter = 0;
@@ -364,8 +372,8 @@ static void tse_eth_reset(struct eth_device *dev)
 
 	if (counter >= ALT_TSE_SGDMA_BUSY_WATCHDOG_CNTR) {
 		debug("Timeout waiting for tx sgdma!\n");
-		tx_sgdma->control &= ALT_SGDMA_CONTROL_SOFTWARERESET_MSK;
-		tx_sgdma->control &= ALT_SGDMA_CONTROL_SOFTWARERESET_MSK;
+		tx_sgdma->control = ALT_SGDMA_CONTROL_SOFTWARERESET_MSK;
+		tx_sgdma->control = ALT_SGDMA_CONTROL_SOFTWARERESET_MSK;
 	}
 	/* reset the mac */
 	mac_dev->command_config.bits.transmit_enable = 1;
@@ -426,7 +434,7 @@ static int tse_mdio_write(struct altera_tse_priv *priv, unsigned int regnum,
 
 /* MDIO access to phy */
 #if defined(CONFIG_MII) || defined(CONFIG_CMD_MII) && !defined(BITBANGMII)
-static int altera_tse_miiphy_write(char *devname, unsigned char addr,
+static int altera_tse_miiphy_write(const char *devname, unsigned char addr,
 				   unsigned char reg, unsigned short value)
 {
 	struct eth_device *dev;
@@ -439,7 +447,7 @@ static int altera_tse_miiphy_write(char *devname, unsigned char addr,
 	return 0;
 }
 
-static int altera_tse_miiphy_read(char *devname, unsigned char addr,
+static int altera_tse_miiphy_read(const char *devname, unsigned char addr,
 				  unsigned char reg, unsigned short *value)
 {
 	struct eth_device *dev;
@@ -475,12 +483,12 @@ static uint mii_parse_sr(uint mii_reg, struct altera_tse_priv *priv)
 	 */
 	mii_reg = tse_mdio_read(priv, MIIM_STATUS);
 
-	if (!(mii_reg & MIIM_STATUS_LINK) && (mii_reg & PHY_BMSR_AUTN_ABLE)
-	    && !(mii_reg & PHY_BMSR_AUTN_COMP)) {
+	if (!(mii_reg & MIIM_STATUS_LINK) && (mii_reg & BMSR_ANEGCAPABLE)
+	    && !(mii_reg & BMSR_ANEGCOMPLETE)) {
 		int i = 0;
 
 		puts("Waiting for PHY auto negotiation to complete");
-		while (!(mii_reg & PHY_BMSR_AUTN_COMP)) {
+		while (!(mii_reg & BMSR_ANEGCOMPLETE)) {
 			/*
 			 * Timeout reached ?
 			 */
@@ -577,7 +585,11 @@ static uint mii_m88e1111s_setmode_sr(uint mii_reg, struct altera_tse_priv *priv)
 {
 	uint mii_data = tse_mdio_read(priv, mii_reg);
 	mii_data &= 0xfff0;
-	mii_data |= 0xb;
+	if ((priv->flags >= 1) && (priv->flags <= 4))
+		mii_data |= 0xb;
+	else if (priv->flags == 5)
+		mii_data |= 0x4;
+
 	return mii_data;
 }
 
@@ -585,7 +597,9 @@ static uint mii_m88e1111s_setmode_cr(uint mii_reg, struct altera_tse_priv *priv)
 {
 	uint mii_data = tse_mdio_read(priv, mii_reg);
 	mii_data &= ~0x82;
-	mii_data |= 0x82;
+	if ((priv->flags >= 1) && (priv->flags <= 4))
+		mii_data |= 0x82;
+
 	return mii_data;
 }
 
@@ -643,13 +657,13 @@ static struct phy_info phy_info_generic = {
 	"Unknown/Generic PHY",
 	32,
 	(struct phy_cmd[]){	/* config */
-			   {PHY_BMCR, PHY_BMCR_RESET, NULL},
-			   {PHY_BMCR, PHY_BMCR_AUTON | PHY_BMCR_RST_NEG, NULL},
+			   {MII_BMCR, BMCR_RESET, NULL},
+			   {MII_BMCR, BMCR_ANENABLE | BMCR_ANRESTART, NULL},
 			   {miim_end,}
 			   },
 	(struct phy_cmd[]){	/* startup */
-			   {PHY_BMSR, miim_read, NULL},
-			   {PHY_BMSR, miim_read, &mii_parse_sr},
+			   {MII_BMSR, miim_read, NULL},
+			   {MII_BMSR, miim_read, &mii_parse_sr},
 			   {miim_end,}
 			   },
 	(struct phy_cmd[]){	/* shutdown */
@@ -876,7 +890,8 @@ static int tse_eth_init(struct eth_device *dev, bd_t * bd)
 
 /* TSE init code */
 int altera_tse_initialize(u8 dev_num, int mac_base,
-			  int sgdma_rx_base, int sgdma_tx_base)
+			  int sgdma_rx_base, int sgdma_tx_base,
+			  u32 sgdma_desc_base, u32 sgdma_desc_size)
 {
 	struct altera_tse_priv *priv;
 	struct eth_device *dev;
@@ -897,8 +912,20 @@ int altera_tse_initialize(u8 dev_num, int mac_base,
 		free(dev);
 		return 0;
 	}
-	tx_desc = dma_alloc_coherent(sizeof(*tx_desc) * (3 + PKTBUFSRX),
-				     &dma_handle);
+	if (sgdma_desc_size) {
+		if (sgdma_desc_size < (sizeof(*tx_desc) * (3 + PKTBUFSRX))) {
+			printf("ALTERA_TSE-%hu: "
+			       "descriptor memory is too small\n", dev_num);
+			free(priv);
+			free(dev);
+			return 0;
+		}
+		tx_desc = (struct alt_sgdma_descriptor *)sgdma_desc_base;
+	} else {
+		tx_desc = dma_alloc_coherent(sizeof(*tx_desc) * (3 + PKTBUFSRX),
+					     &dma_handle);
+	}
+
 	rx_desc = tx_desc + 2;
 	debug("tx desc: address = 0x%x\n", (unsigned int)tx_desc);
 	debug("rx desc: address = 0x%x\n", (unsigned int)rx_desc);

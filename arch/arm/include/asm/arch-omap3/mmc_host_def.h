@@ -29,13 +29,20 @@
 #define T2_BASE			0x48002000
 
 typedef struct t2 {
-	unsigned char res1[0x274];
+	unsigned char res1[0x274];	/* 0x000 */
 	unsigned int devconf0;		/* 0x274 */
-	unsigned char res2[0x2A8];
+	unsigned char res2[0x060];	/* 0x278 */
+	unsigned int devconf1;		/* 0x2D8 */
+	unsigned char res3[0x244];	/* 0x2DC */
 	unsigned int pbias_lite;	/* 0x520 */
 } t2_t;
 
 #define MMCSDIO1ADPCLKISEL		(1 << 24)
+#define MMCSDIO2ADPCLKISEL		(1 << 6)
+
+#define EN_MMC1				(1 << 24)
+#define EN_MMC2				(1 << 25)
+#define EN_MMC3				(1 << 30)
 
 #define PBIASLITEPWRDNZ0		(1 << 1)
 #define PBIASSPEEDCTRL0			(1 << 2)
@@ -44,9 +51,11 @@ typedef struct t2 {
 /*
  * OMAP HSMMC register definitions
  */
-#define OMAP_HSMMC_BASE		0x4809C000
+#define OMAP_HSMMC1_BASE	0x4809C000
+#define OMAP_HSMMC2_BASE	0x480B4000
+#define OMAP_HSMMC3_BASE	0x480AD000
 
-typedef struct hsmmc {
+struct hsmmc {
 	unsigned char res1[0x10];
 	unsigned int sysconfig;		/* 0x10 */
 	unsigned int sysstatus;		/* 0x14 */
@@ -68,7 +77,7 @@ typedef struct hsmmc {
 	unsigned int ie;		/* 0x134 */
 	unsigned char res4[0x8];
 	unsigned int capa;		/* 0x140 */
-} hsmmc_t;
+};
 
 /*
  * OMAP HS MMC Bit definitions
@@ -93,12 +102,14 @@ typedef struct hsmmc {
 #define NBLK_STPCNT			(0x0 << 16)
 #define DE_DISABLE			(0x0 << 0)
 #define BCE_DISABLE			(0x0 << 1)
+#define BCE_ENABLE			(0x1 << 1)
 #define ACEN_DISABLE			(0x0 << 2)
 #define DDIR_OFFSET			(4)
 #define DDIR_MASK			(0x1 << 4)
 #define DDIR_WRITE			(0x0 << 4)
 #define DDIR_READ			(0x1 << 4)
 #define MSBS_SGLEBLK			(0x0 << 5)
+#define MSBS_MULTIBLK			(0x1 << 5)
 #define RSP_TYPE_OFFSET			(16)
 #define RSP_TYPE_MASK			(0x3 << 16)
 #define RSP_TYPE_NORSP			(0x0 << 16)
@@ -121,6 +132,7 @@ typedef struct hsmmc {
 #define DATI_CMDDIS			(0x1 << 1)
 #define DTW_1_BITMODE			(0x0 << 1)
 #define DTW_4_BITMODE			(0x1 << 1)
+#define DTW_8_BITMODE                   (0x1 << 5) /* CON[DW8]*/
 #define SDBP_PWROFF			(0x0 << 8)
 #define SDBP_PWRON			(0x1 << 8)
 #define SDVS_1V8			(0x5 << 9)
@@ -170,15 +182,15 @@ typedef struct hsmmc {
 #define CLK_400KHZ			1
 #define CLK_MISC			2
 
-typedef struct {
-	unsigned int card_type;
-	unsigned int version;
-	unsigned int mode;
-	unsigned int size;
-	unsigned int RCA;
-} mmc_card_data;
+#define RSP_TYPE_NONE	(RSP_TYPE_NORSP   | CCCE_NOCHECK | CICE_NOCHECK)
+#define MMC_CMD0	(INDEX(0)  | RSP_TYPE_NONE | DP_NO_DATA | DDIR_WRITE)
+
+/* Clock Configurations and Macros */
+#define MMC_CLOCK_REFERENCE	96 /* MHz */
 
 #define mmc_reg_out(addr, mask, val)\
 	writel((readl(addr) & (~(mask))) | ((val) & (mask)), (addr))
+
+int omap_mmc_init(int dev_index);
 
 #endif /* MMC_HOST_DEF_H */

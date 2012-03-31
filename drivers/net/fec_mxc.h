@@ -32,6 +32,8 @@
 #ifndef __FEC_MXC_H
 #define __FEC_MXC_H
 
+void imx_get_mac_from_fuse(unsigned char *mac);
+
 /**
  * Layout description of the FEC
  */
@@ -147,7 +149,7 @@ struct ethernet_regs {
 
 	uint32_t res14[7];		/* MBAR_ETH + 0x2E4-2FC */
 
-#ifdef CONFIG_MX25
+#if defined(CONFIG_MX25) || defined(CONFIG_MX53)
 	uint16_t miigsk_cfgr;		/* MBAR_ETH + 0x300 */
 	uint16_t res15[3];		/* MBAR_ETH + 0x302-306 */
 	uint16_t miigsk_enr;		/* MBAR_ETH + 0x308 */
@@ -194,6 +196,7 @@ struct ethernet_regs {
 #define FEC_RCNTRL_PROM			0x00000008
 #define FEC_RCNTRL_BC_REJ		0x00000010
 #define FEC_RCNTRL_FCE			0x00000020
+#define FEC_RCNTRL_RMII			0x00000100
 
 #define FEC_TCNTRL_GTS			0x00000001
 #define FEC_TCNTRL_HBC			0x00000002
@@ -204,7 +207,7 @@ struct ethernet_regs {
 #define FEC_ECNTRL_RESET		0x00000001	/* reset the FEC */
 #define FEC_ECNTRL_ETHER_EN		0x00000002	/* enable the FEC */
 
-#ifdef CONFIG_MX25
+#if defined(CONFIG_MX25) || defined(CONFIG_MX53)
 /* defines for MIIGSK */
 /* RMII frequency control: 0=50MHz, 1=5MHz */
 #define MIIGSK_CFGR_FRCONT		(1 << 6)
@@ -257,7 +260,8 @@ struct fec_bd {
 enum xceiver_type {
 	SEVENWIRE,	/* 7-wire       */
 	MII10,		/* MII 10Mbps   */
-	MII100		/* MII 100Mbps  */
+	MII100,		/* MII 100Mbps  */
+	RMII		/* RMII */
 };
 
 /**
@@ -273,6 +277,9 @@ struct fec_priv {
 	bd_t *bd;
 	void *rdb_ptr;
 	void *base_ptr;
+	int dev_id;
+	int phy_id;
+	int (*mii_postcall)(int);
 };
 
 /**

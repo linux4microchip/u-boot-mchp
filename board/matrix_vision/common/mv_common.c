@@ -29,6 +29,7 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#ifndef CONFIG_ENV_IS_NOWHERE
 static char* entries_to_keep[] = {
 	"serial#", "ethaddr", "eth1addr", "model_info", "sensor_cnt",
 	"fpgadatasize", "ddr_size", "use_dhcp", "use_static_ipaddr",
@@ -67,6 +68,7 @@ void mv_reset_environment(void)
 
 	saveenv();
 }
+#endif
 
 int mv_load_fpga(void)
 {

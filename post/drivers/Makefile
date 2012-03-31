@@ -22,8 +22,8 @@
 #
 include $(TOPDIR)/config.mk
 
-LIB	= libpostdrivers.a
+LIB	= libpostdrivers.o
 
-COBJS-$(CONFIG_HAS_POST)	+= i2c.o memory.o rtc.o
+COBJS-$(CONFIG_HAS_POST)	+= flash.o i2c.o memory.o rtc.o
 
 include $(TOPDIR)/post/rules.mk

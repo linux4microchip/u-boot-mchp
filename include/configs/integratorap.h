@@ -30,10 +30,14 @@
 
 #ifndef __CONFIG_H
 #define __CONFIG_H
+
+#define CONFIG_INTEGRATOR
+#define CONFIG_ARCH_INTEGRATOR
 /*
  * High Level Configuration Options
  * (easy to change)
  */
+#define CONFIG_SYS_TEXT_BASE		0x01000000
 #define CONFIG_SYS_MEMTEST_START	0x100000
 #define CONFIG_SYS_MEMTEST_END		0x10000000
 #define CONFIG_SYS_HZ			1000
@@ -47,13 +51,12 @@
 #define CONFIG_SKIP_LOWLEVEL_INIT
 #define CONFIG_CM_INIT		1
 #define CONFIG_CM_REMAP		1
-#undef CONFIG_CM_SPD_DETECT
+#define CONFIG_CM_SPD_DETECT
 
 /*
  * Size of malloc() pool
  */
 #define CONFIG_SYS_MALLOC_LEN	(CONFIG_ENV_SIZE + 128*1024)
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
 
 /*
  * PL010 Configuration
@@ -65,8 +68,6 @@
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 #define CONFIG_SYS_SERIAL0		0x16000000
 #define CONFIG_SYS_SERIAL1		0x17000000
-
-/*#define CONFIG_NET_MULTI */
 
 
 /*
@@ -82,20 +83,28 @@
  * Command line configuration.
  */
 
+
 #define CONFIG_CMD_IMI
 #define CONFIG_CMD_BDI
+#define CONFIG_CMD_BOOTD
 #define CONFIG_CMD_MEMORY
+#define CONFIG_CMD_FLASH
+#define CONFIG_CMD_IMLS
+#define CONFIG_CMD_LOADB
+#define CONFIG_CMD_LOADS
 
 
 #define CONFIG_BOOTDELAY	2
-#define CONFIG_BOOTARGS		"root=/dev/mtdblock0 mem=32M console=ttyAM0 console=tty"
+#define CONFIG_BOOTARGS		"root=/dev/mtdblock0 console=ttyAM0 console=tty"
 #define CONFIG_BOOTCOMMAND	""
 
 /*
  * Miscellaneous configurable options
  */
 #define CONFIG_SYS_LONGHELP	/* undef to save memory	    */
+#define CONFIG_SYS_HUSH_PARSER
 #define CONFIG_SYS_PROMPT	"Integrator-AP # "	/* Monitor Command Prompt   */
+#define CONFIG_SYS_PROMPT_HUSH_PS2	"# "
 #define CONFIG_SYS_CBSIZE	256		/* Console I/O Buffer Size  */
 /* Print Buffer Size */
 #define CONFIG_SYS_PBSIZE	(CONFIG_SYS_CBSIZE+sizeof(CONFIG_SYS_PROMPT)+16)
@@ -121,6 +130,12 @@
 #define CONFIG_NR_DRAM_BANKS	1	/* we have 1 bank of DRAM */
 #define PHYS_SDRAM_1		0x00000000	/* SDRAM Bank #1 */
 #define PHYS_SDRAM_1_SIZE	0x02000000	/* 32 MB */
+#define CONFIG_SYS_SDRAM_BASE	PHYS_SDRAM_1
+#define CONFIG_SYS_INIT_RAM_SIZE PHYS_SDRAM_1_SIZE
+#define CONFIG_SYS_GBL_DATA_OFFSET (CONFIG_SYS_SDRAM_BASE + \
+				    CONFIG_SYS_INIT_RAM_SIZE - \
+				    GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_SP_ADDR CONFIG_SYS_GBL_DATA_OFFSET
 
 #define CONFIG_SYS_FLASH_BASE	0x24000000
 

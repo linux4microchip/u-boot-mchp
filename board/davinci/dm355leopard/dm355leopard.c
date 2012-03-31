@@ -20,9 +20,9 @@
 #include <nand.h>
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
-#include <asm/arch/gpio_defs.h>
+#include <asm/arch/gpio.h>
 #include <asm/arch/nand_defs.h>
-#include "../common/misc.h"
+#include <asm/arch/davinci_misc.h>
 #include <net.h>
 #include <netdev.h>
 

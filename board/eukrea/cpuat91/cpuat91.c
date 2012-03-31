@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006 Eukrea Electromatique <www.eukrea.com>
+ * (C) Copyright 2006-2010 Eukrea Electromatique <www.eukrea.com>
  * Eric Benard <eric@eukrea.com>
  * based on at91rm9200dk.c which is :
  * (C) Copyright 2002
@@ -27,13 +27,12 @@
 
 #include <common.h>
 #include <netdev.h>
-#include <asm/arch/AT91RM9200.h>
-#include <asm/io.h>
 
-#if defined(CONFIG_DRIVER_ETHER)
-#include <at91rm9200_net.h>
-#include <ks8721.h>
-#endif
+#include <asm/io.h>
+#include <asm/arch/hardware.h>
+#include <asm/arch/at91_pio.h>
+#include <asm/arch/at91_pmc.h>
+#include <asm/arch/at91_common.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -49,47 +48,46 @@ int board_init(void)
 	/* arch number of CPUAT91-Board */
 	gd->bd->bi_arch_number = MACH_TYPE_CPUAT91;
 	/* adress of boot parameters */
-	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
+	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
 
 	return 0;
 }
+
+int board_early_init_f(void)
+{
+	at91_seriald_hw_init();
+	return 0;
+}
+
 
 int dram_init(void)
 {
-	gd->bd->bi_dram[0].start = PHYS_SDRAM;
-	gd->bd->bi_dram[0].size = PHYS_SDRAM_SIZE;
+	/* dram_init must store complete ramsize in gd->ram_size */
+	gd->ram_size = get_ram_size((long *)CONFIG_SYS_SDRAM_BASE,
+			CONFIG_SYS_SDRAM_SIZE);
 	return 0;
 }
 
-#if defined(CONFIG_DRIVER_ETHER)
-#if defined(CONFIG_CMD_NET)
-
-/*
- * Name:
- *	at91rm9200_GetPhyInterface
- * Description:
- *	Initialise the interface functions to the PHY
- * Arguments:
- *	None
- * Return value:
- *	None
- */
-void at91rm9200_GetPhyInterface(AT91PS_PhyOps p_phyops)
-{
-	p_phyops->Init = ks8721_initphy;
-	p_phyops->IsPhyConnected = ks8721_isphyconnected;
-	p_phyops->GetLinkSpeed = ks8721_getlinkspeed;
-	p_phyops->AutoNegotiate = ks8721_autonegotiate;
-}
-
-#endif	/* CONFIG_CMD_NET */
-#endif	/* CONFIG_DRIVER_ETHER */
 #ifdef CONFIG_DRIVER_AT91EMAC
-
 int board_eth_init(bd_t *bis)
 {
-	int rc = 0;
-	rc = at91emac_register(bis, 0);
-	return rc;
+	return at91emac_register(bis, (u32) ATMEL_BASE_EMAC);
+}
+#endif
+
+#ifdef CONFIG_SOFT_I2C
+void i2c_init_board(void)
+{
+	u32 pin;
+	at91_pmc_t *pmc = (at91_pmc_t *) ATMEL_BASE_PMC;
+	at91_pio_t *pio = (at91_pio_t *) ATMEL_BASE_PIO;
+
+	writel(1 << AT91_ID_PIOA, &pmc->pcer);
+	pin = AT91_PMX_AA_TWD | AT91_PMX_AA_TWCK;
+	writel(pin, &pio->pioa.idr);
+	writel(pin, &pio->pioa.pudr);
+	writel(pin, &pio->pioa.per);
+	writel(pin, &pio->pioa.oer);
+	writel(pin, &pio->pioa.sodr);
 }
 #endif

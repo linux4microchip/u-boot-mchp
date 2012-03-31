@@ -26,7 +26,7 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)lib$(BOARD).a
+LIB	= $(obj)lib$(BOARD).o
 
 COBJS-y	:= smdkc100.o
 COBJS-$(CONFIG_SAMSUNG_ONENAND)	+= onenand.o
@@ -37,13 +37,7 @@ OBJS	:= $(addprefix $(obj),$(COBJS-y))
 SOBJS	:= $(addprefix $(obj),$(SOBJS))
 
 $(LIB):	$(obj).depend $(SOBJS) $(OBJS)
-	$(AR) $(ARFLAGS) $@ $(SOBJS) $(OBJS)
-
-clean:
-	rm -f $(SOBJS) $(OBJS)
-
-distclean:	clean
-	rm -f $(LIB) core *.bak $(obj).depend
+	$(call cmd_link_o_target, $(SOBJS) $(OBJS))
 
 #########################################################################
 

@@ -23,10 +23,16 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)lib$(CPU).a
+LIB	= $(obj)lib$(CPU).o
 
 START	= start.o
-COBJS	= cpu.o
+COBJS	= cpu.o cache.o
+
+ifdef	CONFIG_SPL_BUILD
+ifdef	CONFIG_SPL_NO_CPU_SUPPORT_CODE
+START	:=
+endif
+endif
 
 SRCS	:= $(START:.o=.S) $(SOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS) $(SOBJS))
@@ -35,7 +41,7 @@ START	:= $(addprefix $(obj),$(START))
 all:	$(obj).depend $(START) $(LIB)
 
 $(LIB):	$(OBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS)
+	$(call cmd_link_o_target, $(OBJS))
 
 #########################################################################
 

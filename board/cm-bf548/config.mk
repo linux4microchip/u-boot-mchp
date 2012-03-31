@@ -23,15 +23,12 @@
 # MA 02111-1307 USA
 #
 
-# This is not actually used for Blackfin boards so do not change it
-#TEXT_BASE = do-not-use-me
-
 CFLAGS_lib += -O2
 CFLAGS_lib/lzma += -O2
+CFLAGS_lib/zlib += -O2
 
 # Set some default LDR flags based on boot mode.
 LDR_FLAGS-BFIN_BOOT_PARA       := --dma 6
 LDR_FLAGS-BFIN_BOOT_FIFO       := --dma 1
 LDR_FLAGS-BFIN_BOOT_SPI_MASTER := --dma 1
 LDR_FLAGS-BFIN_BOOT_UART       := --dma 1
-LDR_FLAGS += $(LDR_FLAGS-$(CONFIG_BFIN_BOOT_MODE))

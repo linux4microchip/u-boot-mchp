@@ -23,6 +23,8 @@
 #include <asm/pci.h>
 #include <netdev.h>
 
+DECLARE_GLOBAL_DATA_PTR;
+
 int checkboard(void)
 {
 	puts("BOARD: Renesas Technology Corp. R0P7785LC0011RL\n");
@@ -36,8 +38,6 @@ int board_init(void)
 
 int dram_init(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-
 	gd->bd->bi_memstart = CONFIG_SYS_SDRAM_BASE;
 	gd->bd->bi_memsize = CONFIG_SYS_SDRAM_SIZE;
 	printf("DRAM:  %dMB\n", CONFIG_SYS_SDRAM_SIZE / (1024 * 1024));
@@ -56,7 +56,7 @@ int board_eth_init(bd_t *bis)
 }
 
 #if defined(CONFIG_SH_32BIT)
-int do_pmb(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_pmb(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	/* clear ITLB */
 	writel(0x00000004, 0xff000010);

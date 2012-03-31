@@ -27,10 +27,11 @@
 
 #include <common.h>
 #include <config.h>
+#include <netdev.h>
 #include <asm/microblaze_intc.h>
 #include <asm/asm.h>
 
-void do_reset (void)
+int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 #ifdef CONFIG_SYS_GPIO_0
 	*((unsigned long *)(CONFIG_SYS_GPIO_0_ADDR)) =
@@ -40,6 +41,7 @@ void do_reset (void)
 	puts ("Reseting board\n");
 	asm ("bra r0");
 #endif
+	return 0;
 }
 
 int gpio_init (void)
@@ -66,3 +68,27 @@ int fsl_init2 (void) {
 	return 0;
 }
 #endif
+
+int board_eth_init(bd_t *bis)
+{
+	int ret = 0;
+
+#ifdef CONFIG_XILINX_AXIEMAC
+	ret |= xilinx_axiemac_initialize(bis, XILINX_AXIEMAC_BASEADDR,
+						XILINX_AXIDMA_BASEADDR);
+#endif
+
+#ifdef CONFIG_XILINX_EMACLITE
+	u32 txpp = 0;
+	u32 rxpp = 0;
+# ifdef CONFIG_XILINX_EMACLITE_TX_PING_PONG
+	txpp = 1;
+# endif
+# ifdef CONFIG_XILINX_EMACLITE_RX_PING_PONG
+	rxpp = 1;
+# endif
+	ret |= xilinx_emaclite_initialize(bis, XILINX_EMACLITE_BASEADDR,
+			txpp, rxpp);
+#endif
+	return ret;
+}

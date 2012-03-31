@@ -34,10 +34,13 @@
 #include <netdev.h>
 #include <twl4030.h>
 #include <asm/io.h>
+#include <asm/arch/mmc_host_def.h>
 #include <asm/arch/mux.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/mach-types.h>
 #include "zoom1.h"
+
+DECLARE_GLOBAL_DATA_PTR;
 
 /*
  * Routine: board_init
@@ -45,8 +48,6 @@
  */
 int board_init(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-
 	gpmc_init(); /* in SRAM or SDRAM, finish GPMC */
 	/* board id for Linux */
 	gd->bd->bi_arch_number = MACH_TYPE_OMAP_LDP;
@@ -87,6 +88,14 @@ void set_muxconf_regs(void)
 	/* platform specific muxes */
 	MUX_ZOOM1_MDK();
 }
+
+#ifdef CONFIG_GENERIC_MMC
+int board_mmc_init(bd_t *bis)
+{
+	omap_mmc_init(0);
+	return 0;
+}
+#endif
 
 #ifdef CONFIG_CMD_NET
 int board_eth_init(bd_t *bis)

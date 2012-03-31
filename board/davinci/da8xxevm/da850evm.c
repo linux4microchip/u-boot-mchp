@@ -23,43 +23,116 @@
 
 #include <common.h>
 #include <i2c.h>
+#include <net.h>
+#include <netdev.h>
 #include <asm/arch/hardware.h>
+#include <asm/arch/emif_defs.h>
+#include <asm/arch/emac_defs.h>
+#include <asm/arch/pinmux_defs.h>
 #include <asm/io.h>
-#include "../common/misc.h"
-#include "common.h"
+#include <asm/arch/davinci_misc.h>
+#include <hwconfig.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#define pinmux	(&davinci_syscfg_regs->pinmux)
+#ifdef CONFIG_DRIVER_TI_EMAC
+#ifdef CONFIG_DRIVER_TI_EMAC_USE_RMII
+#define HAS_RMII 1
+#else
+#define HAS_RMII 0
+#endif
+#endif /* CONFIG_DRIVER_TI_EMAC */
 
-/* SPI0 pin muxer settings */
-static const struct pinmux_config spi1_pins[] = {
-	{ pinmux[5], 1, 1 },
-	{ pinmux[5], 1, 2 },
-	{ pinmux[5], 1, 4 },
-	{ pinmux[5], 1, 5 }
-};
+void dsp_lpsc_on(unsigned domain, unsigned int id)
+{
+	dv_reg_p mdstat, mdctl, ptstat, ptcmd;
+	struct davinci_psc_regs *psc_regs;
 
-/* UART pin muxer settings */
-static const struct pinmux_config uart_pins[] = {
-	{ pinmux[0], 4, 6 },
-	{ pinmux[0], 4, 7 },
-	{ pinmux[4], 2, 4 },
-	{ pinmux[4], 2, 5 }
-};
+	psc_regs = davinci_psc0_regs;
+	mdstat = &psc_regs->psc0.mdstat[id];
+	mdctl = &psc_regs->psc0.mdctl[id];
+	ptstat = &psc_regs->ptstat;
+	ptcmd = &psc_regs->ptcmd;
 
-/* I2C pin muxer settings */
-static const struct pinmux_config i2c_pins[] = {
-	{ pinmux[4], 2, 2 },
-	{ pinmux[4], 2, 3 }
+	while (*ptstat & (0x1 << domain))
+		;
+
+	if ((*mdstat & 0x1f) == 0x03)
+		return;                 /* Already on and enabled */
+
+	*mdctl |= 0x03;
+
+	*ptcmd = 0x1 << domain;
+
+	while (*ptstat & (0x1 << domain))
+		;
+	while ((*mdstat & 0x1f) != 0x03)
+		;		/* Probably an overkill... */
+}
+
+static void dspwake(void)
+{
+	unsigned *resetvect = (unsigned *)DAVINCI_L3CBARAM_BASE;
+	u32 val;
+
+	/* if the device is ARM only, return */
+	if ((readl(CHIP_REV_ID_REG) & 0x3f) == 0x10)
+		return;
+
+	if (hwconfig_subarg_cmp_f("dsp", "wake", "no", NULL))
+		return;
+
+	*resetvect++ = 0x1E000; /* DSP Idle */
+	/* clear out the next 10 words as NOP */
+	memset(resetvect, 0, sizeof(unsigned) *10);
+
+	/* setup the DSP reset vector */
+	writel(DAVINCI_L3CBARAM_BASE, HOST1CFG);
+
+	dsp_lpsc_on(1, DAVINCI_LPSC_GEM);
+	val = readl(PSC0_MDCTL + (15 * 4));
+	val |= 0x100;
+	writel(val, (PSC0_MDCTL + (15 * 4)));
+}
+
+int misc_init_r(void)
+{
+	dspwake();
+	return 0;
+}
+
+static const struct pinmux_config gpio_pins[] = {
+#ifdef CONFIG_USE_NOR
+	/* GP0[11] is required for NOR to work on Rev 3 EVMs */
+	{ pinmux(0), 8, 4 },	/* GP0[11] */
+#endif
 };
 
 static const struct pinmux_resource pinmuxes[] = {
-#ifdef CONFIG_SPI_FLASH
-	PINMUX_ITEM(spi1_pins),
+#ifdef CONFIG_DRIVER_TI_EMAC
+	PINMUX_ITEM(emac_pins_mdio),
+#ifdef CONFIG_DRIVER_TI_EMAC_USE_RMII
+	PINMUX_ITEM(emac_pins_rmii),
+#else
+	PINMUX_ITEM(emac_pins_mii),
 #endif
-	PINMUX_ITEM(uart_pins),
-	PINMUX_ITEM(i2c_pins),
+#endif
+#ifdef CONFIG_SPI_FLASH
+	PINMUX_ITEM(spi1_pins_base),
+	PINMUX_ITEM(spi1_pins_scs0),
+#endif
+	PINMUX_ITEM(uart2_pins_txrx),
+	PINMUX_ITEM(uart2_pins_rtscts),
+	PINMUX_ITEM(i2c0_pins),
+#ifdef CONFIG_NAND_DAVINCI
+	PINMUX_ITEM(emifa_pins_cs3),
+	PINMUX_ITEM(emifa_pins_cs4),
+	PINMUX_ITEM(emifa_pins_nand),
+#elif defined(CONFIG_USE_NOR)
+	PINMUX_ITEM(emifa_pins_cs2),
+	PINMUX_ITEM(emifa_pins_nor),
+#endif
+	PINMUX_ITEM(gpio_pins),
 };
 
 static const struct lpsc_resource lpsc[] = {
@@ -70,18 +143,45 @@ static const struct lpsc_resource lpsc[] = {
 	{ DAVINCI_LPSC_GPIO },
 };
 
-int board_init(void)
-{
-#ifndef CONFIG_USE_IRQ
-	irq_init();
+#ifndef CONFIG_DA850_EVM_MAX_CPU_CLK
+#define CONFIG_DA850_EVM_MAX_CPU_CLK	300000000
 #endif
 
-	/* arch number of the board */
-	gd->bd->bi_arch_number = MACH_TYPE_DAVINCI_DA850_EVM;
+#define REV_AM18X_EVM		0x100
 
-	/* address of boot parameters */
-	gd->bd->bi_boot_params = LINUX_BOOT_PARAM_ADDR;
+/*
+ * get_board_rev() - setup to pass kernel board revision information
+ * Returns:
+ * bit[0-3]	Maximum cpu clock rate supported by onboard SoC
+ *		0000b - 300 MHz
+ *		0001b - 372 MHz
+ *		0010b - 408 MHz
+ *		0011b - 456 MHz
+ */
+u32 get_board_rev(void)
+{
+	char *s;
+	u32 maxcpuclk = CONFIG_DA850_EVM_MAX_CPU_CLK;
+	u32 rev = 0;
 
+	s = getenv("maxcpuclk");
+	if (s)
+		maxcpuclk = simple_strtoul(s, NULL, 10);
+
+	if (maxcpuclk >= 456000000)
+		rev = 3;
+	else if (maxcpuclk >= 408000000)
+		rev = 2;
+	else if (maxcpuclk >= 372000000)
+		rev = 1;
+#ifdef CONFIG_DA850_AM18X_EVM
+	rev |= REV_AM18X_EVM;
+#endif
+	return rev;
+}
+
+int board_early_init_f(void)
+{
 	/*
 	 * Power on required peripherals
 	 * ARM does not have access by default to PSC0 and PSC1
@@ -90,6 +190,41 @@ int board_init(void)
 	 */
 	if (da8xx_configure_lpsc_items(lpsc, ARRAY_SIZE(lpsc)))
 		return 1;
+
+	return 0;
+}
+
+int board_init(void)
+{
+#ifdef CONFIG_USE_NOR
+	u32 val;
+#endif
+
+#ifndef CONFIG_USE_IRQ
+	irq_init();
+#endif
+
+#ifdef CONFIG_NAND_DAVINCI
+	/*
+	 * NAND CS setup - cycle counts based on da850evm NAND timings in the
+	 * Linux kernel @ 25MHz EMIFA
+	 */
+	writel((DAVINCI_ABCR_WSETUP(0) |
+		DAVINCI_ABCR_WSTROBE(1) |
+		DAVINCI_ABCR_WHOLD(0) |
+		DAVINCI_ABCR_RSETUP(0) |
+		DAVINCI_ABCR_RSTROBE(1) |
+		DAVINCI_ABCR_RHOLD(0) |
+		DAVINCI_ABCR_TA(1) |
+		DAVINCI_ABCR_ASIZE_8BIT),
+	       &davinci_emif_regs->ab2cr); /* CS3 */
+#endif
+
+	/* arch number of the board */
+	gd->bd->bi_arch_number = MACH_TYPE_DAVINCI_DA850_EVM;
+
+	/* address of boot parameters */
+	gd->bd->bi_boot_params = LINUX_BOOT_PARAM_ADDR;
 
 	/* setup the SUSPSRC for ARM to control emulation suspend */
 	writel(readl(&davinci_syscfg_regs->suspsrc) &
@@ -102,6 +237,20 @@ int board_init(void)
 	if (davinci_configure_pin_mux_items(pinmuxes, ARRAY_SIZE(pinmuxes)))
 		return 1;
 
+#ifdef CONFIG_USE_NOR
+	/* Set the GPIO direction as output */
+	clrbits_be32((u32 *)GPIO_BANK0_REG_DIR_ADDR, (0x01 << 11));
+
+	/* Set the output as low */
+	val = readl(GPIO_BANK0_REG_SET_ADDR);
+	val |= (0x01 << 11);
+	writel(val, GPIO_BANK0_REG_CLR_ADDR);
+#endif
+
+#ifdef CONFIG_DRIVER_TI_EMAC
+	davinci_emac_mii_mode_sel(HAS_RMII);
+#endif /* CONFIG_DRIVER_TI_EMAC */
+
 	/* enable the console UART */
 	writel((DAVINCI_UART_PWREMU_MGMT_FREE | DAVINCI_UART_PWREMU_MGMT_URRST |
 		DAVINCI_UART_PWREMU_MGMT_UTRST),
@@ -109,3 +258,108 @@ int board_init(void)
 
 	return 0;
 }
+
+#ifdef CONFIG_DRIVER_TI_EMAC
+
+#ifdef CONFIG_DRIVER_TI_EMAC_USE_RMII
+/**
+ * rmii_hw_init
+ *
+ * DA850/OMAP-L138 EVM can interface to a daughter card for
+ * additional features. This card has an I2C GPIO Expander TCA6416
+ * to select the required functions like camera, RMII Ethernet,
+ * character LCD, video.
+ *
+ * Initialization of the expander involves configuring the
+ * polarity and direction of the ports. P07-P05 are used here.
+ * These ports are connected to a Mux chip which enables only one
+ * functionality at a time.
+ *
+ * For RMII phy to respond, the MII MDIO clock has to be  disabled
+ * since both the PHY devices have address as zero. The MII MDIO
+ * clock is controlled via GPIO2[6].
+ *
+ * This code is valid for Beta version of the hardware
+ */
+int rmii_hw_init(void)
+{
+	const struct pinmux_config gpio_pins[] = {
+		{ pinmux(6), 8, 1 }
+	};
+	u_int8_t buf[2];
+	unsigned int temp;
+	int ret;
+
+	/* PinMux for GPIO */
+	if (davinci_configure_pin_mux(gpio_pins, ARRAY_SIZE(gpio_pins)) != 0)
+		return 1;
+
+	/* I2C Exapnder configuration */
+	/* Set polarity to non-inverted */
+	buf[0] = 0x0;
+	buf[1] = 0x0;
+	ret = i2c_write(CONFIG_SYS_I2C_EXPANDER_ADDR, 4, 1, buf, 2);
+	if (ret) {
+		printf("\nExpander @ 0x%02x write FAILED!!!\n",
+				CONFIG_SYS_I2C_EXPANDER_ADDR);
+		return ret;
+	}
+
+	/* Configure P07-P05 as outputs */
+	buf[0] = 0x1f;
+	buf[1] = 0xff;
+	ret = i2c_write(CONFIG_SYS_I2C_EXPANDER_ADDR, 6, 1, buf, 2);
+	if (ret) {
+		printf("\nExpander @ 0x%02x write FAILED!!!\n",
+				CONFIG_SYS_I2C_EXPANDER_ADDR);
+	}
+
+	/* For Ethernet RMII selection
+	 * P07(SelA)=0
+	 * P06(SelB)=1
+	 * P05(SelC)=1
+	 */
+	if (i2c_read(CONFIG_SYS_I2C_EXPANDER_ADDR, 2, 1, buf, 1)) {
+		printf("\nExpander @ 0x%02x read FAILED!!!\n",
+				CONFIG_SYS_I2C_EXPANDER_ADDR);
+	}
+
+	buf[0] &= 0x1f;
+	buf[0] |= (0 << 7) | (1 << 6) | (1 << 5);
+	if (i2c_write(CONFIG_SYS_I2C_EXPANDER_ADDR, 2, 1, buf, 1)) {
+		printf("\nExpander @ 0x%02x write FAILED!!!\n",
+				CONFIG_SYS_I2C_EXPANDER_ADDR);
+	}
+
+	/* Set the output as high */
+	temp = REG(GPIO_BANK2_REG_SET_ADDR);
+	temp |= (0x01 << 6);
+	REG(GPIO_BANK2_REG_SET_ADDR) = temp;
+
+	/* Set the GPIO direction as output */
+	temp = REG(GPIO_BANK2_REG_DIR_ADDR);
+	temp &= ~(0x01 << 6);
+	REG(GPIO_BANK2_REG_DIR_ADDR) = temp;
+
+	return 0;
+}
+#endif /* CONFIG_DRIVER_TI_EMAC_USE_RMII */
+
+/*
+ * Initializes on-board ethernet controllers.
+ */
+int board_eth_init(bd_t *bis)
+{
+#ifdef CONFIG_DRIVER_TI_EMAC_USE_RMII
+	/* Select RMII fucntion through the expander */
+	if (rmii_hw_init())
+		printf("RMII hardware init failed!!!\n");
+#endif
+	if (!davinci_emac_initialize()) {
+		printf("Error: Ethernet init failed!\n");
+		return -1;
+	}
+
+	return 0;
+}
+#endif /* CONFIG_DRIVER_TI_EMAC */

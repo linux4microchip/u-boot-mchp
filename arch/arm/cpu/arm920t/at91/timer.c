@@ -33,23 +33,22 @@
 #include <common.h>
 
 #include <asm/io.h>
-#include <asm/hardware.h>
+#include <asm/arch/hardware.h>
 #include <asm/arch/at91_tc.h>
 #include <asm/arch/at91_pmc.h>
+
+DECLARE_GLOBAL_DATA_PTR;
 
 /* the number of clocks per CONFIG_SYS_HZ */
 #define TIMER_LOAD_VAL (CONFIG_SYS_HZ_CLOCK/CONFIG_SYS_HZ)
 
-static u32 timestamp;
-static u32 lastinc;
-
 int timer_init(void)
 {
-	at91_tc_t *tc = (at91_tc_t *) AT91_TC_BASE;
-	at91_pmc_t *pmc = (at91_pmc_t *) AT91_PMC_BASE;
+	at91_tc_t *tc = (at91_tc_t *) ATMEL_BASE_TC;
+	at91_pmc_t *pmc = (at91_pmc_t *) ATMEL_BASE_PMC;
 
 	/* enables TC1.0 clock */
-	writel(1 << AT91_ID_TC0, &pmc->pcer);	/* enable clock */
+	writel(1 << ATMEL_ID_TC0, &pmc->pcer);	/* enable clock */
 
 	writel(0, &tc->bcr);
 	writel(AT91_TC_BMR_TC0XC0S_NONE | AT91_TC_BMR_TC1XC1S_NONE |
@@ -60,12 +59,12 @@ int timer_init(void)
 	when the value in TC_RC is reached */
 	writel(AT91_TC_CMR_TCCLKS_CLOCK1 | AT91_TC_CMR_CPCTRG, &tc->tc[0].cmr);
 
-	writel(0xFFFFFFFF, &tc->tc[0].idr); /* disable interupts */
+	writel(0xFFFFFFFF, &tc->tc[0].idr); /* disable interrupts */
 	writel(TIMER_LOAD_VAL, &tc->tc[0].rc);
 
 	writel(AT91_TC_CCR_SWTRG | AT91_TC_CCR_CLKEN, &tc->tc[0].ccr);
-	lastinc = 0;
-	timestamp = 0;
+	gd->lastinc = 0;
+	gd->tbl = 0;
 
 	return 0;
 }
@@ -73,20 +72,9 @@ int timer_init(void)
 /*
  * timer without interrupts
  */
-
-void reset_timer(void)
-{
-	reset_timer_masked();
-}
-
 ulong get_timer(ulong base)
 {
 	return get_timer_masked() - base;
-}
-
-void set_timer(ulong t)
-{
-	timestamp = t;
 }
 
 void __udelay(unsigned long usec)
@@ -94,31 +82,23 @@ void __udelay(unsigned long usec)
 	udelay_masked(usec);
 }
 
-void reset_timer_masked(void)
-{
-	/* reset time */
-	at91_tc_t *tc = (at91_tc_t *) AT91_TC_BASE;
-	lastinc = readl(&tc->tc[0].cv) & 0x0000ffff;
-	timestamp = 0;
-}
-
 ulong get_timer_raw(void)
 {
-	at91_tc_t *tc = (at91_tc_t *) AT91_TC_BASE;
+	at91_tc_t *tc = (at91_tc_t *) ATMEL_BASE_TC;
 	u32 now;
 
 	now = readl(&tc->tc[0].cv) & 0x0000ffff;
 
-	if (now >= lastinc) {
+	if (now >= gd->lastinc) {
 		/* normal mode */
-		timestamp += now - lastinc;
+		gd->tbl += now - gd->lastinc;
 	} else {
 		/* we have an overflow ... */
-		timestamp += now + TIMER_LOAD_VAL - lastinc;
+		gd->tbl += now + TIMER_LOAD_VAL - gd->lastinc;
 	}
-	lastinc = now;
+	gd->lastinc = now;
 
-	return timestamp;
+	return gd->tbl;
 }
 
 ulong get_timer_masked(void)

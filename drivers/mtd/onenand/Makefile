@@ -23,10 +23,14 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	:= $(obj)libonenand.a
+LIB	:= $(obj)libonenand.o
 
+ifndef	CONFIG_SPL_BUILD
 COBJS-$(CONFIG_CMD_ONENAND)	:= onenand_uboot.o onenand_base.o onenand_bbt.o
 COBJS-$(CONFIG_SAMSUNG_ONENAND)	+= samsung.o
+else
+COBJS-y				:= onenand_spl.o
+endif
 
 COBJS	:= $(COBJS-y)
 SRCS	:= $(COBJS:.o=.c)
@@ -35,7 +39,7 @@ OBJS	:= $(addprefix $(obj),$(COBJS))
 all:	$(LIB)
 
 $(LIB): $(obj).depend $(OBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS)
+	$(call cmd_link_o_target, $(OBJS))
 
 #########################################################################
 

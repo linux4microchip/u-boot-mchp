@@ -11,7 +11,7 @@
 #ifndef __4XX_PCIE_H
 #define __4XX_PCIE_H
 
-#include <ppc4xx.h>
+#include <asm/ppc4xx.h>
 #include <pci.h>
 
 #define DCRN_SDR0_CFGADDR	0x00e
@@ -387,14 +387,6 @@ static inline int is_end_point(int port)
 	}
 
 	return 0;
-}
-
-static inline void mdelay(int n)
-{
-	u32 ms = n;
-
-	while (ms--)
-		udelay(1000);
 }
 
 #if defined(PCIE0_SDR)

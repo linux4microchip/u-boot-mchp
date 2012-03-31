@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2010 Albert ARIBAUD <albert.aribaud@free.fr>
+# Copyright (C) 2010 Albert ARIBAUD <albert.u.boot@aribaud.net>
 #
 # Based on original Kirkwood support which is
 # (C) Copyright 2009
@@ -27,7 +27,7 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)lib$(SOC).a
+LIB	= $(obj)lib$(SOC).o
 
 COBJS-y	= cpu.o
 COBJS-y	+= dram.o
@@ -43,7 +43,7 @@ OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS-y))
 all:	$(obj).depend $(LIB)
 
 $(LIB):	$(OBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS)
+	$(call cmd_link_o_target, $(OBJS))
 
 #########################################################################
 

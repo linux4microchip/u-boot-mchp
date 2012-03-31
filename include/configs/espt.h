@@ -39,6 +39,7 @@
 #define CONFIG_CMD_FLASH
 #define CONFIG_CMD_MEMORY
 #define CONFIG_CMD_NET
+#define CONFIG_CMD_MII
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_ENV
 #define CONFIG_CMD_NFS
@@ -56,6 +57,7 @@
 #define CONFIG_BAUDRATE         115200
 #define CONFIG_CONS_SCIF0		1
 
+#define CONFIG_SYS_TEXT_BASE	0x8FFC0000
 #define CONFIG_SYS_LONGHELP		/* undef to save memory */
 #define CONFIG_SYS_PROMPT		"=> "	/* Monitor Command Prompt */
 #define CONFIG_SYS_CBSIZE		256	/* Buffer size for input from the Console */
@@ -84,8 +86,6 @@
 #define CONFIG_SYS_MONITOR_LEN		(128 * 1024)
 /* Size of DRAM reserved for malloc() use */
 #define CONFIG_SYS_MALLOC_LEN		(1024 * 1024)
-/* size in bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_SIZE	(256)
 #define CONFIG_SYS_BOOTMAPSZ		(8 * 1024 * 1024)
 
 #define CONFIG_SYS_FLASH_CFI
@@ -118,9 +118,11 @@
 #define CONFIG_SYS_HZ       1000
 
 /* Ether */
-#define CONFIG_NET_MULTI 1
 #define CONFIG_SH_ETHER 1
 #define CONFIG_SH_ETHER_USE_PORT (1)
 #define CONFIG_SH_ETHER_PHY_ADDR (0x00)
+#define CONFIG_PHYLIB
+#define CONFIG_BITBANGMII
+#define CONFIG_BITBANGMII_MULTI
 
 #endif /* __SH7763RDP_H */

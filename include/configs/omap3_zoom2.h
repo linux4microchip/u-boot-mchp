@@ -33,10 +33,8 @@
 /*
  * High Level Configuration Options
  */
-#define CONFIG_ARMCORTEXA8	1	/* This is an ARM V7 CPU core */
 #define CONFIG_OMAP		1	/* in a TI OMAP core */
 #define CONFIG_OMAP34XX		1	/* which is a 34XX */
-#define CONFIG_OMAP3430		1	/* which is in a 3430 */
 #define CONFIG_OMAP3_ZOOM2	1	/* working with Zoom II */
 
 #define CONFIG_SDRC	/* The chip has SDRC controller */
@@ -62,14 +60,14 @@
 #define CONFIG_INITRD_TAG		1
 #define CONFIG_REVISION_TAG		1
 
+#define CONFIG_OF_LIBFDT		1
+
 /*
  * Size of malloc() pool
  */
 #define CONFIG_ENV_SIZE			(128 << 10)	/* 128 KiB */
 						/* Sector */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (128 << 10))
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* bytes reserved for */
-						/* initial data */
 /*
  * Hardware drivers
  */
@@ -96,8 +94,9 @@
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
 
+#define CONFIG_GENERIC_MMC		1
 #define CONFIG_MMC			1
-#define CONFIG_OMAP3_MMC		1
+#define CONFIG_OMAP_HSMMC		1
 #define CONFIG_DOS_PARTITION		1
 
 /* DDR - I use Micron DDR */
@@ -189,13 +188,19 @@
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"usbtty=cdc_acm\0" \
 
+#define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
+#define CONFIG_SYS_INIT_RAM_ADDR	0x4020f800
+#define CONFIG_SYS_INIT_RAM_SIZE	0x800
+#define CONFIG_SYS_INIT_SP_ADDR		(CONFIG_SYS_INIT_RAM_ADDR + \
+					 CONFIG_SYS_INIT_RAM_SIZE - \
+					 GENERATED_GBL_DATA_SIZE)
 /*
  * Miscellaneous configurable options
  */
 
 #define CONFIG_SYS_PROMPT		"OMAP3 Zoom2 # "
 #define CONFIG_SYS_LONGHELP
-#define CONFIG_SYS_CBSIZE		256
+#define CONFIG_SYS_CBSIZE		512
 #define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE + \
 					 sizeof(CONFIG_SYS_PROMPT) + 16)
 #define CONFIG_SYS_MAXARGS		16
@@ -221,10 +226,6 @@
  * The stack sizes are set up in start.S using these settings
  */
 #define CONFIG_STACKSIZE	(128 << 10)	/* regular stack 128 KiB */
-#ifdef CONFIG_USE_IRQ
-#define CONFIG_STACKSIZE_IRQ	(4 << 10)	/* IRQ stack 4 KiB */
-#define CONFIG_STACKSIZE_FIQ	(4 << 10)	/* FIQ stack 4 KiB */
-#endif
 
 /*-----------------------------------------------------------------------
  * Physical Memory Map
@@ -233,9 +234,6 @@
 #define PHYS_SDRAM_1		OMAP34XX_SDRC_CS0
 #define PHYS_SDRAM_1_SIZE	(32 << 20)	/* at least 32 MiB */
 #define PHYS_SDRAM_2		OMAP34XX_SDRC_CS1
-
-/* SDRAM Bank Allocation method */
-#define SDRC_R_B_C		1
 
 /*-----------------------------------------------------------------------
  * FLASH and environment organization
@@ -247,12 +245,11 @@
 #define PISMO1_NAND_SIZE		GPMC_SIZE_128M
 #define PISMO1_ONEN_SIZE		GPMC_SIZE_128M
 
-#define CONFIG_SYS_MAX_FLASH_SECT	520	/* max number of sectors on */
-						/* one chip */
-#define CONFIG_SYS_MAX_FLASH_BANKS	2	/* max number of flash banks */
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* Reserve 2 sectors */
 
-#define CONFIG_SYS_FLASH_BASE		boot_flash_base
+#if defined(CONFIG_CMD_NAND)
+#define CONFIG_SYS_FLASH_BASE		PISMO1_NAND_BASE
+#endif
 
 /* Monitor at start of flash */
 #define CONFIG_SYS_MONITOR_BASE		CONFIG_SYS_FLASH_BASE
@@ -260,23 +257,10 @@
 #define CONFIG_ENV_IS_IN_NAND		1
 #define SMNAND_ENV_OFFSET		0x0c0000 /* environment starts here */
 
-#define CONFIG_SYS_ENV_SECT_SIZE	boot_flash_sec
-#define CONFIG_ENV_OFFSET		boot_flash_off
+#define CONFIG_SYS_ENV_SECT_SIZE	(128 << 10)	/* 128 KiB */
+#define CONFIG_ENV_OFFSET		SMNAND_ENV_OFFSET
 #define CONFIG_ENV_ADDR			SMNAND_ENV_OFFSET
 
-/*-----------------------------------------------------------------------
- * CFI FLASH driver setup
- */
-/* timeout values are in ticks */
-#define CONFIG_SYS_FLASH_ERASE_TOUT	(100 * CONFIG_SYS_HZ)
-#define CONFIG_SYS_FLASH_WRITE_TOUT	(100 * CONFIG_SYS_HZ)
-
-#ifndef __ASSEMBLY__
-extern unsigned int boot_flash_base;
-extern volatile unsigned int boot_flash_env_addr;
-extern unsigned int boot_flash_off;
-extern unsigned int boot_flash_sec;
-extern unsigned int boot_flash_type;
-#endif
+#define CONFIG_SYS_CACHELINE_SIZE	64
 
 #endif /* __CONFIG_H */

@@ -23,14 +23,14 @@
  */
 
 #include <common.h>
-#include <ppc4xx.h>
+#include <asm/ppc4xx.h>
 #include <i2c.h>
 #include <libfdt.h>
 #include <fdt_support.h>
 #include <netdev.h>
 #include <asm/processor.h>
 #include <asm/io.h>
-#include <asm/gpio.h>
+#include <asm/ppc4xx-gpio.h>
 #include <asm/4xx_pcie.h>
 #include <asm/errno.h>
 
@@ -236,12 +236,13 @@ int board_early_init_f (void)
 
 int checkboard (void)
 {
-	char *s = getenv("serial#");
+	char buf[64];
+	int i = getenv_f("serial#", buf, sizeof(buf));
 
 	printf("Board: Katmai - AMCC 440SPe Evaluation Board");
-	if (s != NULL) {
+	if (i > 0) {
 		puts(", serial# ");
-		puts(s);
+		puts(buf);
 	}
 	putc('\n');
 

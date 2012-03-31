@@ -35,6 +35,11 @@
 #define CONFIG_SYS_BOOTCOUNT_SINGLEWORD
 #endif /* defined(CONFIG_MPC5xxx) */
 
+#if defined(CONFIG_MPC512X)
+#define CONFIG_SYS_BOOTCOUNT_ADDR	(&((immap_t *)CONFIG_SYS_IMMR)->clk.bcr)
+#define CONFIG_SYS_BOOTCOUNT_SINGLEWORD
+#endif /* defined(CONFIG_MPC512X) */
+
 #if defined(CONFIG_8xx)
 #define CONFIG_SYS_BOOTCOUNT_ADDR (((immap_t *)CONFIG_SYS_IMMR)->im_cpm.cp_dpmem + \
 				CPM_BOOTCOUNT_ADDR)
@@ -46,7 +51,7 @@
 #define CONFIG_SYS_BOOTCOUNT_ADDR	(CONFIG_SYS_IMMR + CPM_BOOTCOUNT_ADDR)
 #endif /* defined(CONFIG_MPC8260) */
 
-#if defined(CONFIG_MPC8360)
+#if defined(CONFIG_QE)
 #include <asm/immap_qe.h>
 
 #define CONFIG_SYS_BOOTCOUNT_ADDR	(CONFIG_SYS_IMMR + 0x110000 + \

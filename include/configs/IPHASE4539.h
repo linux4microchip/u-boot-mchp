@@ -38,6 +38,8 @@
 #define CONFIG_MPC8260		1	/* This is an MPC8260 CPU   */
 #define CONFIG_IPHASE4539	1	/* ...on a Interphase 4539 PMC */
 
+#define	CONFIG_SYS_TEXT_BASE	0xffb00000
+
 #define CONFIG_CPM2		1	/* Has a CPM2 */
 
 /*-----------------------------------------------------------------------
@@ -80,8 +82,8 @@
  * - Select bus for bd/buffers (see 28-13)
  * - Half duplex
  */
-# define CONFIG_SYS_CMXFCR_MASK	(CMXFCR_FC3 | CMXFCR_RF3CS_MSK | CMXFCR_TF3CS_MSK)
-# define CONFIG_SYS_CMXFCR_VALUE	(CMXFCR_RF3CS_CLK14 | CMXFCR_TF3CS_CLK16)
+# define CONFIG_SYS_CMXFCR_MASK3	(CMXFCR_FC3 | CMXFCR_RF3CS_MSK | CMXFCR_TF3CS_MSK)
+# define CONFIG_SYS_CMXFCR_VALUE3	(CMXFCR_RF3CS_CLK14 | CMXFCR_TF3CS_CLK16)
 # define CONFIG_SYS_CPMFCR_RAMTYPE	0
 # define CONFIG_SYS_FCC_PSMR		(FCC_PSMR_FDE|FCC_PSMR_LPB)
 
@@ -193,7 +195,7 @@
 #define CONFIG_SYS_SDRAM_BASE		0x00000000
 #define CONFIG_SYS_FLASH_BASE		0xFF800000
 
-#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)     /* Reserve 256 kB for Monitor  */
 #define CONFIG_SYS_MALLOC_LEN		(128 << 10)	/* Reserve 128 kB for malloc() */
 
@@ -244,19 +246,9 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define CONFIG_SYS_INIT_RAM_END	0x4000	/* End of used area in DPRAM	*/
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE	0x4000	/* Size of used area in DPRAM	*/
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
-
-/*-----------------------------------------------------------------------
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD	0x01	  /* Normal Power-On: Boot from FLASH	*/
-#define BOOTFLAG_WARM	0x02	  /* Software reboot			*/
-
 
 /*-----------------------------------------------------------------------
  * Cache Configuration

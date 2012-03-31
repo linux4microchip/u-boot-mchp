@@ -28,7 +28,7 @@
 #include "ocotea.h"
 #include <asm/processor.h>
 #include <spd_sdram.h>
-#include <ppc4xx_enet.h>
+#include <asm/ppc4xx-emac.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -200,12 +200,13 @@ int board_early_init_f (void)
 
 int checkboard (void)
 {
-	char *s = getenv ("serial#");
+	char buf[64];
+	int i = getenv_f("serial#", buf, sizeof(buf));
 
 	printf ("Board: Ocotea - AMCC PPC440GX Evaluation Board");
-	if (s != NULL) {
-		puts (", serial# ");
-		puts (s);
+	if (i > 0) {
+		puts(", serial# ");
+		puts(buf);
 	}
 	putc ('\n');
 

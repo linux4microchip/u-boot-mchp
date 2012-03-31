@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 Freescale Semiconductor.
+ * Copyright 2009-2010 Freescale Semiconductor.
  *
  * (C) Copyright 2002 Scott McNutt <smcnutt@artesyncp.com>
  *
@@ -27,9 +27,11 @@
 #include <pci.h>
 #include <asm/processor.h>
 #include <asm/mmu.h>
+#include <asm/cache.h>
 #include <asm/immap_85xx.h>
 #include <asm/fsl_pci.h>
 #include <asm/fsl_ddr_sdram.h>
+#include <asm/fsl_serdes.h>
 #include <asm/io.h>
 #include <spd_sdram.h>
 #include <i2c.h>
@@ -37,13 +39,12 @@
 #include <libfdt.h>
 #include <fdt_support.h>
 #include <fsl_esdhc.h>
+#include <phy.h>
 
 #include "bcsr.h"
 #if defined(CONFIG_PQ_MDS_PIB)
 #include "../common/pq-mds-pib.h"
 #endif
-
-phys_size_t fixed_sdram(void);
 
 const qe_iop_conf_t qe_iop_conf_tab[] = {
 	/* QE_MUX_MDC */
@@ -211,45 +212,36 @@ int board_early_init_f (void)
 	return 0;
 }
 
+int board_early_init_r(void)
+{
+	const unsigned int flashbase = CONFIG_SYS_NAND_BASE;
+	const u8 flash_esel = 0;
+
+	/*
+	 * Remap Boot flash to caching-inhibited
+	 * so that flash can be erased properly.
+	 */
+
+	/* Flush d-cache and invalidate i-cache of any FLASH data */
+	flush_dcache();
+	invalidate_icache();
+
+	/* invalidate existing TLB entry for flash */
+	disable_tlb(flash_esel);
+
+	set_tlb(1, flashbase, CONFIG_SYS_NAND_BASE,	/* tlb, epn, rpn */
+		MAS3_SX|MAS3_SW|MAS3_SR, MAS2_I|MAS2_G,	/* perms, wimge */
+		0, flash_esel,				/* ts, esel */
+		BOOKE_PAGESZ_64M, 1);			/* tsize, iprot */
+
+	return 0;
+}
+
 int checkboard (void)
 {
 	printf ("Board: 8569 MDS\n");
 
 	return 0;
-}
-
-phys_size_t
-initdram(int board_type)
-{
-	long dram_size = 0;
-
-	puts("Initializing\n");
-
-#if defined(CONFIG_DDR_DLL)
-	/*
-	 * Work around to stabilize DDR DLL MSYNC_IN.
-	 * Errata DDR9 seems to have been fixed.
-	 * This is now the workaround for Errata DDR11:
-	 *    Override DLL = 1, Course Adj = 1, Tap Select = 0
-	 */
-	volatile ccsr_gur_t *gur =
-			(void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
-
-	out_be32(&gur->ddrdllcr, 0x81000000);
-	udelay(200);
-#endif
-
-#ifdef CONFIG_SPD_EEPROM
-	dram_size = fsl_ddr_sdram();
-#else
-	dram_size = fixed_sdram();
-#endif
-
-	dram_size = setup_ddr_tlbs(dram_size / 0x100000);
-	dram_size *= 0x100000;
-
-	puts("    DDR: ");
-	return dram_size;
 }
 
 #if !defined(CONFIG_SPD_EEPROM)
@@ -308,15 +300,13 @@ void
 local_bus_init(void)
 {
 	volatile ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
-	volatile ccsr_lbc_t *lbc = (void *)(CONFIG_SYS_MPC85xx_LBC_ADDR);
+	volatile fsl_lbc_t *lbc = LBC_BASE_ADDR;
 
 	uint clkdiv;
-	uint lbc_hz;
 	sys_info_t sysinfo;
 
 	get_sys_info(&sysinfo);
 	clkdiv = (lbc->lcrr & LCRR_CLKDIV) * 2;
-	lbc_hz = sysinfo.freqSystemBus / 1000000 / clkdiv;
 
 	out_be32(&gur->lbiuiplldcr1, 0x00078080);
 	if (clkdiv == 16)
@@ -527,51 +517,14 @@ static void fdt_board_fixup_qe_usb(void *blob, bd_t *bd)
 	clrbits_8(&bcsr[17], BCSR17_nUSBEN);
 }
 
-#ifdef CONFIG_PCIE1
-static struct pci_controller pcie1_hose;
-#endif  /* CONFIG_PCIE1 */
-
 #ifdef CONFIG_PCI
 void pci_init_board(void)
 {
-	volatile ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
-	struct fsl_pci_info pci_info[1];
-	u32 devdisr, pordevsr, io_sel;
-	int first_free_busno = 0;
-	int num = 0;
-
-	int pcie_ep, pcie_configured;
-
-	devdisr = in_be32(&gur->devdisr);
-	pordevsr = in_be32(&gur->pordevsr);
-	io_sel = (pordevsr & MPC85xx_PORDEVSR_IO_SEL) >> 19;
-
-	debug ("   pci_init_board: devdisr=%x, io_sel=%x\n", devdisr, io_sel);
-
 #if defined(CONFIG_PQ_MDS_PIB)
 	pib_init();
 #endif
 
-#ifdef CONFIG_PCIE1
-	pcie_configured = is_fsl_pci_cfg(LAW_TRGT_IF_PCIE_1, io_sel);
-
-	if (pcie_configured && !(devdisr & MPC85xx_DEVDISR_PCIE)){
-		SET_STD_PCIE_INFO(pci_info[num], 1);
-		pcie_ep = fsl_setup_hose(&pcie1_hose, pci_info[num].regs);
-		printf ("    PCIE1 connected to Slot as %s (base addr %lx)\n",
-				pcie_ep ? "Endpoint" : "Root Complex",
-				pci_info[num].regs);
-		first_free_busno = fsl_pci_init_port(&pci_info[num++],
-					&pcie1_hose, first_free_busno);
-	} else {
-		printf ("    PCIE1: disabled\n");
-	}
-
-	puts("\n");
-#else
-	setbits_be32(&gur->devdisr, MPC85xx_DEVDISR_PCIE); /* disable */
-#endif
-
+	fsl_pcie_init_board(0);
 }
 #endif /* CONFIG_PCI */
 
@@ -596,8 +549,9 @@ void ft_board_setup(void *blob, bd_t *bd)
 			break;
 		}
 
-		err = fdt_setprop_string(blob, nodeoff, "phy-connection-type",
-					"rmii");
+		err = fdt_fixup_phy_connection(blob, nodeoff,
+				PHY_INTERFACE_MODE_RMII);
+
 		if (err < 0) {
 			printf("WARNING: could not set phy-connection-type "
 				"%s.\n", fdt_strerror(err));
@@ -635,9 +589,8 @@ void ft_board_setup(void *blob, bd_t *bd)
 #endif
 	ft_cpu_setup(blob, bd);
 
-#ifdef CONFIG_PCIE1
-	ft_fsl_pci_setup(blob, "pci1", &pcie1_hose);
-#endif
+	FT_FSL_PCI_SETUP;
+
 	fdt_board_fixup_esdhc(blob, bd);
 	fdt_board_fixup_qe_uart(blob, bd);
 	fdt_board_fixup_qe_usb(blob, bd);

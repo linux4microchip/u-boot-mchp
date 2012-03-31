@@ -29,8 +29,11 @@
  *  U-Boot - Startup Code for MPC512x based Embedded Boards
  */
 
+#include <asm-offsets.h>
 #include <config.h>
-#include <timestamp.h>
+#ifndef  CONFIG_IDENT_STRING
+#define  CONFIG_IDENT_STRING "MPC512X"
+#endif
 #include <version.h>
 
 #define CONFIG_521X	1		/* needed for Linux kernel header files*/
@@ -43,10 +46,7 @@
 
 #include <asm/cache.h>
 #include <asm/mmu.h>
-
-#ifndef  CONFIG_IDENT_STRING
-#define  CONFIG_IDENT_STRING "MPC512X"
-#endif
+#include <asm/u-boot.h>
 
 /*
  * Floating Point enable, Machine Check and Recoverable Interr.
@@ -77,7 +77,7 @@
 	GOT_ENTRY(transfer_to_handler)
 
 	GOT_ENTRY(__init_end)
-	GOT_ENTRY(_end)
+	GOT_ENTRY(__bss_end__)
 	GOT_ENTRY(__bss_start)
 	END_GOT
 
@@ -87,9 +87,7 @@
 	.long	0x27051956		/* U-Boot Magic Number */
 	.globl	version_string
 version_string:
-	.ascii U_BOOT_VERSION
-	.ascii " (", U_BOOT_DATE, " - ", U_BOOT_TIME, ")"
-	.ascii " ", CONFIG_IDENT_STRING, "\0"
+	.ascii U_BOOT_VERSION_STRING, "\0"
 
 /*
  * Vector Table
@@ -100,7 +98,6 @@ version_string:
 	.globl	_start
 	/* Start from here after reset/power on */
 _start:
-	li	r21, BOOTFLAG_COLD  /* Normal Power-On: Boot from FLASH */
 	b	boot_cold
 
 	.globl	_start_of_vectors
@@ -260,8 +257,6 @@ in_flash:
 	/* run low-level CPU init code (in Flash) */
 	bl	cpu_init_f
 
-	/* r3: BOOTFLAG */
-	mr	r3, r21
 	/* run 1st part of board init code (in Flash) */
 	bl	board_init_f
 
@@ -615,17 +610,19 @@ in_ram:
 	beq	4f
 3:	lwzu	r4,4(r3)
 	lwzux	r0,r4,r11
+	cmpwi	r0,0
 	add	r0,r0,r11
-	stw	r10,0(r3)
+	stw	r4,0(r3)
+	beq-	5f
 	stw	r0,0(r4)
-	bdnz	3b
+5:	bdnz	3b
 4:
 clear_bss:
 	/*
 	 * Now clear BSS segment
 	 */
 	lwz	r3,GOT(__bss_start)
-	lwz	r4,GOT(_end)
+	lwz	r4,GOT(__bss_end__)
 
 	cmplw	0, r3, r4
 	beq	6f

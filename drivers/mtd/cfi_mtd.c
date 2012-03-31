@@ -30,15 +30,7 @@
 #include <asm/errno.h>
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/concat.h>
-
-/* use CONFIG_SYS_MAX_FLASH_BANKS_DETECT if defined */
-#ifdef CONFIG_SYS_MAX_FLASH_BANKS_DETECT
-# define CFI_MAX_FLASH_BANKS	CONFIG_SYS_MAX_FLASH_BANKS_DETECT
-#else
-# define CFI_MAX_FLASH_BANKS	CONFIG_SYS_MAX_FLASH_BANKS
-#endif
-
-extern flash_info_t flash_info[];
+#include <mtd/cfi_flash.h>
 
 static struct mtd_info cfi_mtd_info[CFI_MAX_FLASH_BANKS];
 static char cfi_mtd_names[CFI_MAX_FLASH_BANKS][16];
@@ -230,8 +222,10 @@ int cfi_mtd_init(void)
 	struct mtd_info *mtd;
 	flash_info_t *fi;
 	int error, i;
+#ifdef CONFIG_MTD_CONCAT
 	int devices_found = 0;
 	struct mtd_info *mtd_list[CONFIG_SYS_MAX_FLASH_BANKS];
+#endif
 
 	for (i = 0; i < CONFIG_SYS_MAX_FLASH_BANKS; i++) {
 		fi = &flash_info[i];
@@ -261,7 +255,9 @@ int cfi_mtd_init(void)
 		if (add_mtd_device(mtd))
 			return -ENOMEM;
 
+#ifdef CONFIG_MTD_CONCAT
 		mtd_list[devices_found++] = mtd;
+#endif
 	}
 
 #ifdef CONFIG_MTD_CONCAT

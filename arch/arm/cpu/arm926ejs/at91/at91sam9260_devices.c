@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2007-2008
- * Stelian Pop <stelian.pop@leadtechdesign.com>
+ * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
  *
  * See file CREDITS for list of people who contributed to this
@@ -23,77 +23,73 @@
  */
 
 #include <common.h>
+#include <asm/io.h>
 #include <asm/arch/at91_common.h>
 #include <asm/arch/at91_pmc.h>
 #include <asm/arch/gpio.h>
-#include <asm/arch/io.h>
+
+/*
+ * if CONFIG_AT91_GPIO_PULLUP ist set, keep pullups on on all
+ * peripheral pins. Good to have if hardware is soldered optionally
+ * or in case of SPI no slave is selected. Avoid lines to float
+ * needlessly. Use a short local PUP define.
+ *
+ * Due to errata "TXD floats when CTS is inactive" pullups are always
+ * on for TXD pins.
+ */
+#ifdef CONFIG_AT91_GPIO_PULLUP
+# define PUP CONFIG_AT91_GPIO_PULLUP
+#else
+# define PUP 0
+#endif
 
 void at91_serial0_hw_init(void)
 {
-	at91_pmc_t	*pmc	= (at91_pmc_t *) AT91_PMC_BASE;
+	at91_pmc_t	*pmc	= (at91_pmc_t *) ATMEL_BASE_PMC;
 
 	at91_set_a_periph(AT91_PIO_PORTB, 4, 1);		/* TXD0 */
-	at91_set_a_periph(AT91_PIO_PORTB, 5, 0);		/* RXD0 */
-	writel(1 << AT91SAM9260_ID_US0, &pmc->pcer);
+	at91_set_a_periph(AT91_PIO_PORTB, 5, PUP);		/* RXD0 */
+	writel(1 << ATMEL_ID_USART0, &pmc->pcer);
 }
 
 void at91_serial1_hw_init(void)
 {
-	at91_pmc_t	*pmc	= (at91_pmc_t *) AT91_PMC_BASE;
+	at91_pmc_t	*pmc	= (at91_pmc_t *) ATMEL_BASE_PMC;
 
 	at91_set_a_periph(AT91_PIO_PORTB, 6, 1);		/* TXD1 */
-	at91_set_a_periph(AT91_PIO_PORTB, 7, 0);		/* RXD1 */
-	writel(1 << AT91SAM9260_ID_US1, &pmc->pcer);
+	at91_set_a_periph(AT91_PIO_PORTB, 7, PUP);		/* RXD1 */
+	writel(1 << ATMEL_ID_USART1, &pmc->pcer);
 }
 
 void at91_serial2_hw_init(void)
 {
-	at91_pmc_t	*pmc	= (at91_pmc_t *) AT91_PMC_BASE;
+	at91_pmc_t	*pmc	= (at91_pmc_t *) ATMEL_BASE_PMC;
 
 	at91_set_a_periph(AT91_PIO_PORTB, 8, 1);		/* TXD2 */
-	at91_set_a_periph(AT91_PIO_PORTB, 9, 0);		/* RXD2 */
-	writel(1 << AT91SAM9260_ID_US2, &pmc->pcer);
+	at91_set_a_periph(AT91_PIO_PORTB, 9, PUP);		/* RXD2 */
+	writel(1 << ATMEL_ID_USART2, &pmc->pcer);
 }
 
-void at91_serial3_hw_init(void)
+void at91_seriald_hw_init(void)
 {
-	at91_pmc_t	*pmc	= (at91_pmc_t *) AT91_PMC_BASE;
+	at91_pmc_t	*pmc	= (at91_pmc_t *) ATMEL_BASE_PMC;
 
-	at91_set_a_periph(AT91_PIO_PORTB, 14, 0);		/* DRXD */
+	at91_set_a_periph(AT91_PIO_PORTB, 14, PUP);		/* DRXD */
 	at91_set_a_periph(AT91_PIO_PORTB, 15, 1);		/* DTXD */
-	writel(1 << AT91_ID_SYS, &pmc->pcer);
-}
-
-void at91_serial_hw_init(void)
-{
-#ifdef CONFIG_USART0
-	at91_serial0_hw_init();
-#endif
-
-#ifdef CONFIG_USART1
-	at91_serial1_hw_init();
-#endif
-
-#ifdef CONFIG_USART2
-	at91_serial2_hw_init();
-#endif
-
-#ifdef CONFIG_USART3	/* DBGU */
-	at91_serial3_hw_init();
-#endif
+	writel(1 << ATMEL_ID_SYS, &pmc->pcer);
 }
 
 #if defined(CONFIG_HAS_DATAFLASH) || defined(CONFIG_ATMEL_SPI)
 void at91_spi0_hw_init(unsigned long cs_mask)
 {
-	at91_pmc_t	*pmc	= (at91_pmc_t *) AT91_PMC_BASE;
+	at91_pmc_t	*pmc	= (at91_pmc_t *) ATMEL_BASE_PMC;
 
-	at91_set_a_periph(AT91_PIO_PORTA, 0, 0);	/* SPI0_MISO */
-	at91_set_a_periph(AT91_PIO_PORTA, 1, 0);	/* SPI0_MOSI */
-	at91_set_a_periph(AT91_PIO_PORTA, 2, 0);	/* SPI0_SPCK */
+	at91_set_a_periph(AT91_PIO_PORTA, 0, PUP);	/* SPI0_MISO */
+	at91_set_a_periph(AT91_PIO_PORTA, 1, PUP);	/* SPI0_MOSI */
+	at91_set_a_periph(AT91_PIO_PORTA, 2, PUP);	/* SPI0_SPCK */
 
 	/* Enable clock */
-	writel(1 << AT91SAM9260_ID_SPI0, &pmc->pcer);
+	writel(1 << ATMEL_ID_SPI0, &pmc->pcer);
 
 	if (cs_mask & (1 << 0)) {
 		at91_set_a_periph(AT91_PIO_PORTA, 3, 1);
@@ -123,14 +119,14 @@ void at91_spi0_hw_init(unsigned long cs_mask)
 
 void at91_spi1_hw_init(unsigned long cs_mask)
 {
-	at91_pmc_t	*pmc	= (at91_pmc_t *) AT91_PMC_BASE;
+	at91_pmc_t	*pmc	= (at91_pmc_t *) ATMEL_BASE_PMC;
 
-	at91_set_a_periph(AT91_PIO_PORTB, 0, 0);	/* SPI1_MISO */
-	at91_set_a_periph(AT91_PIO_PORTB, 1, 0);	/* SPI1_MOSI */
-	at91_set_a_periph(AT91_PIO_PORTB, 2, 0);	/* SPI1_SPCK */
+	at91_set_a_periph(AT91_PIO_PORTB, 0, PUP);	/* SPI1_MISO */
+	at91_set_a_periph(AT91_PIO_PORTB, 1, PUP);	/* SPI1_MOSI */
+	at91_set_a_periph(AT91_PIO_PORTB, 2, PUP);	/* SPI1_SPCK */
 
 	/* Enable clock */
-	writel(1 << AT91SAM9260_ID_SPI1, &pmc->pcer);
+	writel(1 << ATMEL_ID_SPI1, &pmc->pcer);
 
 	if (cs_mask & (1 << 0)) {
 		at91_set_a_periph(AT91_PIO_PORTB, 3, 1);
@@ -142,7 +138,7 @@ void at91_spi1_hw_init(unsigned long cs_mask)
 		at91_set_b_periph(AT91_PIO_PORTC, 4, 1);
 	}
 	if (cs_mask & (1 << 3)) {
-		at91_set_pio_output(AT91_PIO_PORTC, 3, 1);
+		at91_set_b_periph(AT91_PIO_PORTC, 3, 1);
 	}
 	if (cs_mask & (1 << 4)) {
 		at91_set_pio_output(AT91_PIO_PORTB, 3, 1);
@@ -189,8 +185,33 @@ void at91_macb_hw_init(void)
 #else
 	at91_set_b_periph(AT91_PIO_PORTA, 23, 0);	/* ETX2 */
 	at91_set_b_periph(AT91_PIO_PORTA, 24, 0);	/* ETX3 */
+#if defined(CONFIG_AT91SAM9G20)
+	/* 9G20 BOOT ROM initializes those pins to multi-drive, undo that */
+	at91_set_pio_multi_drive(AT91_PIO_PORTA, 23, 0);
+	at91_set_pio_multi_drive(AT91_PIO_PORTA, 24, 0);
+#endif
 #endif
 	at91_set_b_periph(AT91_PIO_PORTA, 22, 0);	/* ETXER */
+#endif
+}
+#endif
+
+#if defined(CONFIG_ATMEL_MCI) || defined(CONFIG_GENERIC_ATMEL_MCI)
+void at91_mci_hw_init(void)
+{
+	at91_set_a_periph(AT91_PIO_PORTA, 8, 1);	/* MCCK */
+#if defined(CONFIG_ATMEL_MCI_PORTB)
+	at91_set_b_periph(AT91_PIO_PORTA, 1, 1);	/* MCCDB */
+	at91_set_b_periph(AT91_PIO_PORTA, 0, 1);	/* MCDB0 */
+	at91_set_b_periph(AT91_PIO_PORTA, 5, 1);	/* MCDB1 */
+	at91_set_b_periph(AT91_PIO_PORTA, 4, 1);	/* MCDB2 */
+	at91_set_b_periph(AT91_PIO_PORTA, 3, 1);	/* MCDB3 */
+#else
+	at91_set_a_periph(AT91_PIO_PORTA, 7, 1);	/* MCCDA */
+	at91_set_a_periph(AT91_PIO_PORTA, 6, 1);	/* MCDA0 */
+	at91_set_a_periph(AT91_PIO_PORTA, 9, 1);	/* MCDA1 */
+	at91_set_a_periph(AT91_PIO_PORTA, 10, 1);	/* MCDA2 */
+	at91_set_a_periph(AT91_PIO_PORTA, 11, 1);	/* MCDA3 */
 #endif
 }
 #endif

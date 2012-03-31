@@ -17,7 +17,6 @@
  *      Erik W. Troan, which they placed in the public domain.  I don't know
  *      how much of the Johnson/Troan code has survived the repeated rewrites.
  * Other credits:
- *      simple_itoa() was lifted from boa-0.93.15
  *      b_addchr() derived from similar w_addchar function in glibc-2.2
  *      setup_redirect(), redirect_opt_num(), and big chunks of main()
  *        and many builtins derived from contributions by Erik Andersen
@@ -93,8 +92,6 @@
 #include <common.h>        /* readline */
 #include <hush.h>
 #include <command.h>        /* find_cmd */
-/*cmd_boot.c*/
-extern int do_bootd (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);      /* do_bootd */
 #endif
 #ifndef __U_BOOT__
 #include <ctype.h>     /* isalpha, isdigit */
@@ -499,7 +496,6 @@ static void remove_bg_job(struct pipe *pi);
 /*     local variable support */
 static char **make_list_in(char **inp, char *name);
 static char *insert_var_value(char *inp);
-static char *get_local_var(const char *var);
 
 #ifndef __U_BOOT__
 /* Table of built-in functions.  They can be forked or not, depending on
@@ -925,20 +921,6 @@ static int b_addqchr(o_string *o, int ch, int quote)
 	return b_addchr(o, ch);
 }
 
-/* belongs in utility.c */
-char *simple_itoa(unsigned int i)
-{
-	/* 21 digits plus null terminator, good for 64-bit or smaller ints */
-	static char local[22];
-	char *p = &local[21];
-	*p-- = '\0';
-	do {
-		*p-- = '0' + i % 10;
-		i /= 10;
-	} while (i > 0);
-	return p + 1;
-}
-
 #ifndef __U_BOOT__
 static int b_adduint(o_string *o, unsigned int i)
 {
@@ -1018,14 +1000,11 @@ static void get_user_input(struct in_str *i)
 	fflush(stdout);
 	i->p = the_command;
 #else
-	extern char console_buffer[];
 	int n;
 	static char the_command[CONFIG_SYS_CBSIZE];
 
 #ifdef CONFIG_BOOT_RETRY_TIME
-#  ifdef CONFIG_RESET_TO_RETRY
-	extern int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
-#  else
+#  ifndef CONFIG_RESET_TO_RETRY
 #	error "This currently only works with CONFIG_RESET_TO_RETRY enabled"
 #  endif
 	reset_cmd_timeout();
@@ -1681,8 +1660,6 @@ static int run_pipe_real(struct pipe *pi)
 			} else {
 				int rcode;
 #if defined(CONFIG_CMD_BOOTD)
-	    extern int do_bootd (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
-
 				/* avoid "bootd" recursion */
 				if (cmdtp->cmd == do_bootd) {
 					if (flag & CMD_FLAG_BOOTD) {
@@ -1694,10 +1671,8 @@ static int run_pipe_real(struct pipe *pi)
 				}
 #endif
 				/* found - check max args */
-				if ((child->argc - i) > cmdtp->maxargs) {
-					cmd_usage(cmdtp);
-					return -1;
-				}
+				if ((child->argc - i) > cmdtp->maxargs)
+					return cmd_usage(cmdtp);
 #endif
 				child->argv+=i;  /* XXX horrible hack */
 #ifndef __U_BOOT__
@@ -2177,7 +2152,7 @@ static char *get_dollar_var(char ch);
 #endif
 
 /* This is used to get/check local shell variables */
-static char *get_local_var(const char *s)
+char *get_local_var(const char *s)
 {
 	struct variables *cur;
 
@@ -3226,7 +3201,7 @@ int parse_stream_outer(struct in_str *inp, int flag)
 #ifndef __U_BOOT__
 static int parse_string_outer(const char *s, int flag)
 #else
-int parse_string_outer(char *s, int flag)
+int parse_string_outer(const char *s, int flag)
 #endif	/* __U_BOOT__ */
 {
 	struct in_str input;
@@ -3270,7 +3245,7 @@ int parse_file_outer(void)
 }
 
 #ifdef __U_BOOT__
-#ifndef CONFIG_RELOC_FIXUP_WORKS
+#ifdef CONFIG_NEEDS_MANUAL_RELOC
 static void u_boot_hush_reloc(void)
 {
 	unsigned long addr;
@@ -3292,7 +3267,7 @@ int u_boot_hush_start(void)
 		top_vars->next = 0;
 		top_vars->flg_export = 0;
 		top_vars->flg_read_only = 1;
-#ifndef CONFIG_RELOC_FIXUP_WORKS
+#ifdef CONFIG_NEEDS_MANUAL_RELOC
 		u_boot_hush_reloc();
 #endif
 	}
@@ -3351,7 +3326,7 @@ static void setup_job_control(void)
 	tcsetpgrp(shell_terminal, shell_pgrp);
 }
 
-int hush_main(int argc, char **argv)
+int hush_main(int argc, char * const *argv)
 {
 	int opt;
 	FILE *input;
@@ -3588,7 +3563,7 @@ static char * make_string(char ** inp)
 }
 
 #ifdef __U_BOOT__
-int do_showvar (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_showvar (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	int i, k;
 	int rcode = 0;

@@ -35,6 +35,8 @@
  * (easy to change)
  */
 
+#define	CONFIG_SYS_TEXT_BASE	0xFFF00000
+
 /* these hardware addresses are pretty bogus, please change them to
    suit your needs */
 
@@ -174,9 +176,8 @@
  * Definitions for initial stack pointer and data area
  */
 #define CONFIG_SYS_INIT_RAM_ADDR       0x00fd0000  /* above the memtest region */
-#define CONFIG_SYS_INIT_RAM_END        0x4000
-#define CONFIG_SYS_GBL_DATA_SIZE       64          /* size in bytes reserved for init data */
-#define CONFIG_SYS_GBL_DATA_OFFSET     (CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE        0x4000
+#define CONFIG_SYS_GBL_DATA_OFFSET     (CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET      CONFIG_SYS_GBL_DATA_OFFSET
 
 /*
@@ -314,9 +315,8 @@
 /*
  * Speed settings are board specific
  */
-#define CONFIG_SYS_BUS_HZ              100000000
-#define CONFIG_SYS_CPU_CLK             400000000
-#define CONFIG_SYS_BUS_CLK             CONFIG_SYS_BUS_HZ
+#define CONFIG_SYS_BUS_CLK	100000000
+#define CONFIG_SYS_CPU_CLK	400000000
 
 /*
  * For booting Linux, the board info and command line data
@@ -348,15 +348,6 @@
 #endif
 #define L2_ENABLE   (L2_INIT | L2CR_L2E)
 
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD           0x01    /* Normal Power-On: Boot from FLASH */
-#define BOOTFLAG_WARM           0x02    /* Software reboot */
-
-#define CONFIG_NET_MULTI        /* Multi ethernet cards support */
 #define CONFIG_EEPRO100
 #define CONFIG_SYS_RX_ETH_BUFFER	8               /* use 8 rx buffer on eepro100  */
 #define CONFIG_EEPRO100_SROM_WRITE

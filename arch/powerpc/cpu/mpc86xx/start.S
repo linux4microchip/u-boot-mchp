@@ -1,5 +1,5 @@
 /*
- * Copyright 2004, 2007 Freescale Semiconductor.
+ * Copyright 2004, 2007, 2011 Freescale Semiconductor.
  * Srikanth Srinivasan <srikanth.srinivaan@freescale.com>
  *
  * See file CREDITS for list of people who contributed to this
@@ -30,9 +30,9 @@
  *  board_init lies at a quite high address and when the cpu has
  *  jumped there, everything is ok.
  */
+#include <asm-offsets.h>
 #include <config.h>
 #include <mpc86xx.h>
-#include <timestamp.h>
 #include <version.h>
 
 #include <ppc_asm.tmpl>
@@ -40,10 +40,7 @@
 
 #include <asm/cache.h>
 #include <asm/mmu.h>
-
-#ifndef	CONFIG_IDENT_STRING
-#define CONFIG_IDENT_STRING ""
-#endif
+#include <asm/u-boot.h>
 
 /*
  * Need MSR_DR | MSR_IR enabled to access I/O (printf) in exceptions
@@ -64,7 +61,7 @@
 	GOT_ENTRY(transfer_to_handler)
 
 	GOT_ENTRY(__init_end)
-	GOT_ENTRY(_end)
+	GOT_ENTRY(__bss_end__)
 	GOT_ENTRY(__bss_start)
 	END_GOT
 
@@ -76,24 +73,12 @@
 	.long	0x27051956		/* U-Boot Magic Number */
 	.globl	version_string
 version_string:
-	.ascii	U_BOOT_VERSION
-	.ascii	" (", U_BOOT_DATE, " - ", U_BOOT_TIME, ")"
-	.ascii	CONFIG_IDENT_STRING, "\0"
+	.ascii U_BOOT_VERSION_STRING, "\0"
 
 	. = EXC_OFF_SYS_RESET
 	.globl	_start
 _start:
-	li	r21, BOOTFLAG_COLD	/* Normal Power-On: Boot from FLASH */
 	b	boot_cold
-	sync
-
-	. = EXC_OFF_SYS_RESET + 0x10
-
-	.globl	_start_warm
-_start_warm:
-	li	r21, BOOTFLAG_WARM	/* Software reboot */
-	b	boot_warm
-	sync
 
 	/* the boot code is located below the exception table */
 
@@ -166,7 +151,6 @@ _end_of_vectors:
 	. = 0x2000
 
 boot_cold:
-boot_warm:
 	/*
 	 * NOTE: Only Cpu 0 will ever come here.  Other cores go to an
 	 * address specified by the BPTR
@@ -303,14 +287,12 @@ diag_done:
 #endif
 
 /*	bl	l2cache_enable */
-	mr	r3, r21
 
-	/* r3: BOOTFLAG */
 	/* run 1st part of board init code (from Flash)	  */
 	bl	board_init_f
 	sync
 
-	/* NOTREACHED */
+	/* NOTREACHED - board_init_f() does not return */
 
 	.globl	invalidate_bats
 invalidate_bats:
@@ -339,6 +321,73 @@ invalidate_bats:
 	isync
 	sync
 	blr
+
+#define CONFIG_BAT_PAIR(n) \
+	lis	r4, CONFIG_SYS_IBAT##n##L@h; 		\
+	ori	r4, r4, CONFIG_SYS_IBAT##n##L@l; 	\
+	lis	r3, CONFIG_SYS_IBAT##n##U@h; 		\
+	ori	r3, r3, CONFIG_SYS_IBAT##n##U@l; 	\
+	mtspr	IBAT##n##L, r4; 			\
+	mtspr	IBAT##n##U, r3; 			\
+	lis	r4, CONFIG_SYS_DBAT##n##L@h; 		\
+	ori	r4, r4, CONFIG_SYS_DBAT##n##L@l; 	\
+	lis	r3, CONFIG_SYS_DBAT##n##U@h; 		\
+	ori	r3, r3, CONFIG_SYS_DBAT##n##U@l; 	\
+	mtspr	DBAT##n##L, r4;				\
+	mtspr	DBAT##n##U, r3;
+
+/*
+ * setup_bats:
+ *
+ * Set up the final BAT registers now that setup is done.
+ *
+ * Assumes that:
+ *	1) Address translation is enabled upon entry
+ *	2) The boot rom is still accessible via 1:1 translation
+ */
+	.globl setup_bats
+setup_bats:
+	mflr	r5
+	sync
+
+	/*
+	 * When we disable address translation, we will get 1:1 (VA==PA)
+	 * translation.  The only place we know for sure is safe for that is
+	 * the bootrom where we originally started out.  Pop back into there.
+	 */
+	lis	r4, CONFIG_SYS_MONITOR_BASE_EARLY@h
+	ori	r4, r4, CONFIG_SYS_MONITOR_BASE_EARLY@l
+	addi	r4, r4, trans_disabled - _start + EXC_OFF_SYS_RESET
+
+	/* disable address translation */
+	mfmsr	r3
+	rlwinm	r3, r3, 0, 28, 25
+	mtspr	SRR0, r4
+	mtspr	SRR1, r3
+	rfi
+
+trans_disabled:
+#if defined(CONFIG_SYS_DBAT0U) && defined(CONFIG_SYS_DBAT0L) \
+	&& defined(CONFIG_SYS_IBAT0U) && defined(CONFIG_SYS_IBAT0L)
+	CONFIG_BAT_PAIR(0)
+#endif
+	CONFIG_BAT_PAIR(1)
+	CONFIG_BAT_PAIR(2)
+	CONFIG_BAT_PAIR(3)
+	CONFIG_BAT_PAIR(4)
+	CONFIG_BAT_PAIR(5)
+	CONFIG_BAT_PAIR(6)
+	CONFIG_BAT_PAIR(7)
+
+	sync
+	isync
+
+	/* Turn translation back on and return */
+	mfmsr	r3
+	ori	r3, r3, (MSR_IR | MSR_DR)
+	mtspr	SPRN_SRR0,r5
+	mtspr	SPRN_SRR1,r3
+	rfi
 
 /*
  * early_bats:
@@ -739,17 +788,19 @@ in_ram:
 	beq	4f
 3:	lwzu	r4,4(r3)
 	lwzux	r0,r4,r11
+	cmpwi	r0,0
 	add	r0,r0,r11
-	stw	r10,0(r3)
+	stw	r4,0(r3)
+	beq-	5f
 	stw	r0,0(r4)
-	bdnz	3b
+5:	bdnz	3b
 4:
 /* clear_bss: */
 	/*
 	 * Now clear BSS segment
 	 */
 	lwz	r3,GOT(__bss_start)
-	lwz	r4,GOT(_end)
+	lwz	r4,GOT(__bss_end__)
 
 	cmplw	0, r3, r4
 	beq	6f
@@ -861,8 +912,8 @@ setup_ccsrbar:
 	stw	r5, 0(r4) /* Store physical value of CCSR */
 	isync
 
-	lis	r5, TEXT_BASE@h
-	ori	r5,r5,TEXT_BASE@l
+	lis	r5, CONFIG_SYS_TEXT_BASE@h
+	ori	r5,r5,CONFIG_SYS_TEXT_BASE@l
 	lwz	r5, 0(r5)
 	isync
 
@@ -880,7 +931,7 @@ lock_ram_in_cache:
 	 */
 	lis	r3, (CONFIG_SYS_INIT_RAM_ADDR & ~31)@h
 	ori	r3, r3, (CONFIG_SYS_INIT_RAM_ADDR & ~31)@l
-	li	r4, ((CONFIG_SYS_INIT_RAM_END & ~31) + \
+	li	r4, ((CONFIG_SYS_INIT_RAM_SIZE & ~31) + \
 		     (CONFIG_SYS_INIT_RAM_ADDR & 31) + 31) / 32
 	mtctr	r4
 1:
@@ -915,7 +966,7 @@ unlock_ram_in_cache:
 	/* invalidate the INIT_RAM section */
 	lis	r3, (CONFIG_SYS_INIT_RAM_ADDR & ~31)@h
 	ori	r3, r3, (CONFIG_SYS_INIT_RAM_ADDR & ~31)@l
-	li	r4, ((CONFIG_SYS_INIT_RAM_END & ~31) + \
+	li	r4, ((CONFIG_SYS_INIT_RAM_SIZE & ~31) + \
 		     (CONFIG_SYS_INIT_RAM_ADDR & 31) + 31) / 32
 	mtctr	r4
 1:	icbi	r0, r3

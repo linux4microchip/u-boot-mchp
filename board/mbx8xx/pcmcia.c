@@ -77,10 +77,7 @@ int pcmcia_voltage_set (int slot, int vcc, int vpp)
 
 int pcmcia_hardware_enable (int slot)
 {
-	volatile immap_t *immap;
-	volatile cpm8xx_t *cp;
 	volatile pcmconf8xx_t *pcmp;
-	volatile sysconf8xx_t *sysp;
 	uint reg, mask;
 
 	debug ("hardware_enable: " PCMCIA_BOARD_MSG " Slot %c\n",
@@ -88,10 +85,7 @@ int pcmcia_hardware_enable (int slot)
 
 	udelay (10000);
 
-	immap = (immap_t *) CONFIG_SYS_IMMR;
-	sysp = (sysconf8xx_t *) (&(((immap_t *) CONFIG_SYS_IMMR)->im_siu_conf));
 	pcmp = (pcmconf8xx_t *) (&(((immap_t *) CONFIG_SYS_IMMR)->im_pcmcia));
-	cp = (cpm8xx_t *) (&(((immap_t *) CONFIG_SYS_IMMR)->im_cpm));
 
 	/* clear interrupt state, and disable interrupts */
 	pcmp->pcmc_pscr = PCMCIA_MASK (_slot_);
@@ -117,11 +111,7 @@ int pcmcia_hardware_enable (int slot)
 	debug ("[%d] %s: PIPR(%p)=0x%x\n",
 	       __LINE__,__FUNCTION__,
 	       &(pcmp->pcmc_pipr),pcmp->pcmc_pipr);
-#ifndef CONFIG_HMI10
-	if (pcmp->pcmc_pipr & (0x18000000 >> (slot << 4))) {
-#else
 	if (pcmp->pcmc_pipr & (0x10000000 >> (slot << 4))) {
-#endif	/* CONFIG_HMI10 */
 		printf ("   No Card found\n");
 		return (1);
 	}

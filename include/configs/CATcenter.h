@@ -75,6 +75,9 @@
 #define CONFIG_4xx		1	/* ...member of PPC4xx family	*/
 #define CONFIG_PPCHAMELEONEVB	1	/* ...on a PPChameleonEVB board */
 
+#define	CONFIG_SYS_TEXT_BASE	0xFFFB0000	/* Reserve 320 kB for Monitor */
+#define CONFIG_SYS_LDSCRIPT	"board/dave/PPChameleonEVB/u-boot.lds"
+
 #define CONFIG_BOARD_EARLY_INIT_F 1	/* call board_early_init_f()	*/
 #define CONFIG_MISC_INIT_R	1	/* call misc_init_r()		*/
 
@@ -86,7 +89,11 @@
 # error "* External frequency (SysClk) not defined! *"
 #endif
 
-#define CONFIG_UART1_CONSOLE	1	/* Use second UART		*/
+#define CONFIG_CONS_INDEX	2	/* Use UART1			*/
+#define CONFIG_SYS_NS16550
+#define CONFIG_SYS_NS16550_SERIAL
+#define CONFIG_SYS_NS16550_REG_SIZE	1
+#define CONFIG_SYS_NS16550_CLK		get_serial_clock()
 #define CONFIG_BAUDRATE		115200
 #define CONFIG_BOOTDELAY	5	/* autoboot after 5 seconds	*/
 
@@ -105,8 +112,8 @@
 #define CONFIG_SYS_LOADS_BAUD_CHANGE	1	/* allow baudrate change	*/
 
 
+#define CONFIG_PPC4xx_EMAC
 #undef CONFIG_EXT_PHY
-#define CONFIG_NET_MULTI	1
 
 #define CONFIG_MII		1	/* MII PHY management		*/
 #ifndef	 CONFIG_EXT_PHY
@@ -398,6 +405,7 @@
  * I2C EEPROM (CAT24WC16) for environment
  */
 #define CONFIG_HARD_I2C			/* I2c with hardware support */
+#define CONFIG_PPC4XX_I2C		/* use PPC4xx driver		*/
 #define CONFIG_SYS_I2C_SPEED		400000	/* I2C speed and slave address */
 #define CONFIG_SYS_I2C_SLAVE		0x7F
 
@@ -409,16 +417,6 @@
 					/* 16 byte page write mode using*/
 					/* last 4 bits of the address	*/
 #define CONFIG_SYS_EEPROM_PAGE_WRITE_DELAY_MS	10   /* and takes up to 10 msec */
-
-/*-----------------------------------------------------------------------
- * Cache Configuration
- */
-#define CONFIG_SYS_DCACHE_SIZE		16384	/* For AMCC 405 CPUs, older 405 ppc's	*/
-					/* have only 8kB, 16kB is save here	*/
-#define CONFIG_SYS_CACHELINE_SIZE	32	/* ...			*/
-#if defined(CONFIG_CMD_KGDB)
-#define CONFIG_SYS_CACHELINE_SHIFT	5	/* log base 2 of the above value	*/
-#endif
 
 /*
  * Init Memory Controller:
@@ -516,10 +514,9 @@
 #define CONFIG_SYS_OCM_DATA_ADDR	0xF8000000
 #define CONFIG_SYS_OCM_DATA_SIZE	0x1000
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_OCM_DATA_ADDR /* inside of SDRAM		*/
-#define CONFIG_SYS_INIT_RAM_END	CONFIG_SYS_OCM_DATA_SIZE /* End of used area in RAM	*/
+#define CONFIG_SYS_INIT_RAM_SIZE	CONFIG_SYS_OCM_DATA_SIZE /* Size of used area in RAM	*/
 
-#define CONFIG_SYS_GBL_DATA_SIZE      128  /* size in bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET    (CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_OFFSET    (CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -535,23 +532,14 @@
  * GPIO0[30]	- EMAC0 input
  * GPIO0[31]	- EMAC1 reject packet as output
  */
-#define CONFIG_SYS_GPIO0_OSRH		0x40000550
-#define CONFIG_SYS_GPIO0_OSRL		0x00000110
-#define CONFIG_SYS_GPIO0_ISR1H		0x00000000
-/*#define CONFIG_SYS_GPIO0_ISR1L	0x15555445*/
-#define CONFIG_SYS_GPIO0_ISR1L		0x15555444
-#define CONFIG_SYS_GPIO0_TSRH		0x00000000
+#define CONFIG_SYS_GPIO0_OSRL		0x40000550
+#define CONFIG_SYS_GPIO0_OSRH		0x00000110
+#define CONFIG_SYS_GPIO0_ISR1L		0x00000000
+/*#define CONFIG_SYS_GPIO0_ISR1H	0x15555445*/
+#define CONFIG_SYS_GPIO0_ISR1H		0x15555444
 #define CONFIG_SYS_GPIO0_TSRL		0x00000000
+#define CONFIG_SYS_GPIO0_TSRH		0x00000000
 #define CONFIG_SYS_GPIO0_TCR		0xF7FF8014
-
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH	*/
-#define BOOTFLAG_WARM	0x02		/* Software reboot			*/
-
 
 #define CONFIG_NO_SERIAL_EEPROM
 
@@ -569,17 +557,6 @@
 #undef		AUTO_MEMORY_CONFIG
 #define		DIMM_READ_ADDR 0xAB
 #define		DIMM_WRITE_ADDR 0xAA
-
-#define CPC0_PLLMR0  (CNTRL_DCR_BASE+0x0)  /* PLL mode 0 register		*/
-#define CPC0_BOOT    (CNTRL_DCR_BASE+0x1)  /* Chip Clock Status register	*/
-#define CPC0_CR1     (CNTRL_DCR_BASE+0x2)  /* Chip Control 1 register		*/
-#define CPC0_EPRCSR  (CNTRL_DCR_BASE+0x3)  /* EMAC PHY Rcv Clk Src register	*/
-#define CPC0_PLLMR1  (CNTRL_DCR_BASE+0x4)  /* PLL mode 1 register		*/
-#define CPC0_UCR     (CNTRL_DCR_BASE+0x5)  /* UART Control register		*/
-#define CPC0_SRR     (CNTRL_DCR_BASE+0x6)  /* Soft Reset register		*/
-#define CPC0_JTAGID  (CNTRL_DCR_BASE+0x7)  /* JTAG ID register			*/
-#define CPC0_SPARE   (CNTRL_DCR_BASE+0x8)  /* Spare DCR				*/
-#define CPC0_PCI     (CNTRL_DCR_BASE+0x9)  /* PCI Control register		*/
 
 /* Defines for CPC0_PLLMR1 Register fields */
 #define PLL_ACTIVE		0x80000000

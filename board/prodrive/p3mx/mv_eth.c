@@ -99,9 +99,9 @@ int mv64460_eth_receive (struct eth_device *dev);
 
 int mv64460_eth_xmit (struct eth_device *, volatile void *packet, int length);
 
-int mv_miiphy_read(char *devname, unsigned char phy_addr,
+int mv_miiphy_read(const char *devname, unsigned char phy_addr,
 		   unsigned char phy_reg, unsigned short *value);
-int mv_miiphy_write(char *devname, unsigned char phy_addr,
+int mv_miiphy_write(const char *devname, unsigned char phy_addr,
 		    unsigned char phy_reg, unsigned short value);
 
 int phy_setup_aneg (char *devname, unsigned char addr);
@@ -298,7 +298,7 @@ void mv6446x_eth_initialize (bd_t * bis)
 			return;
 		}
 
-		temp = getenv_r (s, buf, sizeof (buf));
+		temp = getenv_f(s, buf, sizeof (buf));
 		s = (temp > 0) ? buf : NULL;
 
 #ifdef DEBUG
@@ -397,7 +397,7 @@ void mv6446x_eth_initialize (bd_t * bis)
 			return;
 		}
 
-		temp = getenv_r (s, buf, sizeof (buf));
+		temp = getenv_f(s, buf, sizeof (buf));
 		s = (temp > 0) ? buf : NULL;
 
 #ifdef DEBUG
@@ -468,7 +468,6 @@ static int mv64460_eth_real_open (struct eth_device *dev)
 	ETH_PORT_INFO *ethernet_private;
 	struct mv64460_eth_priv *port_private;
 	unsigned int port_num;
-	u32 port_status;
 	ushort reg_short;
 	int speed;
 	int duplex;
@@ -569,7 +568,7 @@ static int mv64460_eth_real_open (struct eth_device *dev)
 	 */
 
 	MV_REG_WRITE (MV64460_ETH_MAXIMUM_TRANSMIT_UNIT (port_num), 0);
-	port_status = MV_REG_READ (MV64460_ETH_PORT_STATUS_REG (port_num));
+	MV_REG_READ (MV64460_ETH_PORT_STATUS_REG (port_num));
 
 #if defined(CONFIG_PHY_RESET)
 	/*
@@ -586,16 +585,16 @@ static int mv64460_eth_real_open (struct eth_device *dev)
 	}
 #endif /* defined(CONFIG_PHY_RESET) */
 
-	miiphy_read (dev->name, reg, PHY_BMSR, &reg_short);
+	miiphy_read (dev->name, reg, MII_BMSR, &reg_short);
 
 	/*
 	 * Wait if PHY is capable of autonegotiation and autonegotiation is not complete
 	 */
-	if ((reg_short & PHY_BMSR_AUTN_ABLE)
-	    && !(reg_short & PHY_BMSR_AUTN_COMP)) {
+	if ((reg_short & BMSR_ANEGCAPABLE)
+	    && !(reg_short & BMSR_ANEGCOMPLETE)) {
 		puts ("Waiting for PHY auto negotiation to complete");
 		i = 0;
-		while (!(reg_short & PHY_BMSR_AUTN_COMP)) {
+		while (!(reg_short & BMSR_ANEGCOMPLETE)) {
 			/*
 			 * Timeout reached ?
 			 */
@@ -608,7 +607,7 @@ static int mv64460_eth_real_open (struct eth_device *dev)
 				putc ('.');
 			}
 			udelay (1000);	/* 1 ms */
-			miiphy_read (dev->name, reg, PHY_BMSR, &reg_short);
+			miiphy_read (dev->name, reg, MII_BMSR, &reg_short);
 
 		}
 		puts (" done\n");
@@ -717,15 +716,6 @@ static int mv64460_eth_free_rx_rings (struct eth_device *dev)
 
 int mv64460_eth_stop (struct eth_device *dev)
 {
-	ETH_PORT_INFO *ethernet_private;
-	struct mv64460_eth_priv *port_private;
-	unsigned int port_num;
-
-	ethernet_private = (ETH_PORT_INFO *) dev->priv;
-	port_private =
-		(struct mv64460_eth_priv *) ethernet_private->port_private;
-	port_num = port_private->port_num;
-
 	/* Disable all gigE address decoder */
 	MV_REG_WRITE (MV64460_ETH_BASE_ADDR_ENABLE_REG, 0x3f);
 	DP (printf ("%s Ethernet stop called ... \n", __FUNCTION__));
@@ -793,7 +783,6 @@ int mv64460_eth_xmit (struct eth_device *dev, volatile void *dataPtr,
 {
 	ETH_PORT_INFO *ethernet_private;
 	struct mv64460_eth_priv *port_private;
-	unsigned int port_num;
 	PKT_INFO pkt_info;
 	ETH_FUNC_RET_STATUS status;
 	struct net_device_stats *stats;
@@ -802,7 +791,6 @@ int mv64460_eth_xmit (struct eth_device *dev, volatile void *dataPtr,
 	ethernet_private = (ETH_PORT_INFO *) dev->priv;
 	port_private =
 		(struct mv64460_eth_priv *) ethernet_private->port_private;
-	port_num = port_private->port_num;
 
 	stats = port_private->stats;
 
@@ -874,13 +862,11 @@ int mv64460_eth_receive (struct eth_device *dev)
 {
 	ETH_PORT_INFO *ethernet_private;
 	struct mv64460_eth_priv *port_private;
-	unsigned int port_num;
 	PKT_INFO pkt_info;
 	struct net_device_stats *stats;
 
 	ethernet_private = (ETH_PORT_INFO *) dev->priv;
 	port_private = (struct mv64460_eth_priv *) ethernet_private->port_private;
-	port_num = port_private->port_num;
 	stats = port_private->stats;
 
 	while ((eth_port_receive (ethernet_private, ETH_Q0, &pkt_info) == ETH_OK)) {
@@ -976,12 +962,10 @@ static struct net_device_stats *mv64460_eth_get_stats (struct eth_device *dev)
 {
 	ETH_PORT_INFO *ethernet_private;
 	struct mv64460_eth_priv *port_private;
-	unsigned int port_num;
 
 	ethernet_private = (ETH_PORT_INFO *) dev->priv;
 	port_private =
 		(struct mv64460_eth_priv *) ethernet_private->port_private;
-	port_num = port_private->port_num;
 
 	mv64460_eth_update_stat (dev);
 
@@ -1002,13 +986,10 @@ static void mv64460_eth_update_stat (struct eth_device *dev)
 	ETH_PORT_INFO *ethernet_private;
 	struct mv64460_eth_priv *port_private;
 	struct net_device_stats *stats;
-	unsigned int port_num;
-	volatile unsigned int dummy;
 
 	ethernet_private = (ETH_PORT_INFO *) dev->priv;
 	port_private =
 		(struct mv64460_eth_priv *) ethernet_private->port_private;
-	port_num = port_private->port_num;
 	stats = port_private->stats;
 
 	/* These are false updates */
@@ -1031,12 +1012,12 @@ static void mv64460_eth_update_stat (struct eth_device *dev)
 	 * But the unsigned long in PowerPC and MIPS are 32bit. So the next read
 	 * is just a dummy read for proper work of the GigE port
 	 */
-	dummy = eth_read_mib_counter (ethernet_private->port_num,
+	(void)eth_read_mib_counter (ethernet_private->port_num,
 				      ETH_MIB_GOOD_OCTETS_RECEIVED_HIGH);
 	stats->tx_bytes += (unsigned long)
 		eth_read_mib_counter (ethernet_private->port_num,
 				      ETH_MIB_GOOD_OCTETS_SENT_LOW);
-	dummy = eth_read_mib_counter (ethernet_private->port_num,
+	(void)eth_read_mib_counter (ethernet_private->port_num,
 				      ETH_MIB_GOOD_OCTETS_SENT_HIGH);
 	stats->rx_errors += (unsigned long)
 		eth_read_mib_counter (ethernet_private->port_num,
@@ -1084,12 +1065,10 @@ static void mv64460_eth_print_stat (struct eth_device *dev)
 	ETH_PORT_INFO *ethernet_private;
 	struct mv64460_eth_priv *port_private;
 	struct net_device_stats *stats;
-	unsigned int port_num;
 
 	ethernet_private = (ETH_PORT_INFO *) dev->priv;
 	port_private =
 		(struct mv64460_eth_priv *) ethernet_private->port_private;
-	port_num = port_private->port_num;
 	stats = port_private->stats;
 
 	/* These are false updates */
@@ -2138,13 +2117,13 @@ static void eth_port_init_mac_tables (ETH_PORT eth_port_num)
 static void eth_clear_mib_counters (ETH_PORT eth_port_num)
 {
 	int i;
-	unsigned int dummy;
 
 	/* Perform dummy reads from MIB counters */
 	for (i = ETH_MIB_GOOD_OCTETS_RECEIVED_LOW; i < ETH_MIB_LATE_COLLISION;
-	     i += 4)
-		dummy = MV_REG_READ ((MV64460_ETH_MIB_COUNTERS_BASE
+	     i += 4) {
+		(void)MV_REG_READ ((MV64460_ETH_MIB_COUNTERS_BASE
 				      (eth_port_num) + i));
+	}
 
 	return;
 }
@@ -2241,20 +2220,20 @@ int phy_setup_aneg (char *devname, unsigned char addr)
 	unsigned short ctl, adv;
 
 	/* Setup standard advertise */
-	miiphy_read (devname, addr, PHY_ANAR, &adv);
-	adv |= (PHY_ANLPAR_ACK | PHY_ANLPAR_RF | PHY_ANLPAR_T4 |
-		PHY_ANLPAR_TXFD | PHY_ANLPAR_TX | PHY_ANLPAR_10FD |
-		PHY_ANLPAR_10);
-	miiphy_write (devname, addr, PHY_ANAR, adv);
+	miiphy_read (devname, addr, MII_ADVERTISE, &adv);
+	adv |= (LPA_LPACK | LPA_RFAULT | LPA_100BASE4 |
+		LPA_100FULL | LPA_100HALF | LPA_10FULL |
+		LPA_10HALF);
+	miiphy_write (devname, addr, MII_ADVERTISE, adv);
 
-	miiphy_read (devname, addr, PHY_1000BTCR, &adv);
+	miiphy_read (devname, addr, MII_CTRL1000, &adv);
 	adv |= (0x0300);
-	miiphy_write (devname, addr, PHY_1000BTCR, adv);
+	miiphy_write (devname, addr, MII_CTRL1000, adv);
 
 	/* Start/Restart aneg */
-	miiphy_read (devname, addr, PHY_BMCR, &ctl);
-	ctl |= (PHY_BMCR_AUTON | PHY_BMCR_RST_NEG);
-	miiphy_write (devname, addr, PHY_BMCR, ctl);
+	miiphy_read (devname, addr, MII_BMCR, &ctl);
+	ctl |= (BMCR_ANENABLE | BMCR_ANRESTART);
+	miiphy_write (devname, addr, MII_BMCR, ctl);
 
 	return 0;
 }
@@ -2544,7 +2523,7 @@ static bool eth_port_read_smi_reg (ETH_PORT eth_port_num,
 	return true;
 }
 
-int mv_miiphy_read(char *devname, unsigned char phy_addr,
+int mv_miiphy_read(const char *devname, unsigned char phy_addr,
 		   unsigned char phy_reg, unsigned short *value)
 {
 	unsigned int reg_value;
@@ -2629,7 +2608,7 @@ static bool eth_port_write_smi_reg (ETH_PORT eth_port_num,
 	return true;
 }
 
-int mv_miiphy_write(char *devname, unsigned char phy_addr,
+int mv_miiphy_write(const char *devname, unsigned char phy_addr,
 		    unsigned char phy_reg, unsigned short value)
 {
 	unsigned int reg_value;

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2000-2002
+ * (C) Copyright 2000-2010
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
  * (C) Copyright 2001 Sysgo Real-Time Solutions, GmbH <www.elinos.com>
@@ -44,111 +44,95 @@
 #include <command.h>
 #include <environment.h>
 #include <linux/stddef.h>
+#include <search.h>
+#include <errno.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
 #ifdef CONFIG_SYS_NVRAM_ACCESS_ROUTINE
 extern void *nvram_read(void *dest, const long src, size_t count);
 extern void nvram_write(long dest, const void *src, size_t count);
-env_t *env_ptr = NULL;
+env_t *env_ptr;
 #else
 env_t *env_ptr = (env_t *)CONFIG_ENV_ADDR;
 #endif
 
-char * env_name_spec = "NVRAM";
+char *env_name_spec = "NVRAM";
 
-extern uchar default_environment[];
-
-#ifdef CONFIG_AMIGAONEG3SE
-uchar env_get_char_spec (int index)
+uchar env_get_char_spec(int index)
 {
 #ifdef CONFIG_SYS_NVRAM_ACCESS_ROUTINE
 	uchar c;
 
-	nvram_read(&c, CONFIG_ENV_ADDR+index, 1);
-
-	return c;
-#else
-	uchar retval;
-	enable_nvram();
-	retval = *((uchar *)(gd->env_addr + index));
-	disable_nvram();
-	return retval;
-#endif
-}
-#else
-uchar env_get_char_spec (int index)
-{
-#ifdef CONFIG_SYS_NVRAM_ACCESS_ROUTINE
-	uchar c;
-
-	nvram_read(&c, CONFIG_ENV_ADDR+index, 1);
+	nvram_read(&c, CONFIG_ENV_ADDR + index, 1);
 
 	return c;
 #else
 	return *((uchar *)(gd->env_addr + index));
 #endif
 }
-#endif
 
-void env_relocate_spec (void)
+void env_relocate_spec(void)
 {
+	char buf[CONFIG_ENV_SIZE];
+
 #if defined(CONFIG_SYS_NVRAM_ACCESS_ROUTINE)
-	nvram_read(env_ptr, CONFIG_ENV_ADDR, CONFIG_ENV_SIZE);
+	nvram_read(buf, CONFIG_ENV_ADDR, CONFIG_ENV_SIZE);
 #else
-	memcpy (env_ptr, (void*)CONFIG_ENV_ADDR, CONFIG_ENV_SIZE);
+	memcpy(buf, (void *)CONFIG_ENV_ADDR, CONFIG_ENV_SIZE);
 #endif
+	env_import(buf, 1);
 }
 
-int saveenv (void)
+int saveenv(void)
 {
-	int rcode = 0;
-#ifdef CONFIG_AMIGAONEG3SE
-	enable_nvram();
-#endif
+	env_t	env_new;
+	ssize_t	len;
+	char	*res;
+	int	rcode = 0;
+
+	res = (char *)&env_new.data;
+	len = hexport_r(&env_htab, '\0', &res, ENV_SIZE, 0, NULL);
+	if (len < 0) {
+		error("Cannot export environment: errno = %d\n", errno);
+		return 1;
+	}
+	env_new.crc = crc32(0, env_new.data, ENV_SIZE);
+
 #ifdef CONFIG_SYS_NVRAM_ACCESS_ROUTINE
-	nvram_write(CONFIG_ENV_ADDR, env_ptr, CONFIG_ENV_SIZE);
+	nvram_write(CONFIG_ENV_ADDR, &env_new, CONFIG_ENV_SIZE);
 #else
-	if (memcpy ((char *)CONFIG_ENV_ADDR, env_ptr, CONFIG_ENV_SIZE) == NULL)
-		    rcode = 1 ;
-#endif
-#ifdef CONFIG_AMIGAONEG3SE
-	udelay(10000);
-	disable_nvram();
+	if (memcpy((char *)CONFIG_ENV_ADDR, &env_new, CONFIG_ENV_SIZE) == NULL)
+		rcode = 1;
 #endif
 	return rcode;
 }
 
-
-/************************************************************************
+/*
  * Initialize Environment use
  *
  * We are still running from ROM, so data use is limited
  */
-int env_init (void)
+int env_init(void)
 {
-#ifdef CONFIG_AMIGAONEG3SE
-	enable_nvram();
-#endif
 #if defined(CONFIG_SYS_NVRAM_ACCESS_ROUTINE)
 	ulong crc;
 	uchar data[ENV_SIZE];
-	nvram_read (&crc, CONFIG_ENV_ADDR, sizeof(ulong));
-	nvram_read (data, CONFIG_ENV_ADDR+sizeof(ulong), ENV_SIZE);
+
+	nvram_read(&crc, CONFIG_ENV_ADDR, sizeof(ulong));
+	nvram_read(data, CONFIG_ENV_ADDR + sizeof(ulong), ENV_SIZE);
 
 	if (crc32(0, data, ENV_SIZE) == crc) {
-		gd->env_addr  = (ulong)CONFIG_ENV_ADDR + sizeof(long);
+		gd->env_addr	= (ulong)CONFIG_ENV_ADDR + sizeof(long);
 #else
 	if (crc32(0, env_ptr->data, ENV_SIZE) == env_ptr->crc) {
-		gd->env_addr  = (ulong)&(env_ptr->data);
+		gd->env_addr	= (ulong)&env_ptr->data;
 #endif
-		gd->env_valid = 1;
+		gd->env_valid	= 1;
 	} else {
-		gd->env_addr  = (ulong)&default_environment[0];
-		gd->env_valid = 0;
+		gd->env_addr	= (ulong)&default_environment[0];
+		gd->env_valid	= 0;
 	}
-#ifdef CONFIG_AMIGAONEG3SE
-	disable_nvram();
-#endif
-	return (0);
+
+	return 0;
 }

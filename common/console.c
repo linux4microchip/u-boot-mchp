@@ -29,10 +29,6 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#ifdef CONFIG_AMIGAONEG3SE
-int console_changed = 0;
-#endif
-
 #ifdef CONFIG_SYS_CONSOLE_IS_IN_ENV
 /*
  * if overwrite_console returns 1, the stdin, stderr and stdout
@@ -205,7 +201,7 @@ static inline void console_doenv(int file, struct stdio_dev *dev)
 
 /** U-Boot INITIAL CONSOLE-NOT COMPATIBLE FUNCTIONS *************************/
 
-void serial_printf(const char *fmt, ...)
+int serial_printf(const char *fmt, ...)
 {
 	va_list args;
 	uint i;
@@ -220,6 +216,7 @@ void serial_printf(const char *fmt, ...)
 	va_end(args);
 
 	serial_puts(printbuffer);
+	return i;
 }
 
 int fgetc(int file)
@@ -273,7 +270,7 @@ void fputs(int file, const char *s)
 		console_puts(file, s);
 }
 
-void fprintf(int file, const char *fmt, ...)
+int fprintf(int file, const char *fmt, ...)
 {
 	va_list args;
 	uint i;
@@ -289,6 +286,7 @@ void fprintf(int file, const char *fmt, ...)
 
 	/* Send to desired file */
 	fputs(file, printbuffer);
+	return i;
 }
 
 /** U-Boot INITIAL CONSOLE-COMPATIBLE FUNCTION *****************************/
@@ -299,6 +297,9 @@ int getc(void)
 	if (gd->flags & GD_FLG_DISABLE_CONSOLE)
 		return 0;
 #endif
+
+	if (!gd->have_console)
+		return 0;
 
 	if (gd->flags & GD_FLG_DEVINIT) {
 		/* Get from the standard input */
@@ -316,6 +317,9 @@ int tstc(void)
 		return 0;
 #endif
 
+	if (!gd->have_console)
+		return 0;
+
 	if (gd->flags & GD_FLG_DEVINIT) {
 		/* Test the standard input */
 		return ftstc(stdin);
@@ -324,6 +328,47 @@ int tstc(void)
 	/* Send directly to the handler */
 	return serial_tstc();
 }
+
+#if defined(CONFIG_PRE_CONSOLE_BUFFER) || defined(CONFIG_PRE_CONSOLE_PUTC)
+#define CIRC_BUF_IDX(idx) ((idx) % (unsigned long)CONFIG_PRE_CON_BUF_SZ)
+
+static void pre_console_putc(const char c)
+{
+#ifdef CONFIG_PRE_CONSOLE_BUFFER
+	char *buffer = (char *)CONFIG_PRE_CON_BUF_ADDR;
+
+	buffer[CIRC_BUF_IDX(gd->precon_buf_idx++)] = c;
+#endif
+#ifdef CONFIG_PRE_CONSOLE_PUTC
+	board_pre_console_putc(c);
+#endif
+}
+
+static void pre_console_puts(const char *s)
+{
+	while (*s)
+		pre_console_putc(*s++);
+}
+
+static void print_pre_console_buffer(void)
+{
+#ifdef CONFIG_PRE_CONSOLE_BUFFER
+	unsigned long i = 0;
+	char *buffer = (char *)CONFIG_PRE_CON_BUF_ADDR;
+
+	if (gd->precon_buf_idx > CONFIG_PRE_CON_BUF_SZ)
+		i = gd->precon_buf_idx - CONFIG_PRE_CON_BUF_SZ;
+
+	while (i < gd->precon_buf_idx)
+		putc(buffer[CIRC_BUF_IDX(i++)]);
+#endif
+}
+
+#else
+static inline void pre_console_putc(const char c) {}
+static inline void pre_console_puts(const char *s) {}
+static inline void print_pre_console_buffer(void) {}
+#endif
 
 void putc(const char c)
 {
@@ -336,6 +381,9 @@ void putc(const char c)
 	if (gd->flags & GD_FLG_DISABLE_CONSOLE)
 		return;
 #endif
+
+	if (!gd->have_console)
+		return pre_console_putc(c);
 
 	if (gd->flags & GD_FLG_DEVINIT) {
 		/* Send to the standard output */
@@ -358,6 +406,9 @@ void puts(const char *s)
 		return;
 #endif
 
+	if (!gd->have_console)
+		return pre_console_puts(s);
+
 	if (gd->flags & GD_FLG_DEVINIT) {
 		/* Send to the standard output */
 		fputs(stdout, s);
@@ -367,11 +418,16 @@ void puts(const char *s)
 	}
 }
 
-void printf(const char *fmt, ...)
+int printf(const char *fmt, ...)
 {
 	va_list args;
 	uint i;
 	char printbuffer[CONFIG_SYS_PBSIZE];
+
+#ifndef CONFIG_PRE_CONSOLE_BUFFER
+	if (!gd->have_console)
+		return 0;
+#endif
 
 	va_start(args, fmt);
 
@@ -383,12 +439,18 @@ void printf(const char *fmt, ...)
 
 	/* Print the string */
 	puts(printbuffer);
+	return i;
 }
 
-void vprintf(const char *fmt, va_list args)
+int vprintf(const char *fmt, va_list args)
 {
 	uint i;
 	char printbuffer[CONFIG_SYS_PBSIZE];
+
+#ifndef CONFIG_PRE_CONSOLE_BUFFER
+	if (!gd->have_console)
+		return 0;
+#endif
 
 	/* For this to work, printbuffer must be larger than
 	 * anything we ever want to print.
@@ -397,6 +459,7 @@ void vprintf(const char *fmt, va_list args)
 
 	/* Print the string */
 	puts(printbuffer);
+	return i;
 }
 
 /* test if ctrl-c was pressed */
@@ -479,7 +542,7 @@ inline void dbg(const char *fmt, ...)
 
 /** U-Boot INIT FUNCTIONS *************************************************/
 
-struct stdio_dev *search_device(int flags, char *name)
+struct stdio_dev *search_device(int flags, const char *name)
 {
 	struct stdio_dev *dev;
 
@@ -491,7 +554,7 @@ struct stdio_dev *search_device(int flags, char *name)
 	return NULL;
 }
 
-int console_assign(int file, char *devname)
+int console_assign(int file, const char *devname)
 {
 	int flag;
 	struct stdio_dev *dev;
@@ -528,6 +591,8 @@ int console_init_f(void)
 	if (getenv("silent") != NULL)
 		gd->flags |= GD_FLG_SILENT;
 #endif
+
+	print_pre_console_buffer();
 
 	return 0;
 }

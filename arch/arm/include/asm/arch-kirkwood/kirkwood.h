@@ -27,13 +27,7 @@
 #ifndef _ASM_ARCH_KIRKWOOD_H
 #define _ASM_ARCH_KIRKWOOD_H
 
-#ifndef __ASSEMBLY__
-#include <asm/types.h>
-#include <asm/io.h>
-#endif /* __ASSEMBLY__ */
-
 #if defined (CONFIG_FEROCEON_88FR131) || defined (CONFIG_SHEEVA_88SV131)
-#include <asm/arch/cpu.h>
 
 /* SOC specific definations */
 #define INTREG_BASE			0xd0000000
@@ -50,6 +44,7 @@
 #define KW_MPP_BASE			(KW_REGISTER(0x10000))
 #define KW_GPIO0_BASE			(KW_REGISTER(0x10100))
 #define KW_GPIO1_BASE			(KW_REGISTER(0x10140))
+#define KW_RTC_BASE			(KW_REGISTER(0x10300))
 #define KW_NANDF_BASE			(KW_REGISTER(0x10418))
 #define KW_SPI_BASE			(KW_REGISTER(0x10600))
 #define KW_CPU_WIN_BASE			(KW_REGISTER(0x20000))
@@ -59,6 +54,16 @@
 #define KW_USB20_BASE			(KW_REGISTER(0x50000))
 #define KW_EGIGA0_BASE			(KW_REGISTER(0x72000))
 #define KW_EGIGA1_BASE			(KW_REGISTER(0x76000))
+#define KW_SATA_BASE			(KW_REGISTER(0x80000))
+
+/* Kirkwood Sata controller has two ports */
+#define KW_SATA_PORT0_OFFSET		0x2000
+#define KW_SATA_PORT1_OFFSET		0x4000
+
+/* Kirkwood GbE controller has two ports */
+#define MAX_MVGBE_DEVS	2
+#define MVGBE0_BASE	KW_EGIGA0_BASE
+#define MVGBE1_BASE	KW_EGIGA1_BASE
 
 #if defined (CONFIG_KW88F6281)
 #include <asm/arch/kw88f6281.h>

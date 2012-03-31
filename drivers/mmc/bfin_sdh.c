@@ -15,10 +15,11 @@
 #include <asm/errno.h>
 #include <asm/byteorder.h>
 #include <asm/blackfin.h>
+#include <asm/portmux.h>
 #include <asm/mach-common/bits/sdh.h>
 #include <asm/mach-common/bits/dma.h>
 
-#if defined(__ADSPBF51x__)
+#if defined(__ADSPBF50x__) || defined(__ADSPBF51x__)
 # define bfin_read_SDH_PWR_CTL		bfin_read_RSI_PWR_CONTROL
 # define bfin_write_SDH_PWR_CTL		bfin_write_RSI_PWR_CONTROL
 # define bfin_read_SDH_CLK_CTL		bfin_read_RSI_CLK_CONTROL
@@ -41,11 +42,15 @@
 # define bfin_write_DMA_X_COUNT		bfin_write_DMA4_X_COUNT
 # define bfin_write_DMA_X_MODIFY	bfin_write_DMA4_X_MODIFY
 # define bfin_write_DMA_CONFIG		bfin_write_DMA4_CONFIG
+# define PORTMUX_PINS \
+	{ P_RSI_DATA0, P_RSI_DATA1, P_RSI_DATA2, P_RSI_DATA3, P_RSI_CMD, P_RSI_CLK, 0 }
 #elif defined(__ADSPBF54x__)
 # define bfin_write_DMA_START_ADDR	bfin_write_DMA22_START_ADDR
 # define bfin_write_DMA_X_COUNT		bfin_write_DMA22_X_COUNT
 # define bfin_write_DMA_X_MODIFY	bfin_write_DMA22_X_MODIFY
 # define bfin_write_DMA_CONFIG		bfin_write_DMA22_CONFIG
+# define PORTMUX_PINS \
+	{ P_SD_D0, P_SD_D1, P_SD_D2, P_SD_D3, P_SD_CLK, P_SD_CMD, 0 }
 #else
 # error no support for this proc yet
 #endif
@@ -53,27 +58,29 @@
 static int
 sdh_send_cmd(struct mmc *mmc, struct mmc_cmd *mmc_cmd)
 {
-	unsigned int sdh_cmd;
-	unsigned int status;
+	unsigned int status, timeout;
 	int cmd = mmc_cmd->cmdidx;
 	int flags = mmc_cmd->resp_type;
 	int arg = mmc_cmd->cmdarg;
-	int ret = 0;
-	sdh_cmd = 0;
+	int ret;
+	u16 sdh_cmd;
 
-	sdh_cmd |= cmd;
-
+	sdh_cmd = cmd | CMD_E;
 	if (flags & MMC_RSP_PRESENT)
 		sdh_cmd |= CMD_RSP;
-
 	if (flags & MMC_RSP_136)
 		sdh_cmd |= CMD_L_RSP;
 
 	bfin_write_SDH_ARGUMENT(arg);
-	bfin_write_SDH_COMMAND(sdh_cmd | CMD_E);
+	bfin_write_SDH_COMMAND(sdh_cmd);
 
 	/* wait for a while */
+	timeout = 0;
 	do {
+		if (++timeout > 1000000) {
+			status = CMD_TIME_OUT;
+			break;
+		}
 		udelay(1);
 		status = bfin_read_SDH_STATUS();
 	} while (!(status & (CMD_SENT | CMD_RESP_END | CMD_TIME_OUT |
@@ -89,12 +96,15 @@ sdh_send_cmd(struct mmc *mmc, struct mmc_cmd *mmc_cmd)
 	}
 
 	if (status & CMD_TIME_OUT)
-		ret |= TIMEOUT;
+		ret = TIMEOUT;
 	else if (status & CMD_CRC_FAIL && flags & MMC_RSP_CRC)
-		ret |= COMM_ERR;
+		ret = COMM_ERR;
+	else
+		ret = 0;
 
 	bfin_write_SDH_STATUS_CLR(CMD_SENT_STAT | CMD_RESP_END_STAT |
 				CMD_TIMEOUT_STAT | CMD_CRC_FAIL_STAT);
+
 	return ret;
 }
 
@@ -104,25 +114,26 @@ static int sdh_setup_data(struct mmc *mmc, struct mmc_data *data)
 	u16 data_ctl = 0;
 	u16 dma_cfg = 0;
 	int ret = 0;
+	unsigned long data_size = data->blocksize * data->blocks;
 
 	/* Don't support write yet. */
 	if (data->flags & MMC_DATA_WRITE)
 		return UNUSABLE_ERR;
-	data_ctl |= ((ffs(data->blocksize) - 1) << 4);
+	data_ctl |= ((ffs(data_size) - 1) << 4);
 	data_ctl |= DTX_DIR;
 	bfin_write_SDH_DATA_CTL(data_ctl);
 	dma_cfg = WDSIZE_32 | RESTART | WNR | DMAEN;
 
-	bfin_write_SDH_DATA_TIMER(0xFFFF);
+	bfin_write_SDH_DATA_TIMER(-1);
 
 	blackfin_dcache_flush_invalidate_range(data->dest,
-			data->dest + data->blocksize);
+			data->dest + data_size);
 	/* configure DMA */
 	bfin_write_DMA_START_ADDR(data->dest);
-	bfin_write_DMA_X_COUNT(data->blocksize / 4);
+	bfin_write_DMA_X_COUNT(data_size / 4);
 	bfin_write_DMA_X_MODIFY(4);
 	bfin_write_DMA_CONFIG(dma_cfg);
-	bfin_write_SDH_DATA_LGTH(data->blocksize);
+	bfin_write_SDH_DATA_LGTH(data_size);
 	/* kick off transfer */
 	bfin_write_SDH_DATA_CTL(bfin_read_SDH_DATA_CTL() | DTX_DMA_E | DTX_E);
 
@@ -208,18 +219,13 @@ static void bfin_sdh_set_ios(struct mmc *mmc)
 
 static int bfin_sdh_init(struct mmc *mmc)
 {
-
+	const unsigned short pins[] = PORTMUX_PINS;
 	u16 pwr_ctl = 0;
-/* Initialize sdh controller */
+
+	/* Initialize sdh controller */
+	peripheral_request_list(pins, "bfin_sdh");
 #if defined(__ADSPBF54x__)
 	bfin_write_DMAC1_PERIMUX(bfin_read_DMAC1_PERIMUX() | 0x1);
-	bfin_write_PORTC_FER(bfin_read_PORTC_FER() | 0x3F00);
-	bfin_write_PORTC_MUX(bfin_read_PORTC_MUX() & ~0xFFF0000);
-#elif defined(__ADSPBF51x__)
-	bfin_write_PORTG_FER(bfin_read_PORTG_FER() | 0x01F8);
-	bfin_write_PORTG_MUX((bfin_read_PORTG_MUX() & ~0x3FC) | 0x154);
-#else
-# error no portmux for this proc yet
 #endif
 	bfin_write_SDH_CFG(bfin_read_SDH_CFG() | CLKS_EN);
 	/* Disable card detect pin */
@@ -250,6 +256,8 @@ int bfin_mmc_init(bd_t *bis)
 	mmc->f_max = get_sclk();
 	mmc->f_min = mmc->f_max >> 9;
 	mmc->block_dev.part_type = PART_TYPE_DOS;
+
+	mmc->b_max = 0;
 
 	mmc_register(mmc);
 

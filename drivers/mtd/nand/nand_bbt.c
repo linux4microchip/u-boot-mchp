@@ -58,19 +58,6 @@
 
 #include <asm/errno.h>
 
-/* XXX U-BOOT XXX */
-#if 0
-#include <linux/slab.h>
-#include <linux/types.h>
-#include <linux/mtd/mtd.h>
-#include <linux/mtd/nand.h>
-#include <linux/mtd/nand_ecc.h>
-#include <linux/mtd/compatmac.h>
-#include <linux/bitops.h>
-#include <linux/delay.h>
-#include <linux/vmalloc.h>
-#endif
-
 /**
  * check_pattern - [GENERIC] check if a pattern is in the buffer
  * @buf:	the buffer to search
@@ -475,7 +462,7 @@ static int search_bbt(struct mtd_info *mtd, uint8_t *buf, struct nand_bbt_descr 
 {
 	struct nand_chip *this = mtd->priv;
 	int i, chips;
-	int bits, startblock, block, dir;
+	int startblock, block, dir;
 	int scanlen = mtd->writesize + mtd->oobsize;
 	int bbtblocks;
 	int blocktopage = this->bbt_erase_shift - this->page_shift;
@@ -498,9 +485,6 @@ static int search_bbt(struct mtd_info *mtd, uint8_t *buf, struct nand_bbt_descr 
 		chips = 1;
 		bbtblocks = mtd->size >> this->bbt_erase_shift;
 	}
-
-	/* Number of bits for each erase block in the bbt */
-	bits = td->options & NAND_BBT_NRBITS_MSK;
 
 	for (i = 0; i < chips; i++) {
 		/* Reset version information */
@@ -1231,9 +1215,3 @@ int nand_isbad_bbt(struct mtd_info *mtd, loff_t offs, int allowbbt)
 	}
 	return 1;
 }
-
-/* XXX U-BOOT XXX */
-#if 0
-EXPORT_SYMBOL(nand_scan_bbt);
-EXPORT_SYMBOL(nand_default_bbt);
-#endif

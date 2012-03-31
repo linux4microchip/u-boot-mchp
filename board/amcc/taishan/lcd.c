@@ -35,8 +35,6 @@
 #define LCD_DATA_ADDR		((volatile char *)(CONFIG_SYS_EBC2_LCM_BASE+1))
 #define LCD_BLK_CTRL		((volatile char *)(CONFIG_SYS_EBC1_FPGA_BASE+0x2))
 
-#define mdelay(t)	({unsigned long msec=(t); while (msec--) { udelay(1000);}})
-
 static int g_lcd_init_b = 0;
 static char *amcc_logo = "  AMCC TAISHAN  440GX EvalBoard";
 static char addr_flag = 0x80;
@@ -152,46 +150,42 @@ int lcd_init(void)
 	return 0;
 }
 
-static int do_lcd_test(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+static int do_lcd_test(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	lcd_init();
 	return 0;
 }
 
-static int do_lcd_clear(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+static int do_lcd_clear(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	*LCD_CMD_ADDR = 0x01;
 	mdelay(LCD_DELAY_NORMAL_MS);
 	return 0;
 }
-static int do_lcd_puts(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+static int do_lcd_puts(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
-	if (argc < 2) {
-		cmd_usage(cmdtp);
-		return 1;
-	}
+	if (argc < 2)
+		return cmd_usage(cmdtp);
+
 	lcd_puts(argv[1]);
 	return 0;
 }
-static int do_lcd_putc(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+static int do_lcd_putc(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
-	if (argc < 2) {
-		cmd_usage(cmdtp);
-		return 1;
-	}
+	if (argc < 2)
+		return cmd_usage(cmdtp);
+
 	lcd_putc((char)argv[1][0]);
 	return 0;
 }
-static int do_lcd_cur(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+static int do_lcd_cur(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	ulong count;
 	ulong dir;
 	char cur_addr;
 
-	if (argc < 3) {
-		cmd_usage(cmdtp);
-		return 1;
-	}
+	if (argc < 3)
+		return cmd_usage(cmdtp);
 
 	count = simple_strtoul(argv[1], NULL, 16);
 	if (count > 31) {
@@ -356,7 +350,7 @@ void set_phy_normal_mode(void)
 }
 #endif	/* 0 - test only */
 
-static int do_led_test_off(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+static int do_led_test_off(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	volatile unsigned int *GpioOr =
 		(volatile unsigned int *)(CONFIG_SYS_PERIPHERAL_BASE + 0x700);
@@ -364,7 +358,7 @@ static int do_led_test_off(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	return 0;
 }
 
-static int do_led_test_on(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+static int do_led_test_on(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	volatile unsigned int *GpioOr =
 		(volatile unsigned int *)(CONFIG_SYS_PERIPHERAL_BASE + 0x700);

@@ -115,7 +115,7 @@
 		"bootm ${kernel_addr} ${ramdisk_addr}\0"		\
 	"net_nfs=tftp 40000000 ${bootfile};run nfsargs addip;bootm\0"	\
 	"scratch=40800000\0"					\
-	"getkernel=tftpboot \$\(scratch\)\ \$\(bootfile\)\0" \
+	"getkernel=tftpboot $(scratch) $(bootfile)\0" \
 	"bootargs=console=ttyS0,38400 root=/dev/nfs rw nfsroot=192.168.0.20:/export/rootfs ip=192.168.0.207:192.168.0.20:192.168.0.1:255.255.255.0:ml401:eth0\0" \
 	""
 
@@ -123,9 +123,9 @@
 #define CONFIG_GATEWAYIP 192.168.0.1
 #define CONFIG_SERVERIP 192.168.0.20
 #define CONFIG_IPADDR 192.168.0.207
-#define CONFIG_ROOTPATH /export/rootfs
+#define CONFIG_ROOTPATH "/export/rootfs"
 #define CONFIG_HOSTNAME  ml401
-#define CONFIG_BOOTFILE  /uImage
+#define CONFIG_BOOTFILE "/uImage"
 
 #define CONFIG_BOOTCOMMAND	"run flash_self"
 
@@ -229,16 +229,15 @@
 #define CONFIG_SYS_RAM_SIZE CONFIG_SYS_SDRAM_SIZE
 #define CONFIG_SYS_RAM_END CONFIG_SYS_SDRAM_END
 
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_SDRAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_SDRAM_END - GENERATED_GBL_DATA_SIZE)
 
-#define CONFIG_SYS_PROM_SIZE		(8192-CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_PROM_SIZE		(8192-GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_PROM_OFFSET		(CONFIG_SYS_GBL_DATA_OFFSET-CONFIG_SYS_PROM_SIZE)
 
 #define CONFIG_SYS_INIT_SP_OFFSET	(CONFIG_SYS_PROM_OFFSET-32)
 #define CONFIG_SYS_STACK_SIZE		(0x10000-32)
 
-#define CONFIG_SYS_MONITOR_BASE    TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE    CONFIG_SYS_TEXT_BASE
 #if (CONFIG_SYS_MONITOR_BASE < CONFIG_SYS_FLASH_BASE)
 #   define CONFIG_SYS_RAMBOOT		1
 #endif
@@ -255,7 +254,7 @@
 #define CONFIG_SYS_RELOC_MONITOR_BASE     (CONFIG_SYS_RELOC_MONITOR_MAX_END-CONFIG_SYS_MONITOR_LEN)
 
 /* make un relocated address from relocated address */
-#define UN_RELOC(address) (address-(CONFIG_SYS_RELOC_MONITOR_BASE-TEXT_BASE))
+#define UN_RELOC(address) (address-(CONFIG_SYS_RELOC_MONITOR_BASE-CONFIG_SYS_TEXT_BASE))
 
 /*
  * Ethernet configuration uses on board SMC91C111, however if a mezzanine
@@ -267,7 +266,6 @@
 #ifndef USE_GRETH
 
 /* USE SMC91C111 MAC */
-#define CONFIG_NET_MULTI
 #define CONFIG_SMC91111          1
 #define CONFIG_SMC91111_BASE		0x20000300	/* chip select 3         */
 #define CONFIG_SMC_USE_32_BIT		1	/* 32 bit bus  */
@@ -278,7 +276,6 @@
 #else
 
 /* USE GRETH Ethernet Driver */
-#define CONFIG_NET_MULTI	1
 #define CONFIG_GRETH	1
 
 /* Default GRETH Ethernet HARDWARE address */

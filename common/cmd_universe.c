@@ -46,7 +46,7 @@ static UNI_DEV   *dev;
 
 int universe_init(void)
 {
-	int j, result, lastError = 0;
+	int j, result;
 	pci_dev_t busdevfn;
 	unsigned int val;
 
@@ -126,8 +126,6 @@ int universe_init(void)
  break_30:
 	free(dev);
  break_20:
-	lastError = result;
-
 	return result;
 }
 
@@ -317,7 +315,7 @@ int universe_vme_slave_window(unsigned int vmeAddr, unsigned int pciAddr, int si
 /*
  * Tundra Universe configuration
  */
-int do_universe(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_universe(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	ulong addr1 = 0, addr2 = 0, size = 0, vam = 0, pms = 0, vdw = 0;
 	char cmd = 'x';

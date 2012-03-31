@@ -50,17 +50,15 @@ static ulong get_arg(char *s, int w)
 	}
 }
 
-int do_setexpr(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_setexpr(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	ulong a, b;
 	char buf[16];
 	int w;
 
 	/* Validate arguments */
-	if ((argc != 5) || (strlen(argv[3]) != 1)) {
-		cmd_usage(cmdtp);
-		return 1;
-	}
+	if ((argc != 5) || (strlen(argv[3]) != 1))
+		return cmd_usage(cmdtp);
 
 	w = cmd_get_data_size(argv[0], 4);
 

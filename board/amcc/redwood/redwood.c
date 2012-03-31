@@ -26,7 +26,7 @@
 
 #include <common.h>
 #include "redwood.h"
-#include <ppc4xx.h>
+#include <asm/ppc4xx.h>
 #include <asm/processor.h>
 #include <i2c.h>
 #include <asm/io.h>
@@ -200,12 +200,13 @@ int board_early_init_f(void)
 
 int checkboard(void)
 {
-	char *s = getenv("serial#");
+	char buf[64];
+	int i = getenv_f("serial#", buf, sizeof(buf));
 
 	printf("Board: Redwood - AMCC 460SX Reference Board");
-	if (s != NULL) {
+	if (i > 0) {
 		puts(", serial# ");
-		puts(s);
+		puts(buf);
 	}
 	putc('\n');
 

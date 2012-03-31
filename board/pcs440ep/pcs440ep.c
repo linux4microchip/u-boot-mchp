@@ -22,7 +22,7 @@
  */
 
 #include <common.h>
-#include <ppc4xx.h>
+#include <asm/ppc4xx.h>
 #include <malloc.h>
 #include <command.h>
 #include <crc.h>
@@ -509,12 +509,13 @@ int misc_init_r (void)
 
 int checkboard(void)
 {
-	char *s = getenv("serial#");
+	char buf[64];
+	int i = getenv_f("serial#", buf, sizeof(buf));
 
 	printf("Board: PCS440EP");
-	if (s != NULL) {
+	if (i > 0) {
 		puts(", serial# ");
-		puts(s);
+		puts(buf);
 	}
 	putc('\n');
 
@@ -567,7 +568,7 @@ void hw_watchdog_reset(void)
  * "led" Commando for the U-Boot shell
  *
  ************************************************************************/
-int do_led (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_led (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	int	rcode = 0, i;
 	ulong	pattern = 0;
@@ -611,14 +612,13 @@ U_BOOT_CMD(
  * "sha1" Commando for the U-Boot shell
  *
  ************************************************************************/
-int do_sha1 (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_sha1 (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	int	rcode = -1;
 
 	if (argc < 2) {
-  usage:
-		cmd_usage(cmdtp);
-		return 1;
+usage:
+		return cmd_usage(cmdtp);
 	}
 
 	if (argc >= 3) {

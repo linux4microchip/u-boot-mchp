@@ -29,7 +29,6 @@
 
 #if defined(CONFIG_CMD_BSP)
 
-extern int do_bootm (cmd_tbl_t *, int, int, char *[]);
 extern int do_source (cmd_tbl_t *, int, int, char *[]);
 
 #define ADDRMASK 0xfffff000
@@ -37,7 +36,7 @@ extern int do_source (cmd_tbl_t *, int, int, char *[]);
 /*
  * Command loadpci: wait for signal from host and boot image.
  */
-int do_loadpci(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_loadpci(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	u32 *ptr = 0;
 	int count = 0;

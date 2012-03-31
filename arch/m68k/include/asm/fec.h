@@ -39,7 +39,7 @@ typedef struct cpm_buf_desc {
 	uint cbd_bufaddr;	/* Buffer address in host memory */
 } cbd_t;
 
-#define BD_SC_EMPTY		((ushort)0x8000)	/* Recieve is empty */
+#define BD_SC_EMPTY		((ushort)0x8000)	/* Receive is empty */
 #define BD_SC_READY		((ushort)0x8000)	/* Transmit is ready */
 #define BD_SC_WRAP		((ushort)0x2000)	/* Last buffer descriptor */
 #define BD_SC_INTRPT		((ushort)0x1000)	/* Interrupt on change */
@@ -357,9 +357,9 @@ int fecpin_setclear(struct eth_device *dev, int setclear);
 void __mii_init(void);
 uint mii_send(uint mii_cmd);
 int mii_discover_phy(struct eth_device *dev);
-int mcffec_miiphy_read(char *devname, unsigned char addr,
+int mcffec_miiphy_read(const char *devname, unsigned char addr,
 		       unsigned char reg, unsigned short *value);
-int mcffec_miiphy_write(char *devname, unsigned char addr,
+int mcffec_miiphy_write(const char *devname, unsigned char addr,
 			unsigned char reg, unsigned short value);
 #endif
 

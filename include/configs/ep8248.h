@@ -31,6 +31,8 @@
 
 #define CONFIG_EP8248			/* Embedded Planet EP8248 board */
 
+#define	CONFIG_SYS_TEXT_BASE	0xFFF00000
+
 #define CONFIG_BOARD_EARLY_INIT_F 1	/* Call board_early_init_f	*/
 
 /* Allow serial number (serial#) and MAC address (ethaddr) to be overwritten */
@@ -62,7 +64,6 @@
 #define CONFIG_ETHER_ON_FCC		/* Ethernet is on FCC     */
 #undef	CONFIG_ETHER_NONE		/* No external Ethernet   */
 
-#define CONFIG_NET_MULTI
 #define CONFIG_SYS_CPMFCR_RAMTYPE	0
 #define CONFIG_SYS_FCC_PSMR		(FCC_PSMR_FDE | FCC_PSMR_LPB)
 
@@ -197,7 +198,7 @@
 #define CONFIG_SYS_I2C_SLAVE		0x7F	/* I2C slave address		*/
 #endif
 
-#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
 #if (CONFIG_SYS_MONITOR_BASE < CONFIG_SYS_FLASH_BASE)
 #define CONFIG_SYS_RAMBOOT
 #endif
@@ -216,9 +217,8 @@
 #define CONFIG_SYS_IMMR		0xF0000000
 
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define CONFIG_SYS_INIT_RAM_END	0x2000	/* End of used area in DPRAM	*/
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE	0x2000	/* Size of used area in DPRAM	*/
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /* Hard reset configuration word */
@@ -231,9 +231,6 @@
 #define CONFIG_SYS_HRCW_SLAVE5		0
 #define CONFIG_SYS_HRCW_SLAVE6		0
 #define CONFIG_SYS_HRCW_SLAVE7		0
-
-#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH */
-#define BOOTFLAG_WARM		0x02	/* Software reboot                  */
 
 #define CONFIG_SYS_MALLOC_LEN		(4096 << 10)	/* Reserve 4 MB for malloc()	*/
 #define CONFIG_SYS_BOOTMAPSZ		(8 << 20)	/* Initial Memory map for Linux */

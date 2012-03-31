@@ -82,18 +82,17 @@ static void spi_init(void)
 
 static int spi_transmit(unsigned char data)
 {
-	int dummy;
 	struct mpc5xxx_spi *spi = (struct mpc5xxx_spi*)MPC5XXX_SPI;
 
 	spi->dr = data;
 	/* wait for SPI transmission completed */
-	while(!(spi->sr & 0x80))
-	{
-		if (spi->sr & 0x40)	/* if write collision occured */
-		{
+	while (!(spi->sr & 0x80)) {
+		if (spi->sr & 0x40) {	/* if write collision occured */
+			int dummy;
+
 			/* do dummy read to clear status register */
 			dummy = spi->dr;
-			printf ("SPI write collision\n");
+			printf("SPI write collision: dr=0x%x\n", dummy);
 			return -1;
 		}
 	}
@@ -172,10 +171,8 @@ static void i2s_init(void)
 	psc->ccr = 0x1F03;	/* 16 bit data width; 5.617MHz MCLK */
 	psc->ctur = 0x0F;	/* 16 bit frame width */
 
-	for(i=0;i<128;i++)
-	{
+	for (i = 0; i < 128; i++)
 		psc->psc_buffer_32 = 0; /* clear tx fifo */
-	}
 }
 
 static int i2s_play_wave(unsigned long addr, unsigned long len)
@@ -183,7 +180,6 @@ static int i2s_play_wave(unsigned long addr, unsigned long len)
 	unsigned long i;
 	unsigned char *wave_file = (uchar *)addr + 44;	/* quick'n dirty: skip
 							 * wav header*/
-	unsigned char swapped[4];
 	struct mpc5xxx_psc *psc = (struct mpc5xxx_psc*)MPC5XXX_PSC2;
 
 	/*
@@ -192,11 +188,16 @@ static int i2s_play_wave(unsigned long addr, unsigned long len)
 	psc->command = (PSC_RX_ENABLE | PSC_TX_ENABLE);
 
 	for(i = 0;i < (len / 4); i++) {
+		unsigned char swapped[4];
+		unsigned long *p = (unsigned long*)swapped;
+
 		swapped[3] = *wave_file++;
 		swapped[2] = *wave_file++;
 		swapped[1] = *wave_file++;
 		swapped[0] = *wave_file++;
-		psc->psc_buffer_32 =  *((unsigned long*)swapped);
+
+		psc->psc_buffer_32 =  *p;
+
 		while (psc->tfnum > 400) {
 			if(ctrlc())
 				return 0;
@@ -301,7 +302,7 @@ static int i2s_squarewave(unsigned long duration, unsigned int freq,
 	return 0;
 }
 
-static int cmd_sound(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+static int cmd_sound(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	unsigned long reg, val, duration;
 	char *tmp;
@@ -327,8 +328,7 @@ static int cmd_sound(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	switch (argc) {
 	case 0:
 	case 1:
-		cmd_usage(cmdtp);
-		return 1;
+		return cmd_usage(cmdtp);
 	case 2:
 		if (strncmp(argv[1],"saw",3) == 0) {
 			printf ("Play sawtooth\n");
@@ -342,8 +342,7 @@ static int cmd_sound(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			return rcode;
 		}
 
-		cmd_usage(cmdtp);
-		return 1;
+		return cmd_usage(cmdtp);
 	case 3:
 		if (strncmp(argv[1],"saw",3) == 0) {
 			duration = simple_strtoul(argv[2], NULL, 10);
@@ -358,8 +357,7 @@ static int cmd_sound(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 						LEFT_RIGHT);
 			return rcode;
 		}
-		cmd_usage(cmdtp);
-		return 1;
+		return cmd_usage(cmdtp);
 	case 4:
 		if (strncmp(argv[1],"saw",3) == 0) {
 			duration = simple_strtoul(argv[2], NULL, 10);
@@ -382,8 +380,7 @@ static int cmd_sound(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			pcm1772_write_reg((uchar)reg, (uchar)val);
 			return 0;
 		}
-		cmd_usage(cmdtp);
-		return 1;
+		return cmd_usage(cmdtp);
 	case 5:
 		if (strncmp(argv[1],"saw",3) == 0) {
 			duration = simple_strtoul(argv[2], NULL, 10);
@@ -412,14 +409,13 @@ static int cmd_sound(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 						channel);
 			return rcode;
 		}
-		cmd_usage(cmdtp);
-		return 1;
+		return cmd_usage(cmdtp);
 	}
 	printf ("Usage:\nsound cmd [arg1] [arg2] ...\n");
 	return 1;
 }
 
-static int cmd_wav(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+static int cmd_wav(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	unsigned long length, addr;
 	unsigned char volume;
@@ -484,7 +480,7 @@ static int cmd_wav(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	return rcode;
 }
 
-static int cmd_beep(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+static int cmd_beep(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	unsigned char volume;
 	unsigned int channel;
@@ -513,8 +509,7 @@ static int cmd_beep(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			channel = LEFT_RIGHT;
 		break;
 	default:
-		cmd_usage(cmdtp);
-		return 1;
+		return cmd_usage(cmdtp);
 	}
 
 	if ((tmp = getenv ("volume")) != NULL) {
@@ -581,7 +576,7 @@ void led_init(void)
  * return 1 if led number unknown
  * return 0 else
  */
-int do_led(char *argv[])
+int do_led(char * const argv[])
 {
 	struct mpc5xxx_gpio *gpio = (struct mpc5xxx_gpio *)MPC5XXX_GPIO;
 	struct mpc5xxx_gpt_0_7 *gpt = (struct mpc5xxx_gpt_0_7 *)MPC5XXX_GPT;
@@ -892,7 +887,7 @@ int can_init(void)
  * return 1 on CAN failure
  * return 0 if no failure
  */
-int do_can(char *argv[])
+int do_can(char * const argv[])
 {
 	int i;
 	struct mpc5xxx_mscan *can1 =
@@ -994,7 +989,7 @@ int do_can(char *argv[])
  * return 3 on rts/cts failure
  * return 0 if no failure
  */
-int do_rs232(char *argv[])
+int do_rs232(char * const argv[])
 {
 	int error_status = 0;
 	struct mpc5xxx_gpio *gpio = (struct mpc5xxx_gpio *)MPC5XXX_GPIO;
@@ -1123,7 +1118,7 @@ static void sm501_backlight (unsigned int state)
 }
 #endif /* !CONFIG_FO300 & !CONFIG_TQM5200S */
 
-int cmd_fkt(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int cmd_fkt(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	int rcode;
 

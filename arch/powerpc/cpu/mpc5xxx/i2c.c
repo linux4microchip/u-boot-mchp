@@ -30,12 +30,26 @@ DECLARE_GLOBAL_DATA_PTR;
 #include <mpc5xxx.h>
 #include <i2c.h>
 
+#if !defined(CONFIG_I2C_MULTI_BUS)
 #if (CONFIG_SYS_I2C_MODULE == 2)
 #define I2C_BASE	MPC5XXX_I2C2
 #elif (CONFIG_SYS_I2C_MODULE == 1)
 #define I2C_BASE	MPC5XXX_I2C1
 #else
 #error CONFIG_SYS_I2C_MODULE is not properly configured
+#endif
+#else
+static unsigned int i2c_bus_num __attribute__ ((section (".data"))) =
+						CONFIG_SYS_SPD_BUS_NUM;
+static unsigned int i2c_bus_speed[2] = {CONFIG_SYS_I2C_SPEED,
+					CONFIG_SYS_I2C_SPEED};
+
+static const  unsigned long i2c_dev[2] = {
+	MPC5XXX_I2C1,
+	MPC5XXX_I2C2,
+};
+
+#define I2C_BASE	((struct mpc5xxx_i2c *)i2c_dev[i2c_bus_num])
 #endif
 
 #define I2C_TIMEOUT	6667
@@ -86,14 +100,11 @@ static int wait_for_bb(void)
 	status = mpc_reg_in(&regs->msr);
 
 	while (timeout-- && (status & I2C_BB)) {
-#if 1
-		volatile int temp;
 		mpc_reg_out(&regs->mcr, I2C_STA, I2C_STA);
-		temp = mpc_reg_in(&regs->mdr);
+		(void)mpc_reg_in(&regs->mdr);
 		mpc_reg_out(&regs->mcr, 0, I2C_STA);
 		mpc_reg_out(&regs->mcr, 0, 0);
 		mpc_reg_out(&regs->mcr, I2C_EN, 0);
-#endif
 		udelay(15);
 		status = mpc_reg_in(&regs->msr);
 	}
@@ -318,8 +329,7 @@ static int mpc_get_fdr(int speed)
 		if (gd->flags & GD_FLG_RELOC) {
 			fdr = divider;
 		} else {
-			if (gd->have_console)
-				printf("%ld kHz, ", best_speed / 1000);
+			printf("%ld kHz, ", best_speed / 1000);
 			return divider;
 		}
 	}
@@ -360,34 +370,29 @@ int i2c_read(uchar chip, uint addr, int alen, uchar *buf, int len)
 	xaddr[3] =  addr	& 0xFF;
 
 	if (wait_for_bb()) {
-		if (gd->have_console)
-			printf("i2c_read: bus is busy\n");
+		printf("i2c_read: bus is busy\n");
 		goto Done;
 	}
 
 	mpc_reg_out(&regs->mcr, I2C_STA, I2C_STA);
 	if (do_address(chip, 0)) {
-		if (gd->have_console)
-			printf("i2c_read: failed to address chip\n");
+		printf("i2c_read: failed to address chip\n");
 		goto Done;
 	}
 
 	if (send_bytes(chip, &xaddr[4-alen], alen)) {
-		if (gd->have_console)
-			printf("i2c_read: send_bytes failed\n");
+		printf("i2c_read: send_bytes failed\n");
 		goto Done;
 	}
 
 	mpc_reg_out(&regs->mcr, I2C_RSTA, I2C_RSTA);
 	if (do_address(chip, 1)) {
-		if (gd->have_console)
-			printf("i2c_read: failed to address chip\n");
+		printf("i2c_read: failed to address chip\n");
 		goto Done;
 	}
 
 	if (receive_bytes(chip, (char *)buf, len)) {
-		if (gd->have_console)
-			printf("i2c_read: receive_bytes failed\n");
+		printf("i2c_read: receive_bytes failed\n");
 		goto Done;
 	}
 
@@ -409,27 +414,23 @@ int i2c_write(uchar chip, uint addr, int alen, uchar *buf, int len)
 	xaddr[3] =  addr	& 0xFF;
 
 	if (wait_for_bb()) {
-		if (gd->have_console)
-			printf("i2c_write: bus is busy\n");
+		printf("i2c_write: bus is busy\n");
 		goto Done;
 	}
 
 	mpc_reg_out(&regs->mcr, I2C_STA, I2C_STA);
 	if (do_address(chip, 0)) {
-		if (gd->have_console)
-			printf("i2c_write: failed to address chip\n");
+		printf("i2c_write: failed to address chip\n");
 		goto Done;
 	}
 
 	if (send_bytes(chip, &xaddr[4-alen], alen)) {
-		if (gd->have_console)
-			printf("i2c_write: send_bytes failed\n");
+		printf("i2c_write: send_bytes failed\n");
 		goto Done;
 	}
 
 	if (send_bytes(chip, (char *)buf, len)) {
-		if (gd->have_console)
-			printf("i2c_write: send_bytes failed\n");
+		printf("i2c_write: send_bytes failed\n");
 		goto Done;
 	}
 
@@ -438,5 +439,34 @@ Done:
 	mpc_reg_out(&regs->mcr, 0, I2C_STA);
 	return ret;
 }
+
+#if defined(CONFIG_I2C_MULTI_BUS)
+int i2c_set_bus_num(unsigned int bus)
+{
+	if (bus > 1)
+		return -1;
+
+	i2c_bus_num = bus;
+	i2c_init(i2c_bus_speed[bus], CONFIG_SYS_I2C_SLAVE);
+	return 0;
+}
+
+int i2c_set_bus_speed(unsigned int speed)
+{
+	i2c_init(speed, CONFIG_SYS_I2C_SLAVE);
+	return 0;
+}
+
+unsigned int i2c_get_bus_num(void)
+{
+	return i2c_bus_num;
+}
+
+unsigned int i2c_get_bus_speed(void)
+{
+	return i2c_bus_speed[i2c_bus_num];
+}
+#endif
+
 
 #endif	/* CONFIG_HARD_I2C */

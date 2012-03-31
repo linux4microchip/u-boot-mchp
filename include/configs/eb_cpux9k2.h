@@ -29,20 +29,22 @@
 
 /*--------------------------------------------------------------------------*/
 
-#define CONFIG_ARM920T		1	/* This is an ARM920T Core	*/
-#define CONFIG_AT91RM9200	1	/* It's an Atmel AT91RM9200 SoC	*/
-#define CONFIG_EB_CPUX9K2	1	/* on an EP+CPUX9K2 Board	*/
-#define USE_920T_MMU		1
+#define CONFIG_AT91RM9200		/* It's an Atmel AT91RM9200 SoC	*/
+#define CONFIG_EB_CPUX9K2		/* on an EP+CPUX9K2 Board	*/
+#define USE_920T_MMU
 
-#define CONFIG_VERSION_VARIABLE 1
+#define CONFIG_VERSION_VARIABLE
 #define CONFIG_IDENT_STRING	" on EB+CPUx9K2"
 
-#include <asm/arch/hardware.h>	/* needed for port definitions */
+#include <asm/hardware.h>	/* needed for port definitions */
 
 #define CONFIG_MISC_INIT_R
+#define CONFIG_BOARD_EARLY_INIT_F
 
+#define MACH_TYPE_EB_CPUX9K2		1977
+#define CONFIG_MACH_TYPE		MACH_TYPE_EB_CPUX9K2
 /*--------------------------------------------------------------------------*/
-
+#define CONFIG_SYS_TEXT_BASE 		0x00000000
 #define CONFIG_SYS_LOAD_ADDR		0x21000000  /* default load address */
 
 #define CONFIG_SYS_BOOT_SIZE		0x00 /* 0 KBytes */
@@ -70,7 +72,7 @@
 #define CONFIG_SYS_HZ		1000
 #define CONFIG_SYS_HZ_CLOCK 	(AT91C_MASTER_CLOCK / 2)
 
-#define AT91_SLOW_CLOCK			32768		/* slow clock */
+#define CONFIG_SYS_AT91_SLOW_CLOCK	32768		/* slow clock */
 
 #define CONFIG_CMDLINE_TAG		1
 #define CONFIG_SETUP_MEMORY_TAGS	1
@@ -91,19 +93,20 @@
  */
 
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 520*1024)
-#define CONFIG_SYS_GBL_DATA_SIZE	128
 
 /*
  * sdram
  */
 
 #define CONFIG_NR_DRAM_BANKS		1
-#define PHYS_SDRAM 			0x20000000
-#define PHYS_SDRAM_SIZE			0x04000000  /* 64 megs */
 
-#define CONFIG_SYS_MEMTEST_START	PHYS_SDRAM
+#define CONFIG_SYS_SDRAM_BASE		0x20000000
+#define CONFIG_SYS_SDRAM_SIZE		0x04000000  /* 64 megs */
+#define CONFIG_SYS_INIT_SP_ADDR		0x00204000  /* use internal SRAM */
+
+#define CONFIG_SYS_MEMTEST_START	CONFIG_SYS_SDRAM_BASE
 #define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_MEMTEST_START + \
-					PHYS_SDRAM_SIZE - 0x00400000 - \
+					CONFIG_SYS_SDRAM_SIZE - 0x00400000 - \
 					CONFIG_SYS_MALLOC_LEN)
 
 #define CONFIG_SYS_PIOC_ASR_VAL		0xFFFF0000 /* PIOC as D16/D31 */
@@ -174,13 +177,13 @@
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 115200, 19200, 38400, 57600, 9600 }
 
 #define CONFIG_BAUDRATE 115200
-#define CONFIG_AT91RM9200_USART
-#define CONFIG_DBGU			/* define DBGU as console */
+#define CONFIG_ATMEL_USART
+#define CONFIG_USART_BASE	ATMEL_BASE_DBGU
+#define CONFIG_USART_ID		0/* ignored in arm */
 
 /*
  * network
  */
-#define CONFIG_NET_MULTI		1
 
 #define CONFIG_NET_RETRY_COUNT		10
 #define CONFIG_RESET_PHY_R		1
@@ -216,19 +219,19 @@
 #define CONFIG_SYS_I2C_INIT_BOARD
 
 #define I2C_INIT	i2c_init_board();
-#define I2C_ACTIVE	writel(AT91_PMX_AA_TWD, &pio->pioa.mddr);
-#define I2C_TRISTATE	writel(AT91_PMX_AA_TWD, &pio->pioa.mder);
-#define I2C_READ	((readl(&pio->pioa.pdsr) & AT91_PMX_AA_TWD) != 0)
+#define I2C_ACTIVE	writel(ATMEL_PMX_AA_TWD, &pio->pioa.mddr);
+#define I2C_TRISTATE	writel(ATMEL_PMX_AA_TWD, &pio->pioa.mder);
+#define I2C_READ	((readl(&pio->pioa.pdsr) & ATMEL_PMX_AA_TWD) != 0)
 #define I2C_SDA(bit)						\
 	if (bit)						\
-		writel(AT91_PMX_AA_TWD, &pio->pioa.sodr);	\
+		writel(ATMEL_PMX_AA_TWD, &pio->pioa.sodr);	\
 	else							\
-		writel(AT91_PMX_AA_TWD, &pio->pioa.codr);
+		writel(ATMEL_PMX_AA_TWD, &pio->pioa.codr);
 #define I2C_SCL(bit)						\
 	if (bit)						\
-		writel(AT91_PMX_AA_TWCK, &pio->pioa.sodr);	\
+		writel(ATMEL_PMX_AA_TWCK, &pio->pioa.sodr);	\
 	else							\
-		writel(AT91_PMX_AA_TWCK, &pio->pioa.codr);
+		writel(ATMEL_PMX_AA_TWCK, &pio->pioa.codr);
 
 #define I2C_DELAY	udelay(2500000/CONFIG_SYS_I2C_SPEED)
 
@@ -249,6 +252,7 @@
 /* FLASH organization */
 
 /*  NOR-FLASH */
+#define CONFIG_FLASH_SHOW_PROGRESS	45
 
 #define CONFIG_FLASH_CFI_DRIVER	1
 
@@ -396,16 +400,6 @@
 	"nandboot=run bootargsdefaults;"				\
 		"set bootargs $(bootargs) root=initramfs boot=nand "	\
 		";bootm $(kerneladdr)\0"				\
-	"uu=run update_uboot\0"						\
-	"ur=run update_root;run nk\0"					\
-	"nk=run bootargsdefaults;set bootargs $(bootargs) root=initramfs " \
-		"boot=local "						\
-		";echo $(bootargs)"					\
-		";dhcp uImage_cpux9k2;bootm\0"				\
-	"nn=run bootargsdefaults;set bootargs $(bootargs) root=initramfs " \
-		"boot=nand "						\
-		";echo $(bootargs)"					\
-		";dhcp uImage_cpux9k2;bootm\0"				\
 	" "
 
 /*--------------------------------------------------------------------------*/

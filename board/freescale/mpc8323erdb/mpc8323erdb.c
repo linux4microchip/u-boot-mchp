@@ -66,11 +66,6 @@ const qe_iop_conf_t qe_iop_conf_tab[] = {
 	{0,  0, 0, 0, QE_IOP_TAB_END}, /* END of table */
 };
 
-int board_early_init_f(void)
-{
-	return 0;
-}
-
 int fixed_sdram(void);
 
 phys_size_t initdram(int board_type)
@@ -173,7 +168,7 @@ void pci_init_board(void)
 	pci_law[1].bar = CONFIG_SYS_PCI1_IO_PHYS & LAWBAR_BAR;
 	pci_law[1].ar = LBLAWAR_EN | LBLAWAR_1MB;
 
-	mpc83xx_pci_init(1, reg, 0);
+	mpc83xx_pci_init(1, reg);
 }
 
 #if defined(CONFIG_OF_BOARD_SETUP)

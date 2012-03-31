@@ -26,6 +26,8 @@
 #include <netdev.h>
 #include "r7780mp.h"
 
+DECLARE_GLOBAL_DATA_PTR;
+
 int checkboard(void)
 {
 #if defined(CONFIG_R7780MP)
@@ -46,8 +48,6 @@ int board_init(void)
 
 int dram_init(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-
 	gd->bd->bi_memstart = CONFIG_SYS_SDRAM_BASE;
 	gd->bd->bi_memsize = CONFIG_SYS_SDRAM_SIZE;
 	printf("DRAM:  %dMB\n", CONFIG_SYS_SDRAM_SIZE / (1024 * 1024));
@@ -81,5 +81,6 @@ void pci_init_board(void)
 
 int board_eth_init(bd_t *bis)
 {
-	return pci_eth_init(bis);
+	/* return >= 0 if a chip is found, the board's AX88796L is n2k-based */
+	return ne2k_register() + pci_eth_init(bis);
 }

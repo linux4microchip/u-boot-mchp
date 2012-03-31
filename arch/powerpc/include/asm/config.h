@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2010 Freescale Semiconductor, Inc.
+ * Copyright 2009-2011 Freescale Semiconductor, Inc.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -21,10 +21,31 @@
 #ifndef _ASM_CONFIG_H_
 #define _ASM_CONFIG_H_
 
+#ifdef CONFIG_MPC85xx
+#include <asm/config_mpc85xx.h>
+#endif
+
+#ifdef CONFIG_MPC86xx
+#include <asm/config_mpc86xx.h>
+#endif
+
+/* CONFIG_HARD_SPI triggers SPI bus initialization in PowerPC */
+#if defined(CONFIG_MPC8XXX_SPI) || defined(CONFIG_FSL_ESPI)
+# ifndef CONFIG_HARD_SPI
+#  define CONFIG_HARD_SPI
+# endif
+#endif
+
 #define CONFIG_LMB
+#define CONFIG_SYS_BOOT_RAMDISK_HIGH
+#define CONFIG_SYS_BOOT_GET_CMDLINE
+#define CONFIG_SYS_BOOT_GET_KBD
 
 #ifndef CONFIG_MAX_MEM_MAPPED
-#if defined(CONFIG_4xx) || defined(CONFIG_E500) || defined(CONFIG_MPC86xx)
+#if	defined(CONFIG_4xx)		|| \
+	defined(CONFIG_E500)		|| \
+	defined(CONFIG_MPC86xx)		|| \
+	defined(CONFIG_E300)
 #define CONFIG_MAX_MEM_MAPPED	((phys_size_t)2 << 30)
 #else
 #define CONFIG_MAX_MEM_MAPPED	(256 << 20)
@@ -40,13 +61,7 @@
 #endif
 #endif
 
-#if defined(CONFIG_MPC8572) || defined(CONFIG_P1020) || \
-	defined(CONFIG_P1021) || defined(CONFIG_P1022) || \
-	defined(CONFIG_P2020) || defined(CONFIG_MPC8641)
-#define CONFIG_MAX_CPUS		2
-#elif defined(CONFIG_PPC_P4080)
-#define CONFIG_MAX_CPUS		8
-#else
+#ifndef CONFIG_MAX_CPUS
 #define CONFIG_MAX_CPUS		1
 #endif
 
@@ -60,20 +75,36 @@
 #endif
 #endif
 
-/* Enable TSEC2.0 for the platforms that have it if we are using TSEC */
-#if defined(CONFIG_TSEC_ENET) && \
-    (defined(CONFIG_P1020) || defined(CONFIG_P1011))
-#define CONFIG_TSECV2
+/*
+ * SEC (crypto unit) major compatible version determination
+ */
+#if defined(CONFIG_MPC83xx)
+#define CONFIG_SYS_FSL_SEC_COMPAT	2
 #endif
 
-/* Number of TLB CAM entries we have on FSL Book-E chips */
-#if defined(CONFIG_E500MC)
-#define CONFIG_SYS_NUM_TLBCAMS	64
-#elif defined(CONFIG_E500)
-#define CONFIG_SYS_NUM_TLBCAMS	16
+/* Since so many PPC SOCs have a semi-common LBC, define this here */
+#if defined(CONFIG_MPC85xx) || defined(CONFIG_MPC86xx) || \
+	defined(CONFIG_MPC83xx)
+#if !defined(CONFIG_FSL_IFC)
+#define CONFIG_FSL_LBC
+#endif
 #endif
 
-/* Relocation to SDRAM works on all PPC boards */
-#define CONFIG_RELOC_FIXUP_WORKS
+/* The TSEC driver uses the PHYLIB infrastructure */
+#ifndef CONFIG_PHYLIB
+#if defined(CONFIG_TSEC_ENET)
+#define CONFIG_PHYLIB
+
+#include <config_phylib_all_drivers.h>
+#endif /* TSEC_ENET */
+#endif /* !CONFIG_PHYLIB */
+
+/* The FMAN driver uses the PHYLIB infrastructure */
+#if defined(CONFIG_FMAN_ENET)
+#define CONFIG_PHYLIB
+#endif
+
+/* All PPC boards must swap IDE bytes */
+#define CONFIG_IDE_SWAP_IO
 
 #endif /* _ASM_CONFIG_H_ */

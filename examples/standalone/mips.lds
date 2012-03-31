@@ -24,20 +24,20 @@
 /*
 OUTPUT_FORMAT("elf32-bigmips", "elf32-bigmips", "elf32-bigmips")
 */
-OUTPUT_FORMAT("elf32-tradbigmips", "elf32-tradbigmips", "elf32-tradbigmips")
+OUTPUT_FORMAT("elf32-tradbigmips", "elf32-tradbigmips", "elf32-tradlittlemips")
 OUTPUT_ARCH(mips)
 SECTIONS
 {
 	.text       :
 	{
-	  *(.text)
+	  *(.text*)
 	}
 
 	. = ALIGN(4);
 	.rodata  : { *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.rodata*))) }
 
 	. = ALIGN(4);
-	.data  : { *(.data) }
+	.data  : { *(.data*) }
 
 	. = .;
 	_gp = ALIGN(16) + 0x7ff0;
@@ -48,12 +48,12 @@ SECTIONS
 	  __got_end = .;
 	}
 
-	.sdata  : { *(.sdata) }
+	.sdata  : { *(.sdata*) }
 
 	. = ALIGN(4);
 	__bss_start = .;
-	.sbss (NOLOAD) : { *(.sbss) }
-	.bss (NOLOAD)  : { *(.bss) . = ALIGN(4); }
+	.sbss (NOLOAD) : { *(.sbss*) }
+	.bss (NOLOAD)  : { *(.bss*) . = ALIGN(4); }
 
 	_end = .;
 }

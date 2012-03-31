@@ -120,6 +120,8 @@ if we use PCI it has its own MAC addr */
 
 #define CONFIG_DB64360		1	/* this is an DB64360 board	*/
 
+#define	CONFIG_SYS_TEXT_BASE	0xfff00000
+
 #define CONFIG_BAUDRATE		115200	/* console baudrate = 115000	*/
 /*ronen - we don't use the global CONFIG_ECC, since in the global ecc we initialize the
 	DRAM for ECC in the phase we are relocating to it, which isn't so sufficient.
@@ -156,7 +158,6 @@ if we use PCI it has its own MAC addr */
 #define CONFIG_MPSC_PORT	0
 
 /* to change the default ethernet port, use this define (options: 0, 1, 2) */
-#define CONFIG_NET_MULTI
 #define MV_ETH_DEVS 2
 
 /* #undef CONFIG_ETHER_PORT_MII	 */
@@ -200,7 +201,7 @@ ip=${ipaddr}:${serverip}${bootargs_end}; bootm 0x400000;\0"
 
 #define CONFIG_SERIAL		"No. 1"
 #define CONFIG_SERVERIP		10.2.1.126
-#define CONFIG_ROOTPATH /mnt/yellow_dog_mini
+#define CONFIG_ROOTPATH		"/mnt/yellow_dog_mini"
 
 
 #define CONFIG_TESTDRAMDATA	y
@@ -318,8 +319,7 @@ ip=${ipaddr}:${serverip}${bootargs_end}; bootm 0x400000;\0"
 
 #define CONFIG_SYS_HZ			1000		/* decr freq: 1ms ticks */
 /*ronen - this the Sys clock (cpu bus,internal dram and SDRAM) */
-#define CONFIG_SYS_BUS_HZ		133000000	/* 133 MHz (CPU = 5*Bus = 666MHz)		*/
-#define CONFIG_SYS_BUS_CLK		CONFIG_SYS_BUS_HZ
+#define CONFIG_SYS_BUS_CLK		133000000	/* 133 MHz (CPU = 5*Bus = 666MHz)		*/
 
 #define CONFIG_SYS_DDR_SDRAM_CYCLE_COUNT_LOP 7 /* define the SDRAM cycle count */
 #define CONFIG_SYS_DDR_SDRAM_CYCLE_COUNT_ROP 50 /* for 400MHZ -> 5.0 ns, for 133MHZ -> 7.50 ns */
@@ -351,9 +351,8 @@ ip=${ipaddr}:${serverip}${bootargs_end}; bootm 0x400000;\0"
 */
 #define CONFIG_SYS_INIT_RAM_LOCK
 #define CONFIG_SYS_INIT_RAM_ADDR	0x40000000 /* unused memory region */
-#define CONFIG_SYS_INIT_RAM_END	0x1000
-#define CONFIG_SYS_GBL_DATA_SIZE	128  /* size in bytes reserved for init data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE	0x1000
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 
 #define RELOCATE_INTERNAL_RAM_ADDR
 #ifdef RELOCATE_INTERNAL_RAM_ADDR
@@ -593,14 +592,6 @@ ip=${ipaddr}:${serverip}${bootargs_end}; bootm 0x400000;\0"
 #endif
 
 #define L2_ENABLE	(L2_INIT | L2CR_L2E)
-
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH */
-#define BOOTFLAG_WARM	0x02		/* Software reboot		    */
 
 #define CONFIG_SYS_BOARD_ASM_INIT	1
 

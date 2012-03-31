@@ -245,15 +245,17 @@ int dc21x4x_initialize(bd_t *bis)
 		pci_write_config_word(devbusfn, PCI_COMMAND, status);
 
 		pci_read_config_word(devbusfn, PCI_COMMAND, &status);
+#ifdef CONFIG_TULIP_USE_IO
 		if (!(status & PCI_COMMAND_IO)) {
 			printf("Error: Can not enable I/O access.\n");
 			continue;
 		}
-
-		if (!(status & PCI_COMMAND_IO)) {
-			printf("Error: Can not enable I/O access.\n");
+#else
+		if (!(status & PCI_COMMAND_MEMORY)) {
+			printf("Error: Can not enable MEMORY access.\n");
 			continue;
 		}
+#endif
 
 		if (!(status & PCI_COMMAND_MASTER)) {
 			printf("Error: Can not enable Bus Mastering.\n");
@@ -279,6 +281,12 @@ int dc21x4x_initialize(bd_t *bis)
 		debug ("dc21x4x: DEC 21142 PCI Device @0x%x\n", iobase);
 
 		dev = (struct eth_device*) malloc(sizeof *dev);
+
+		if (!dev) {
+			printf("Can not allocalte memory of dc21x4x\n");
+			break;
+		}
+		memset(dev, 0, sizeof(*dev));
 
 #ifdef CONFIG_TULIP_FIX_DAVICOM
 		sprintf(dev->name, "Davicom#%d", card_number);

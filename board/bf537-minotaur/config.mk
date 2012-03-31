@@ -23,9 +23,5 @@
 # MA 02111-1307 USA
 #
 
-# This is not actually used for Blackfin boards so do not change it
-#TEXT_BASE = do-not-use-me
-
 # Set some default LDR flags based on boot mode.
-LDR_FLAGS-BFIN_BOOT_UART       := --port g --gpio 6
-LDR_FLAGS += $(LDR_FLAGS-$(CONFIG_BFIN_BOOT_MODE))
+LDR_FLAGS-BFIN_BOOT_UART := --port g --gpio 6

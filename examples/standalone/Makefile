@@ -45,12 +45,12 @@ ELF-oxc                          += eepro100_eeprom
 #
 ELF := $(strip $(ELF-y) $(ELF-$(ARCH)) $(ELF-$(BOARD)) $(ELF-$(CPU)))
 
-SREC = $(addsuffix .srec,$(ELF))
-BIN  = $(addsuffix .bin,$(ELF))
+SREC := $(addsuffix .srec,$(ELF))
+BIN  := $(addsuffix .bin,$(ELF))
 
 COBJS	:= $(ELF:=.o)
 
-LIB	= $(obj)libstubs.a
+LIB	= $(obj)libstubs.o
 
 LIBAOBJS-$(ARCH)     :=
 LIBAOBJS-$(CPU)      :=
@@ -72,15 +72,31 @@ gcclibdir := $(shell dirname `$(CC) -print-libgcc-file-name`)
 
 CPPFLAGS += -I..
 
+# For PowerPC there's no need to compile standalone applications as a
+# relocatable executable.  The relocation data is not needed, and
+# also causes the entry point of the standalone application to be
+# inconsistent.
+ifeq ($(ARCH),powerpc)
+AFLAGS := $(filter-out $(RELFLAGS),$(AFLAGS))
+CFLAGS := $(filter-out $(RELFLAGS),$(CFLAGS))
+CPPFLAGS := $(filter-out $(RELFLAGS),$(CPPFLAGS))
+endif
+
+# We don't want gcc reordering functions if possible.  This ensures that an
+# application's entry point will be the first function in the application's
+# source file.
+CFLAGS_NTR := $(call cc-option,-fno-toplevel-reorder)
+CFLAGS += $(CFLAGS_NTR)
+
 all:	$(obj).depend $(OBJS) $(LIB) $(SREC) $(BIN) $(ELF)
 
 #########################################################################
 $(LIB):	$(obj).depend $(LIBOBJS)
-		$(AR) $(ARFLAGS) $@ $(LIBOBJS)
+	$(call cmd_link_o_target, $(LIBOBJS))
 
 $(ELF):
 $(obj)%:	$(obj)%.o $(LIB)
-		$(LD) -g -Ttext $(STANDALONE_LOAD_ADDR) \
+		$(LD) -g -Ttext $(CONFIG_STANDALONE_LOAD_ADDR) \
 			-o $@ -e $(SYM_PREFIX)$(notdir $(<:.o=)) $< $(LIB) \
 			-L$(gcclibdir) -lgcc
 

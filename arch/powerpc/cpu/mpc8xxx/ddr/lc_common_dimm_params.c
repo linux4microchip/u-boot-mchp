@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 Freescale Semiconductor, Inc.
+ * Copyright 2008-2011 Freescale Semiconductor, Inc.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -38,9 +38,9 @@ compute_cas_latency_ddr3(const dimm_params_t *dimm_params,
 	}
 	/* validate if the memory clk is in the range of dimms */
 	if (mclk_ps < tCKmin_X_ps) {
-		printf("The DIMM max tCKmin is %d ps,"
-			"doesn't support the MCLK cycle %d ps\n",
-			tCKmin_X_ps, mclk_ps);
+		printf("DDR clock (MCLK cycle %u ps) is faster than "
+			"the slowest DIMM(s) (tCKmin %u ps) can support.\n",
+			mclk_ps, tCKmin_X_ps);
 		return 1;
 	}
 	/* determine the acutal cas latency */
@@ -76,7 +76,7 @@ compute_lowest_common_dimm_parameters(const dimm_params_t *dimm_params,
 				      common_timing_params_t *outpdimm,
 				      unsigned int number_of_dimms)
 {
-	unsigned int i;
+	unsigned int i, j;
 
 	unsigned int tCKmin_X_ps = 0;
 	unsigned int tCKmax_ps = 0xFFFFFFFF;
@@ -115,6 +115,18 @@ compute_lowest_common_dimm_parameters(const dimm_params_t *dimm_params,
 		 * it probably doesn't exist, so skip it.
 		 */
 		if (dimm_params[i].n_ranks == 0) {
+			temp1++;
+			continue;
+		}
+		if (dimm_params[i].n_ranks == 4 && i != 0) {
+			printf("Found Quad-rank DIMM in wrong bank, ignored."
+				" Software may not run as expected.\n");
+			temp1++;
+			continue;
+		}
+		if (dimm_params[i].n_ranks == 4 && \
+		  CONFIG_CHIP_SELECTS_PER_CTRL/CONFIG_DIMM_SLOTS_PER_CTLR < 4) {
+			printf("Found Quad-rank DIMM, not able to support.");
 			temp1++;
 			continue;
 		}
@@ -195,29 +207,42 @@ compute_lowest_common_dimm_parameters(const dimm_params_t *dimm_params,
 	temp1 = temp2 = 0;
 	for (i = 0; i < number_of_dimms; i++) {
 		if (dimm_params[i].n_ranks) {
-			if (dimm_params[i].registered_dimm)
+			if (dimm_params[i].registered_dimm) {
 				temp1 = 1;
-			if (!dimm_params[i].registered_dimm)
+				printf("Detected RDIMM %s\n",
+					dimm_params[i].mpart);
+			} else {
 				temp2 = 1;
+				printf("Detected UDIMM %s\n",
+					dimm_params[i].mpart);
+			}
 		}
 	}
 
 	outpdimm->all_DIMMs_registered = 0;
+	outpdimm->all_DIMMs_unbuffered = 0;
 	if (temp1 && !temp2) {
 		outpdimm->all_DIMMs_registered = 1;
-	}
-
-	outpdimm->all_DIMMs_unbuffered = 0;
-	if (!temp1 && temp2) {
+	} else if (!temp1 && temp2) {
 		outpdimm->all_DIMMs_unbuffered = 1;
-	}
-
-	/* CHECKME: */
-	if (!outpdimm->all_DIMMs_registered
-	    && !outpdimm->all_DIMMs_unbuffered) {
+	} else {
 		printf("ERROR:  Mix of registered buffered and unbuffered "
 				"DIMMs detected!\n");
 	}
+
+	temp1 = 0;
+	if (outpdimm->all_DIMMs_registered)
+		for (j = 0; j < 16; j++) {
+			outpdimm->rcw[j] = dimm_params[0].rcw[j];
+			for (i = 1; i < number_of_dimms; i++)
+				if (dimm_params[i].rcw[j] != dimm_params[0].rcw[j]) {
+					temp1 = 1;
+					break;
+				}
+		}
+
+	if (temp1 != 0)
+		printf("ERROR: Mix different RDIMM detected!\n");
 
 #if defined(CONFIG_FSL_DDR3)
 	if (compute_cas_latency_ddr3(dimm_params, outpdimm, number_of_dimms))
@@ -345,7 +370,8 @@ compute_lowest_common_dimm_parameters(const dimm_params_t *dimm_params,
 	/* Determine if all DIMMs ECC capable. */
 	temp1 = 1;
 	for (i = 0; i < number_of_dimms; i++) {
-		if (dimm_params[i].n_ranks && dimm_params[i].edc_config != 2) {
+		if (dimm_params[i].n_ranks &&
+			!(dimm_params[i].edc_config & EDC_ECC)) {
 			temp1 = 0;
 			break;
 		}
@@ -422,7 +448,8 @@ compute_lowest_common_dimm_parameters(const dimm_params_t *dimm_params,
 
 #if defined(CONFIG_FSL_DDR2)
 	if (lowest_good_caslat < 4) {
-		additive_latency = picos_to_mclk(tRCD_ps) - lowest_good_caslat;
+		additive_latency = (picos_to_mclk(tRCD_ps) > lowest_good_caslat)
+			? picos_to_mclk(tRCD_ps) - lowest_good_caslat : 0;
 		if (mclk_to_picos(additive_latency) > tRCD_ps) {
 			additive_latency = picos_to_mclk(tRCD_ps);
 			debug("setting additive_latency to %u because it was "

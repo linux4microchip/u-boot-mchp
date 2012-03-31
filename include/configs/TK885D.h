@@ -40,6 +40,8 @@
 #define CONFIG_TQM885D		1	/* ...on a TQM88D module	*/
 #define CONFIG_TK885D		1	/* ...in a TK885D base board	*/
 
+#define	CONFIG_SYS_TEXT_BASE	0x40000000
+
 #define CONFIG_8xx_OSCLK		10000000	/*  10 MHz - PLL input clock	*/
 #define CONFIG_SYS_8xx_CPUCLK_MIN		15000000	/*  15 MHz - CPU minimum clock	*/
 #define CONFIG_SYS_8xx_CPUCLK_MAX		133000000	/* 133 MHz - CPU maximum clock	*/
@@ -65,8 +67,8 @@
 #undef	CONFIG_BOOTARGS
 
 #define CONFIG_EXTRA_ENV_SETTINGS					\
-	"ethprime=FEC ETHERNET\0"					\
-	"ethact=FEC ETHERNET\0"						\
+	"ethprime=FEC\0"						\
+	"ethact=FEC\0"							\
 	"netdev=eth0\0"							\
 	"nfsargs=setenv bootargs root=/dev/nfs rw "			\
 		"nfsroot=${serverip}:${rootpath}\0"			\
@@ -219,9 +221,8 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define CONFIG_SYS_INIT_RAM_END	0x2F00	/* End of used area in DPRAM	*/
-#define CONFIG_SYS_GBL_DATA_SIZE	64  /* size in bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE	0x2F00	/* Size of used area in DPRAM	*/
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -484,14 +485,6 @@
 			 MAMR_RLFA_1X	 | MAMR_WLFA_1X	   | MAMR_TLFA_4X)
 
 /*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH	*/
-#define BOOTFLAG_WARM	0x02		/* Software reboot			*/
-
-/*
  * Network configuration
  */
 #define CONFIG_FEC_ENET			/* enable ethernet on FEC */
@@ -514,7 +507,7 @@
 #define CONFIG_MII_INIT	1
 
 #define CONFIG_NET_RETRY_COUNT	3
-#define CONFIG_ETHPRIME		"FEC ETHERNET"
+#define CONFIG_ETHPRIME		"FEC"
 
 /* pass open firmware flat tree */
 #define CONFIG_OF_LIBFDT	1

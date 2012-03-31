@@ -32,8 +32,15 @@ enum srds_prtcl {
 	SATA2,
 	SRIO1,
 	SRIO2,
-	SGMII_FM1,
-	SGMII_FM2,
+	SGMII_FM1_DTSEC1,
+	SGMII_FM1_DTSEC2,
+	SGMII_FM1_DTSEC3,
+	SGMII_FM1_DTSEC4,
+	SGMII_FM1_DTSEC5,
+	SGMII_FM2_DTSEC1,
+	SGMII_FM2_DTSEC2,
+	SGMII_FM2_DTSEC3,
+	SGMII_FM2_DTSEC4,
 	SGMII_TSEC1,
 	SGMII_TSEC2,
 	SGMII_TSEC3,
@@ -44,5 +51,13 @@ enum srds_prtcl {
 };
 
 int is_serdes_configured(enum srds_prtcl device);
+void fsl_serdes_init(void);
+
+#ifdef CONFIG_FSL_CORENET
+int serdes_get_first_lane(enum srds_prtcl device);
+#ifdef CONFIG_SYS_P4080_ERRATUM_SERDES9
+void serdes_reset_rx(enum srds_prtcl device);
+#endif
+#endif
 
 #endif /* __FSL_SERDES_H */

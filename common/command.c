@@ -27,6 +27,7 @@
 
 #include <common.h>
 #include <command.h>
+#include <linux/ctype.h>
 
 /*
  * Use puts() instead of printf() to avoid printf buffer overflow
@@ -34,7 +35,7 @@
  */
 
 int _do_help (cmd_tbl_t *cmd_start, int cmd_items, cmd_tbl_t * cmdtp, int
-	      flag, int argc, char *argv[])
+	      flag, int argc, char * const argv[])
 {
 	int i;
 	int rcode = 0;
@@ -108,6 +109,8 @@ cmd_tbl_t *find_cmd_tbl (const char *cmd, cmd_tbl_t *table, int table_len)
 	int len;
 	int n_found = 0;
 
+	if (!cmd)
+		return NULL;
 	/*
 	 * Some commands allow length modifiers (like "cp.b");
 	 * compare command name only until first dot.
@@ -138,7 +141,7 @@ cmd_tbl_t *find_cmd (const char *cmd)
 	return find_cmd_tbl(cmd, &__u_boot_cmd_start, len);
 }
 
-int cmd_usage(cmd_tbl_t *cmdtp)
+int cmd_usage(const cmd_tbl_t *cmdtp)
 {
 	printf("%s - %s\n\n", cmdtp->name, cmdtp->usage);
 
@@ -153,17 +156,17 @@ int cmd_usage(cmd_tbl_t *cmdtp)
 	puts (cmdtp->help);
 	putc ('\n');
 #endif	/* CONFIG_SYS_LONGHELP */
-	return 0;
+	return 1;
 }
 
 #ifdef CONFIG_AUTO_COMPLETE
 
-int var_complete(int argc, char *argv[], char last_char, int maxv, char *cmdv[])
+int var_complete(int argc, char * const argv[], char last_char, int maxv, char *cmdv[])
 {
 	static char tmp_buf[512];
 	int space;
 
-	space = last_char == '\0' || last_char == ' ' || last_char == '\t';
+	space = last_char == '\0' || isblank(last_char);
 
 	if (space && argc == 1)
 		return env_complete("", maxv, cmdv, sizeof(tmp_buf), tmp_buf);
@@ -174,33 +177,9 @@ int var_complete(int argc, char *argv[], char last_char, int maxv, char *cmdv[])
 	return 0;
 }
 
-static void install_auto_complete_handler(const char *cmd,
-		int (*complete)(int argc, char *argv[], char last_char, int maxv, char *cmdv[]))
-{
-	cmd_tbl_t *cmdtp;
-
-	cmdtp = find_cmd(cmd);
-	if (cmdtp == NULL)
-		return;
-
-	cmdtp->complete = complete;
-}
-
-void install_auto_complete(void)
-{
-#if defined(CONFIG_CMD_EDITENV)
-	install_auto_complete_handler("editenv", var_complete);
-#endif
-	install_auto_complete_handler("printenv", var_complete);
-	install_auto_complete_handler("setenv", var_complete);
-#if defined(CONFIG_CMD_RUN)
-	install_auto_complete_handler("run", var_complete);
-#endif
-}
-
 /*************************************************************************************/
 
-static int complete_cmdv(int argc, char *argv[], char last_char, int maxv, char *cmdv[])
+static int complete_cmdv(int argc, char * const argv[], char last_char, int maxv, char *cmdv[])
 {
 	cmd_tbl_t *cmdtp;
 	const char *p;
@@ -228,7 +207,7 @@ static int complete_cmdv(int argc, char *argv[], char last_char, int maxv, char 
 	}
 
 	/* more than one arg or one but the start of the next */
-	if (argc > 1 || (last_char == '\0' || last_char == ' ' || last_char == '\t')) {
+	if (argc > 1 || (last_char == '\0' || isblank(last_char))) {
 		cmdtp = find_cmd(argv[0]);
 		if (cmdtp == NULL || cmdtp->complete == NULL) {
 			cmdv[0] = NULL;
@@ -279,7 +258,7 @@ static int make_argv(char *s, int argvsz, char *argv[])
 	while (argc < argvsz - 1) {
 
 		/* skip any white space */
-		while ((*s == ' ') || (*s == '\t'))
+		while (isblank(*s))
 			++s;
 
 		if (*s == '\0')	/* end of s, no more args	*/
@@ -288,7 +267,7 @@ static int make_argv(char *s, int argvsz, char *argv[])
 		argv[argc++] = s;	/* begin of argument string	*/
 
 		/* find end of string */
-		while (*s && (*s != ' ') && (*s != '\t'))
+		while (*s && !isblank(*s))
 			++s;
 
 		if (*s == '\0')		/* end of s, no more args	*/
@@ -301,7 +280,7 @@ static int make_argv(char *s, int argvsz, char *argv[])
 	return argc;
 }
 
-static void print_argv(const char *banner, const char *leader, const char *sep, int linemax, char *argv[])
+static void print_argv(const char *banner, const char *leader, const char *sep, int linemax, char * const argv[])
 {
 	int ll = leader != NULL ? strlen(leader) : 0;
 	int sl = sep != NULL ? strlen(sep) : 0;
@@ -328,7 +307,7 @@ static void print_argv(const char *banner, const char *leader, const char *sep, 
 	printf("\n");
 }
 
-static int find_common_prefix(char *argv[])
+static int find_common_prefix(char * const argv[])
 {
 	int i, len;
 	char *anchor, *s, *t;
@@ -462,5 +441,49 @@ int cmd_get_data_size(char* arg, int default_size)
 		}
 	}
 	return default_size;
+}
+#endif
+
+#if defined(CONFIG_NEEDS_MANUAL_RELOC)
+DECLARE_GLOBAL_DATA_PTR;
+
+void fixup_cmdtable(cmd_tbl_t *cmdtp, int size)
+{
+	int	i;
+
+	if (gd->reloc_off == 0)
+		return;
+
+	for (i = 0; i < size; i++) {
+		ulong addr;
+
+		addr = (ulong) (cmdtp->cmd) + gd->reloc_off;
+#if DEBUG_COMMANDS
+		printf("Command \"%s\": 0x%08lx => 0x%08lx\n",
+		       cmdtp->name, (ulong) (cmdtp->cmd), addr);
+#endif
+		cmdtp->cmd =
+			(int (*)(struct cmd_tbl_s *, int, int, char * const []))addr;
+		addr = (ulong)(cmdtp->name) + gd->reloc_off;
+		cmdtp->name = (char *)addr;
+		if (cmdtp->usage) {
+			addr = (ulong)(cmdtp->usage) + gd->reloc_off;
+			cmdtp->usage = (char *)addr;
+		}
+#ifdef	CONFIG_SYS_LONGHELP
+		if (cmdtp->help) {
+			addr = (ulong)(cmdtp->help) + gd->reloc_off;
+			cmdtp->help = (char *)addr;
+		}
+#endif
+#ifdef CONFIG_AUTO_COMPLETE
+		if (cmdtp->complete) {
+			addr = (ulong)(cmdtp->complete) + gd->reloc_off;
+			cmdtp->complete =
+				(int (*)(int, char * const [], char, int, char * []))addr;
+		}
+#endif
+		cmdtp++;
+	}
 }
 #endif

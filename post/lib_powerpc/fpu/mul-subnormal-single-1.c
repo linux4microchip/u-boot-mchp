@@ -30,9 +30,9 @@
 
 #include <post.h>
 
-#if CONFIG_POST & CONFIG_SYS_POST_FPU
-
 GNU_FPOST_ATTR
+
+#if CONFIG_POST & CONFIG_SYS_POST_FPU
 
 union uf
 {
@@ -86,7 +86,7 @@ int fpu_post_test_math7 (void)
 {
 	unsigned int i;
 
-	for (i = 0; i < sizeof (expected) / sizeof (expected[0]); i++)
+	for (i = 0; i < ARRAY_SIZE(expected); i++)
 	{
 		tstmul (expected[i].p1, expected[i].p2, expected[i].res);
 		tstmul (expected[i].p2, expected[i].p1, expected[i].res);

@@ -19,6 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
+#include <asm-offsets.h>
 #include <config.h>
 #include <asm/ptrace.h>
 #include <asm/sysreg.h>
@@ -27,9 +28,10 @@
 #define SYSREG_MMUCR_S_OFFSET	4
 
 #define SR_INIT (SYSREG_BIT(GM) | SYSREG_BIT(EM) | SYSREG_BIT(M0))
-#define CPUCR_INIT (SYSREG_BIT(BI) | SYSREG_BIT(BE)		\
-		    | SYSREG_BIT(FE) | SYSREG_BIT(RE)		\
-		    | SYSREG_BIT(IBE) | SYSREG_BIT(IEE))
+/* due to errata (unreliable branch folding) clear FE bit explicitly */
+#define CPUCR_INIT ((SYSREG_BIT(BI) | SYSREG_BIT(BE)	\
+		    | SYSREG_BIT(RE)   |  SYSREG_BIT(IBE)		\
+		    | SYSREG_BIT(IEE)) & ~SYSREG_BIT(FE))
 
 	/*
 	 * To save some space, we use the same entry point for
@@ -81,12 +83,19 @@ _evba:
 	.org	0x44
 	rjmp	unknown_exception	/* DTLB Modified */
 
-	.org	0x50
-	rjmp	unknown_exception	/* ITLB Miss */
-	.org	0x60
-	rjmp	unknown_exception	/* DTLB Miss (read) */
-	.org	0x70
-	rjmp	unknown_exception	/* DTLB Miss (write) */
+	.org	0x50			/* ITLB Miss */
+	pushm   r8-r12,lr
+	rjmp	1f
+	.org	0x60			/* DTLB Miss (read) */
+	pushm   r8-r12,lr
+	rjmp	1f
+	.org	0x70			/* DTLB Miss (write) */
+	pushm   r8-r12,lr
+1:	mov	r12, sp
+	rcall	mmu_handle_tlb_miss
+	popm	r8-r12,lr
+	brne	unknown_exception
+	rete
 
 	.size	_evba, . - _evba
 
@@ -235,7 +244,7 @@ relocate_code:
 	/* zero out .bss */
 	mov	r0, 0
 	mov	r1, 0
-	lda.w	r9, _end
+	lda.w	r9, __bss_end__
 	sub	r9, r8
 1:	st.d	r10++, r0
 	sub	r9, 8

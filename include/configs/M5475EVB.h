@@ -67,7 +67,6 @@
 
 #define CONFIG_FSLDMAFEC
 #ifdef CONFIG_FSLDMAFEC
-#	define CONFIG_NET_MULTI		1
 #	define CONFIG_MII		1
 #	define CONFIG_MII_INIT		1
 #	define CONFIG_HAS_ETH1
@@ -171,7 +170,7 @@
 	"load=tftp ${loadaddr) ${u-boot}\0"	\
 	"upd=run load; run prog\0"		\
 	"prog=prot off bank 1;"			\
-	"era ff800000 ff82ffff;"		\
+	"era ff800000 ff83ffff;"		\
 	"cp.b ${loadaddr} ff800000 ${filesize};"\
 	"save\0"				\
 	""
@@ -210,13 +209,12 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	0xF2000000
-#define CONFIG_SYS_INIT_RAM_END	0x1000	/* End of used area in internal SRAM */
+#define CONFIG_SYS_INIT_RAM_SIZE	0x1000	/* Size of used area in internal SRAM */
 #define CONFIG_SYS_INIT_RAM_CTRL	0x21
-#define CONFIG_SYS_INIT_RAM1_ADDR	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_RAM_END)
+#define CONFIG_SYS_INIT_RAM1_ADDR	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_RAM_SIZE)
 #define CONFIG_SYS_INIT_RAM1_END	0x1000	/* End of used area in internal SRAM */
 #define CONFIG_SYS_INIT_RAM1_CTRL	0x21
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	((CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE) - 0x10)
+#define CONFIG_SYS_GBL_DATA_OFFSET	((CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE) - 0x10)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -244,8 +242,9 @@
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* Reserve 256 kB for Monitor */
 
 #define CONFIG_SYS_BOOTPARAMS_LEN	64*1024
-#define CONFIG_SYS_MALLOC_LEN		(128 << 10)	/* Reserve 128 kB for malloc() */
 
+/* Reserve 256 kB for malloc() */
+#define CONFIG_SYS_MALLOC_LEN		(256 << 10)
 /*
  * For booting Linux, the board info and command line data
  * have to be in the first 8 MB of memory, since this is
@@ -275,10 +274,12 @@
 #endif
 
 /* Configuration for environment
- * Environment is embedded in u-boot in the second sector of the flash
+ * Environment is not embedded in u-boot but at offset 0x40000 on the flash.
+ * First time runing may have env crc error warning if there is
+ * no correct environment on the flash.
  */
-#define CONFIG_ENV_OFFSET		0x2000
-#define CONFIG_ENV_SECT_SIZE	0x2000
+#define CONFIG_ENV_OFFSET		0x40000
+#define CONFIG_ENV_SECT_SIZE	0x10000
 #define CONFIG_ENV_IS_IN_FLASH	1
 
 /*-----------------------------------------------------------------------
@@ -287,9 +288,9 @@
 #define CONFIG_SYS_CACHELINE_SIZE	16
 
 #define ICACHE_STATUS			(CONFIG_SYS_INIT_RAM_ADDR + \
-					 CONFIG_SYS_INIT_RAM_END - 8)
+					 CONFIG_SYS_INIT_RAM_SIZE - 8)
 #define DCACHE_STATUS			(CONFIG_SYS_INIT_RAM_ADDR + \
-					 CONFIG_SYS_INIT_RAM_END - 4)
+					 CONFIG_SYS_INIT_RAM_SIZE - 4)
 #define CONFIG_SYS_ICACHE_INV		(CF_CACR_BCINVA + CF_CACR_ICINVA + \
 					 CF_CACR_IDCM)
 #define CONFIG_SYS_DCACHE_INV		(CF_CACR_DCINVA)

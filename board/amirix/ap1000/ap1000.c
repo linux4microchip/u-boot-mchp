@@ -37,8 +37,8 @@ int board_pre_init (void)
 /** serial number and platform display at startup */
 int checkboard (void)
 {
-	char *s = getenv ("serial#");
-	char *e;
+	char buf[64];
+	int l = getenv_f("serial#", buf, sizeof(buf));
 
 	/* After a loadace command, the SystemAce control register is left in a wonky state. */
 	/* this code did not work in board_pre_init */
@@ -115,17 +115,19 @@ int checkboard (void)
 
 	puts ("Serial#: ");
 
-	if (!s) {
+	if (l < 0) {
 		printf ("### No HW ID - assuming AMIRIX");
 	} else {
-		for (e = s; *e; ++e) {
-			if (*e == ' ')
+		int i;
+
+		for (i = 0; i < l; ++i) {
+			if (buf[i] == ' ') {
+				buf[i] = '\0';
 				break;
+			}
 		}
 
-		for (; s < e; ++s) {
-			putc (*s);
-		}
+		puts(buf);
 	}
 
 	putc ('\n');
@@ -136,9 +138,11 @@ int checkboard (void)
 
 phys_size_t initdram (int board_type)
 {
-	char *s = getenv ("dramsize");
+	char buf[64];
+	int i = getenv_f("dramsize", buf, sizeof(buf));
 
-	if (s != NULL) {
+	if (i > 0) {
+		char *s = buf;
 		if ((s[0] == '0') && ((s[1] == 'x') || (s[1] == 'X'))) {
 			s += 2;
 		}
@@ -167,7 +171,7 @@ unsigned int get_device (void)
 /*
    This function loads FPGA configurations from the SystemACE CompactFlash
 */
-int do_loadace (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+int do_loadace (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	unsigned char *p = (unsigned char *) AP1000_SYSACE_REGBASE;
 	int cfg;
@@ -247,7 +251,7 @@ int do_loadace (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
   *     -1 if failed
   * </pre>
   */
-int do_swconfigbyte (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+int do_swconfigbyte (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	unsigned char *sector_buffer = NULL;
 	unsigned char input_char;
@@ -311,7 +315,7 @@ int do_swconfigbyte (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 
 #define ONE_SECOND 1000000
 
-int do_pause (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+int do_pause (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	int pause_time;
 	unsigned int delay_time;
@@ -345,7 +349,7 @@ int do_pause (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	return 0;
 }
 
-int do_swreconfig (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+int do_swreconfig (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	printf ("Triggering software reconfigure (software config byte is 0x%02x)...\n",
 		*((unsigned char *) (SW_BYTE_SECTOR_ADDR + SW_BYTE_SECTOR_OFFSET)));
@@ -365,7 +369,7 @@ int do_swreconfig (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 #define TEMP_ETHERM_BIT 0x02
 #define TEMP_LTHERM_BIT 0x01
 
-int do_temp_sensor (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+int do_temp_sensor (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	char cmd;
 	int ret_val = 0;

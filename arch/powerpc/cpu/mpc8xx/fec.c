@@ -63,9 +63,9 @@ DECLARE_GLOBAL_DATA_PTR;
 static int mii_discover_phy(struct eth_device *dev);
 #endif
 
-int fec8xx_miiphy_read(char *devname, unsigned char addr,
+int fec8xx_miiphy_read(const char *devname, unsigned char addr,
 		unsigned char  reg, unsigned short *value);
-int fec8xx_miiphy_write(char *devname, unsigned char  addr,
+int fec8xx_miiphy_write(const char *devname, unsigned char  addr,
 		unsigned char  reg, unsigned short value);
 
 static struct ether_fcc_info_s
@@ -164,9 +164,9 @@ int fec_initialize(bd_t *bis)
 		/* for FEC1 make sure that the name of the interface is the same
 		   as the old one for compatibility reasons */
 		if (i == 0) {
-			sprintf (dev->name, "FEC ETHERNET");
+			sprintf (dev->name, "FEC");
 		} else {
-			sprintf (dev->name, "FEC%d ETHERNET",
+			sprintf (dev->name, "FEC%d",
 				ether_fcc_info[i].ether_index + 1);
 		}
 
@@ -378,35 +378,39 @@ static void fec_pin_init(int fecidx)
 {
 	bd_t           *bd = gd->bd;
 	volatile immap_t *immr = (immap_t *) CONFIG_SYS_IMMR;
-	volatile fec_t *fecp;
-
-	/*
-	 * only two FECs please
-	 */
-	if ((unsigned int)fecidx >= 2)
-		hang();
-
-	if (fecidx == 0)
-		fecp = &immr->im_cpm.cp_fec1;
-	else
-		fecp = &immr->im_cpm.cp_fec2;
 
 	/*
 	 * Set MII speed to 2.5 MHz or slightly below.
-	 * * According to the MPC860T (Rev. D) Fast ethernet controller user
-	 * * manual (6.2.14),
-	 * * the MII management interface clock must be less than or equal
-	 * * to 2.5 MHz.
-	 * * This MDC frequency is equal to system clock / (2 * MII_SPEED).
-	 * * Then MII_SPEED = system_clock / 2 * 2,5 MHz.
+	 *
+	 * According to the MPC860T (Rev. D) Fast ethernet controller user
+	 * manual (6.2.14),
+	 * the MII management interface clock must be less than or equal
+	 * to 2.5 MHz.
+	 * This MDC frequency is equal to system clock / (2 * MII_SPEED).
+	 * Then MII_SPEED = system_clock / 2 * 2,5 MHz.
 	 *
 	 * All MII configuration is done via FEC1 registers:
 	 */
 	immr->im_cpm.cp_fec1.fec_mii_speed = ((bd->bi_intfreq + 4999999) / 5000000) << 1;
 
 #if defined(CONFIG_NETTA) || defined(CONFIG_NETPHONE) || defined(CONFIG_NETTA2)
-	/* our PHYs are the limit at 2.5 MHz */
-	fecp->fec_mii_speed <<= 1;
+	{
+		volatile fec_t *fecp;
+
+		/*
+		 * only two FECs please
+		 */
+		if ((unsigned int)fecidx >= 2)
+			hang();
+
+		if (fecidx == 0)
+			fecp = &immr->im_cpm.cp_fec1;
+		else
+			fecp = &immr->im_cpm.cp_fec2;
+
+		/* our PHYs are the limit at 2.5 MHz */
+		fecp->fec_mii_speed <<= 1;
+	}
 #endif
 
 #if defined(CONFIG_MPC885_FAMILY) && defined(WANT_MII)
@@ -888,14 +892,14 @@ static int mii_discover_phy(struct eth_device *dev)
 			udelay(10000);	/* wait 10ms */
 		}
 		for (phyno = 0; phyno < 32 && phyaddr < 0; ++phyno) {
-			phytype = mii_send(mk_mii_read(phyno, PHY_PHYIDR2));
+			phytype = mii_send(mk_mii_read(phyno, MII_PHYSID2));
 #ifdef ET_DEBUG
 			printf("PHY type 0x%x pass %d type ", phytype, pass);
 #endif
 			if (phytype != 0xffff) {
 				phyaddr = phyno;
 				phytype |= mii_send(mk_mii_read(phyno,
-								PHY_PHYIDR1)) << 16;
+								MII_PHYSID1)) << 16;
 
 #ifdef ET_DEBUG
 				printf("PHY @ 0x%x pass %d type ",phyno,pass);
@@ -990,7 +994,7 @@ void mii_init (void)
  *	  Otherwise they hang in mii_send() !!! Sorry!
  *****************************************************************************/
 
-int fec8xx_miiphy_read(char *devname, unsigned char addr,
+int fec8xx_miiphy_read(const char *devname, unsigned char addr,
 		unsigned char  reg, unsigned short *value)
 {
 	short rdreg;    /* register working value */
@@ -1007,14 +1011,13 @@ int fec8xx_miiphy_read(char *devname, unsigned char addr,
 	return 0;
 }
 
-int fec8xx_miiphy_write(char *devname, unsigned char  addr,
+int fec8xx_miiphy_write(const char *devname, unsigned char  addr,
 		unsigned char  reg, unsigned short value)
 {
-	short rdreg;    /* register working value */
 #ifdef MII_DEBUG
 	printf ("miiphy_write(0x%x) @ 0x%x = ", reg, addr);
 #endif
-	rdreg = mii_send(mk_mii_write(addr, reg, value));
+	(void)mii_send(mk_mii_write(addr, reg, value));
 
 #ifdef MII_DEBUG
 	printf ("0x%04x\n", value);

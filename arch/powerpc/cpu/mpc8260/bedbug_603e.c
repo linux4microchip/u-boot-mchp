@@ -18,7 +18,7 @@
 extern CPU_DEBUG_CTX bug_ctx;
 
 void bedbug603e_init __P((void));
-void bedbug603e_do_break __P((cmd_tbl_t*,int,int,char*[]));
+void bedbug603e_do_break __P((cmd_tbl_t*,int,int,char*const[]));
 void bedbug603e_break_isr __P((struct pt_regs*));
 int  bedbug603e_find_empty __P((void));
 int  bedbug603e_set __P((int,unsigned long));
@@ -64,14 +64,13 @@ void bedbug603e_init( void )
  * ====================================================================== */
 
 void bedbug603e_do_break (cmd_tbl_t *cmdtp, int flag, int argc,
-			 char *argv[])
+			 char * const argv[])
 {
   long		addr;           /* Address to break at  */
   int		which_bp;       /* Breakpoint number    */
   /* -------------------------------------------------- */
 
-  if (argc < 2)
-  {
+  if (argc < 2) {
     cmd_usage(cmdtp);
     return;
   }
@@ -117,8 +116,7 @@ void bedbug603e_do_break (cmd_tbl_t *cmdtp, int flag, int argc,
 
   if(!(( isdigit( argv[ 1 ][ 0 ] )) ||
 	(( argv[ 1 ][ 0 ] >= 'a' ) && ( argv[ 1 ][ 0 ] <= 'f' )) ||
-	(( argv[ 1 ][ 0 ] >= 'A' ) && ( argv[ 1 ][ 0 ] <= 'F' ))))
-  {
+	(( argv[ 1 ][ 0 ] >= 'A' ) && ( argv[ 1 ][ 0 ] <= 'F' )))) {
     cmd_usage(cmdtp);
     return;
   }

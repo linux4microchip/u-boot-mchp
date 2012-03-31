@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2010 Freescale Semiconductor, Inc.
+ * Copyright 2008-2011 Freescale Semiconductor, Inc.
  * Kumar Gala <kumar.gala@freescale.com>
  *
  * See file CREDITS for list of people who contributed to this
@@ -21,6 +21,7 @@
  * MA 02111-1307 USA
  */
 
+#include <asm-offsets.h>
 #include <config.h>
 #include <mpc85xx.h>
 #include <version.h>
@@ -65,6 +66,12 @@ __secondary_start_page:
 	ori r3, r3, HID1_MBDD@l
 1:
 	mtspr	SPRN_HID1,r3
+#endif
+
+#ifdef CONFIG_SYS_FSL_ERRATUM_CPU_A003999
+	mfspr	r3,977
+	oris	r3,r3,0x0100
+	mtspr	977,r3
 #endif
 
 	/* Enable branch prediction */
@@ -136,7 +143,25 @@ __secondary_start_page:
 	mtspr	L1CSR2,r8
 #endif
 
+#if defined(CONFIG_SYS_P4080_ERRATUM_CPU22)
+	mfspr	r8,L1CSR2
+	oris	r8,r8,(L1CSR2_DCWS)@h
+	mtspr	L1CSR2,r8
+#endif
+
 #ifdef CONFIG_BACKSIDE_L2_CACHE
+	/* skip L2 setup on P2040/P2040E as they have no L2 */
+	mfspr	r2,SPRN_SVR
+	lis	r3,SVR_P2040@h
+	ori	r3,r3,SVR_P2040@l
+	cmpw	r2,r3
+	beq 3f
+
+	lis	r3,SVR_P2040_E@h
+	ori	r3,r3,SVR_P2040_E@l
+	cmpw	r2,r3
+	beq 3f
+
 	/* Enable/invalidate the L2 cache */
 	msync
 	lis	r2,(L2CSR0_L2FI|L2CSR0_L2LFC)@h
@@ -162,6 +187,7 @@ __secondary_start_page:
 	andis.	r1,r3,L2CSR0_L2E@h
 	beq	2b
 #endif
+3:
 
 #define EPAPR_MAGIC		(0x45504150)
 #define ENTRY_ADDR_UPPER	0

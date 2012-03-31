@@ -75,14 +75,14 @@ DECLARE_GLOBAL_DATA_PTR;
  */
 
 int
-fpga_load (int mezz, uchar *addr, ulong size)
+fpga_load(int mezz, const uchar *addr, ulong size)
 {
 	hymod_conf_t *cp = &gd->bd->bi_hymod_conf;
 	xlx_info_t *fp;
 	xlx_iopins_t *fpgaio;
 	volatile uchar *fpgabase;
 	volatile uint cnt;
-	uchar *eaddr = addr + size;
+	const uchar *eaddr = addr + size;
 	int result;
 
 	if (mezz)
@@ -141,7 +141,7 @@ fpga_load (int mezz, uchar *addr, ulong size)
 
 /* ------------------------------------------------------------------------- */
 int
-do_fpga (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+do_fpga (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	uchar *addr, *save_addr;
 	ulong size;
@@ -200,7 +200,7 @@ do_fpga (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 			load_addr = simple_strtoul (argv[3], NULL, 16);
 			NetBootFileXferSize = 0;
 
-			if (NetLoop (TFTP) <= 0) {
+			if (NetLoop(TFTPGET) <= 0) {
 				printf ("tftp transfer failed - aborting "
 					"fgpa load\n");
 				return 1;
@@ -272,8 +272,7 @@ do_fpga (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 		break;
 	}
 
-	cmd_usage(cmdtp);
-	return 1;
+	return cmd_usage(cmdtp);
 }
 U_BOOT_CMD(
 	fpga,	6,	1,	do_fpga,
@@ -301,7 +300,7 @@ U_BOOT_CMD(
 );
 /* ------------------------------------------------------------------------- */
 int
-do_eecl (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+do_eecl (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	uchar data[HYMOD_EEPROM_SIZE];
 	uint addr = CONFIG_SYS_I2C_EEPROM_ADDR;
@@ -324,8 +323,7 @@ do_eecl (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 		/* fall through ... */
 
 	default:
-		cmd_usage(cmdtp);
-		return 1;
+		return cmd_usage(cmdtp);
 	}
 
 	memset (data, 0, HYMOD_EEPROM_SIZE);
@@ -346,7 +344,7 @@ U_BOOT_CMD(
 /* ------------------------------------------------------------------------- */
 
 int
-do_htest (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+do_htest (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 #if 0
 	int rc;

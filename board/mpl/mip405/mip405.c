@@ -65,7 +65,8 @@
 #include <common.h>
 #include "mip405.h"
 #include <asm/processor.h>
-#include <4xx_i2c.h>
+#include <asm/ppc4xx.h>
+#include <asm/ppc4xx-i2c.h>
 #include <miiphy.h>
 #include "../common/common_util.h"
 #include <stdio_dev.h>
@@ -245,8 +246,7 @@ int init_sdram (void)
 	unsigned char	trp_clocks,
 			trcd_clocks,
 			tras_clocks,
-			trc_clocks,
-			tctp_clocks;
+			trc_clocks;
 	unsigned char	cal_val;
 	unsigned char	bc;
 	unsigned long	sdram_tim, sdram_bank;
@@ -344,7 +344,6 @@ int init_sdram (void)
 	trcd_clocks = sdram_table[i].trcd;	/* 20ns /7.5 ns (datain[29]) */
 	tras_clocks = sdram_table[i].tras;	/* 44ns /7.5 ns  (datain[30]) */
 	/* ctp = ((trp + tras) - trp - trcd) => tras - trcd */
-	tctp_clocks = sdram_table[i].tctp;	/* 44 - 20ns = 24ns */
 	/* trc_clocks is sum of trp_clocks + tras_clocks */
 	trc_clocks = trp_clocks + tras_clocks;
 	/* get SDRAM timing register */
@@ -589,7 +588,7 @@ int checkboard (void)
 
 	puts ("Board: ");
 	get_pcbrev_var(&bc,&var);
-	i = getenv_r ("serial#", (char *)s, 32);
+	i = getenv_f("serial#", (char *)s, 32);
 	if ((i == 0) || strncmp ((char *)s, BOARD_NAME,sizeof(BOARD_NAME))) {
 		get_backup_values (b);
 		if (strncmp (b->signature, "MPL\0", 4) != 0) {
@@ -625,10 +624,9 @@ phys_size_t initdram (int board_type)
 {
 
 	unsigned long bank_reg[4], tmp, bank_size;
-	int i, ds;
+	int i;
 	unsigned long TotalSize;
 
-	ds = 0;
 	/* since the DRAM controller is allready set up, calculate the size with the
 	   bank registers    */
 	mtdcr (SDRAM0_CFGADDR, SDRAM0_B0CR);
@@ -645,8 +643,7 @@ phys_size_t initdram (int board_type)
 			tmp = (bank_reg[i] >> 17) & 0x7;
 			bank_size = 4 << tmp;
 			TotalSize += bank_size;
-		} else
-			ds = 1;
+		}
 	}
 	mtdcr (SDRAM0_CFGADDR, SDRAM0_ECCCFG);
 	tmp = mfdcr (SDRAM0_CFGDATA);

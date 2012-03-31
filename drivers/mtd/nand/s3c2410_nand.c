@@ -56,7 +56,7 @@ static void s3c2410_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int ctrl)
 	struct nand_chip *chip = mtd->priv;
 	struct s3c2410_nand *nand = s3c2410_get_base_nand();
 
-	debugX(1, "hwcontrol(): 0x%02x 0x%02x\n", cmd, ctrl);
+	debug("hwcontrol(): 0x%02x 0x%02x\n", cmd, ctrl);
 
 	if (ctrl & NAND_CTRL_CHANGE) {
 		ulong IO_ADDR_W = (ulong)nand;
@@ -69,11 +69,11 @@ static void s3c2410_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int ctrl)
 		chip->IO_ADDR_W = (void *)IO_ADDR_W;
 
 		if (ctrl & NAND_NCE)
-			writel(readl(&nand->NFCONF) & ~S3C2410_NFCONF_nFCE,
-			       &nand->NFCONF);
+			writel(readl(&nand->nfconf) & ~S3C2410_NFCONF_nFCE,
+			       &nand->nfconf);
 		else
-			writel(readl(&nand->NFCONF) | S3C2410_NFCONF_nFCE,
-			       &nand->NFCONF);
+			writel(readl(&nand->nfconf) | S3C2410_NFCONF_nFCE,
+			       &nand->nfconf);
 	}
 
 	if (cmd != NAND_CMD_NONE)
@@ -83,26 +83,26 @@ static void s3c2410_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int ctrl)
 static int s3c2410_dev_ready(struct mtd_info *mtd)
 {
 	struct s3c2410_nand *nand = s3c2410_get_base_nand();
-	debugX(1, "dev_ready\n");
-	return readl(&nand->NFSTAT) & 0x01;
+	debug("dev_ready\n");
+	return readl(&nand->nfstat) & 0x01;
 }
 
 #ifdef CONFIG_S3C2410_NAND_HWECC
 void s3c2410_nand_enable_hwecc(struct mtd_info *mtd, int mode)
 {
 	struct s3c2410_nand *nand = s3c2410_get_base_nand();
-	debugX(1, "s3c2410_nand_enable_hwecc(%p, %d)\n", mtd, mode);
-	writel(readl(&nand->NFCONF) | S3C2410_NFCONF_INITECC, &nand->NFCONF);
+	debug("s3c2410_nand_enable_hwecc(%p, %d)\n", mtd, mode);
+	writel(readl(&nand->nfconf) | S3C2410_NFCONF_INITECC, &nand->nfconf);
 }
 
 static int s3c2410_nand_calculate_ecc(struct mtd_info *mtd, const u_char *dat,
 				      u_char *ecc_code)
 {
 	struct s3c2410_nand *nand = s3c2410_get_base_nand();
-	ecc_code[0] = readb(&nand->NFECC);
-	ecc_code[1] = readb(&nand->NFECC + 1);
-	ecc_code[2] = readb(&nand->NFECC + 2);
-	debugX(1, "s3c2410_nand_calculate_hwecc(%p,): 0x%02x 0x%02x 0x%02x\n",
+	ecc_code[0] = readb(&nand->nfecc);
+	ecc_code[1] = readb(&nand->nfecc + 1);
+	ecc_code[2] = readb(&nand->nfecc + 2);
+	debug("s3c2410_nand_calculate_hwecc(%p,): 0x%02x 0x%02x 0x%02x\n",
 	       mtd , ecc_code[0], ecc_code[1], ecc_code[2]);
 
 	return 0;
@@ -128,23 +128,30 @@ int board_nand_init(struct nand_chip *nand)
 	struct s3c24x0_clock_power *clk_power = s3c24x0_get_base_clock_power();
 	struct s3c2410_nand *nand_reg = s3c2410_get_base_nand();
 
-	debugX(1, "board_nand_init()\n");
+	debug("board_nand_init()\n");
 
-	writel(readl(&clk_power->CLKCON) | (1 << 4), &clk_power->CLKCON);
+	writel(readl(&clk_power->clkcon) | (1 << 4), &clk_power->clkcon);
 
 	/* initialize hardware */
-	twrph0 = 3;
-	twrph1 = 0;
-	tacls = 0;
+#if defined(CONFIG_S3C24XX_CUSTOM_NAND_TIMING)
+	tacls  = CONFIG_S3C24XX_TACLS;
+	twrph0 = CONFIG_S3C24XX_TWRPH0;
+	twrph1 =  CONFIG_S3C24XX_TWRPH1;
+#else
+	tacls = 4;
+	twrph0 = 8;
+	twrph1 = 8;
+#endif
 
 	cfg = S3C2410_NFCONF_EN;
 	cfg |= S3C2410_NFCONF_TACLS(tacls - 1);
 	cfg |= S3C2410_NFCONF_TWRPH0(twrph0 - 1);
 	cfg |= S3C2410_NFCONF_TWRPH1(twrph1 - 1);
-	writel(cfg, &nand_reg->NFCONF);
+	writel(cfg, &nand_reg->nfconf);
 
 	/* initialize nand_chip data structure */
-	nand->IO_ADDR_R = nand->IO_ADDR_W = (void *)&nand_reg->NFDATA;
+	nand->IO_ADDR_R = (void *)&nand_reg->nfdata;
+	nand->IO_ADDR_W = (void *)&nand_reg->nfdata;
 
 	nand->select_chip = NULL;
 
@@ -176,7 +183,7 @@ int board_nand_init(struct nand_chip *nand)
 	nand->options = 0;
 #endif
 
-	debugX(1, "end of nand_init\n");
+	debug("end of nand_init\n");
 
 	return 0;
 }

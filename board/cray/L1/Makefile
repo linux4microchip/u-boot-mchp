@@ -23,7 +23,7 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)lib$(BOARD).a
+LIB	= $(obj)lib$(BOARD).o
 
 COBJS	= $(BOARD).o flash.o
 SOBJS	= init.o
@@ -36,14 +36,7 @@ SOBJS	:= $(addprefix $(obj),$(SOBJS))
 # HACK: depend needs bootscript.c, which needs tools/mkimage, which is not
 # built in the depend stage.  So... put bootscript.o here, not in OBJS
 $(LIB):	$(OBJS) $(SOBJS) $(obj)bootscript.o
-	$(AR) $(ARFLAGS) $@ $^
-
-clean:
-	rm -f $(SOBJS) $(OBJS) $(obj)bootscript.c \
-		$(obj)bootscript.image $(obj)bootscript.o
-
-distclean:	clean
-	rm -f $(LIB) core *.bak $(obj).depend
+	$(call cmd_link_o_target, $^)
 
 $(obj)$(BOARD).o : $(src)$(BOARD).c $(obj)bootscript.o
 

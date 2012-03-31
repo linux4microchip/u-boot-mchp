@@ -30,7 +30,7 @@
 
 #include <asm/processor.h>
 #include <asm/io.h>
-#include <asm/gpio.h>
+#include <asm/ppc4xx-gpio.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -40,11 +40,9 @@ DECLARE_GLOBAL_DATA_PTR;
 
 extern flash_info_t flash_info[CONFIG_SYS_MAX_FLASH_BANKS]; /* info for FLASH chips	*/
 extern env_t *env_ptr;
-extern uchar default_environment[];
 
 ulong flash_get_size(ulong base, int banknum);
 void env_crc_update(void);
-int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 
 static u32 start_time;
 
@@ -162,7 +160,8 @@ int misc_init_r(void)
  */
 int checkboard(void)
 {
-	char *s = getenv("serial#");
+	char buf[64];
+	int i = getenv_f("serial#", buf, sizeof(buf));
 
 	puts("Board: Zeus-");
 
@@ -173,9 +172,9 @@ int checkboard(void)
 
 	puts(" of BulletEndPoint");
 
-	if (s != NULL) {
+	if (i > 0) {
 		puts(", serial# ");
-		puts(s);
+		puts(buf);
 	}
 	putc('\n');
 
@@ -222,27 +221,8 @@ static int restore_default(void)
 	char *buf_save;
 	u32 crc;
 
-	/*
-	 * Unprotect and erase environment area
-	 */
-	flash_protect(FLAG_PROTECT_CLEAR,
-		      CONFIG_ENV_ADDR_REDUND,
-		      CONFIG_ENV_ADDR_REDUND + 2*CONFIG_ENV_SECT_SIZE - 1,
-		      &flash_info[0]);
+	set_default_env("");
 
-	flash_sect_erase(CONFIG_ENV_ADDR_REDUND,
-			 CONFIG_ENV_ADDR_REDUND + 2*CONFIG_ENV_SECT_SIZE - 1);
-
-	/*
-	 * Now restore default environment from U-Boot image
-	 * -> ipaddr, serverip...
-	 */
-	memset(env_ptr, 0, sizeof(env_t));
-	memcpy(env_ptr->data, default_environment, ENV_SIZE);
-#ifdef CONFIG_SYS_REDUNDAND_ENVIRONMENT
-	env_ptr->flags = 0xFF;
-#endif
-	env_crc_update();
 	gd->env_valid = 1;
 
 	/*
@@ -251,6 +231,10 @@ static int restore_default(void)
 	 * -> ethaddr, eth1addr, serial#
 	 */
 	buf = buf_save = malloc(FACTORY_RESET_ENV_SIZE);
+	if (buf == NULL) {
+		printf("ERROR: malloc() failed\n");
+		return -1;
+	}
 	if (eeprom_read(FACTORY_RESET_I2C_EEPROM, FACTORY_RESET_ENV_OFFS,
 			(u8 *)buf, FACTORY_RESET_ENV_SIZE)) {
 		puts("\nError reading EEPROM!\n");
@@ -278,7 +262,7 @@ static int restore_default(void)
 	return 0;
 }
 
-int do_set_default(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_set_default(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	char *buf;
 	char *buf_save;
@@ -336,7 +320,7 @@ static inline int sw_reset_pressed(void)
 	return !(in_be32((void *)GPIO0_IR) & GPIO_VAL(CONFIG_SYS_GPIO_SW_RESET));
 }
 
-int do_chkreset(cmd_tbl_t* cmdtp, int flag, int argc, char* argv[])
+int do_chkreset(cmd_tbl_t* cmdtp, int flag, int argc, char * const argv[])
 {
 	int delta;
 	int count = 0;

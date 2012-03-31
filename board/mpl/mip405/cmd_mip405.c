@@ -30,12 +30,12 @@
 
 
 extern void print_mip405_info(void);
-extern int do_mplcommon(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+extern int do_mplcommon(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
 
 
 /* ------------------------------------------------------------------------- */
 
-int do_mip405(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_mip405(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 
 	ulong led_on;
@@ -59,8 +59,7 @@ U_BOOT_CMD(
 	"flash mem [SrcAddr] - updates U-Boot with image in memory\n"
 	"mip405 flash mps - updates U-Boot with image from MPS\n"
 	"mip405 info      - displays board information\n"
-	"mip405 led <on>  - switches LED on (on=1) or off (on=0)\n"
-	"mip405 mem [cnt] - Memory Test <cnt>-times, <cnt> = -1 loop forever"
+	"mip405 led <on>  - switches LED on (on=1) or off (on=0)"
 );
 
 /* ------------------------------------------------------------------------- */

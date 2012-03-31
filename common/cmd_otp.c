@@ -80,35 +80,35 @@ static void set_otp_timing(bool write)
 	bfrom_OtpCommand(OTP_INIT, write ? timing : timing & ~(-1 << 15));
 }
 
-int do_otp(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_otp(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
+	char *cmd;
 	uint32_t ret, base_flags;
 	bool prompt_user, force_read;
 	uint32_t (*otp_func)(uint32_t page, uint32_t flags, uint64_t *page_content);
 
 	if (argc < 4) {
  usage:
-		cmd_usage(cmdtp);
-		return 1;
+		return cmd_usage(cmdtp);
 	}
 
 	prompt_user = false;
 	base_flags = 0;
-	if (!strcmp(argv[1], "read"))
+	cmd = argv[1];
+	if (!strcmp(cmd, "read"))
 		otp_func = bfrom_OtpRead;
-	else if (!strcmp(argv[1], "dump")) {
+	else if (!strcmp(cmd, "dump")) {
 		otp_func = bfrom_OtpRead;
 		force_read = true;
-	} else if (!strcmp(argv[1], "write")) {
+	} else if (!strcmp(cmd, "write")) {
 		otp_func = bfrom_OtpWrite;
 		base_flags = OTP_CHECK_FOR_PREV_WRITE;
 		if (!strcmp(argv[2], "--force")) {
-			argv[2] = argv[1];
 			argv++;
 			--argc;
 		} else
 			prompt_user = false;
-	} else if (!strcmp(argv[1], "lock")) {
+	} else if (!strcmp(cmd, "lock")) {
 		if (argc != 4)
 			goto usage;
 		otp_func = bfrom_OtpWrite;
@@ -176,7 +176,7 @@ int do_otp(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	}
 
 	printf("OTP memory %s: addr 0x%p  page 0x%03X  count %zu ... ",
-		argv[1], addr, page, count);
+		cmd, addr, page, count);
 
 	set_otp_timing(otp_func == bfrom_OtpWrite);
 	if (otp_func == bfrom_OtpWrite && check_voltage()) {
@@ -224,7 +224,8 @@ int do_otp(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	return ret;
 }
 
-U_BOOT_CMD(otp, 7, 0, do_otp,
+U_BOOT_CMD(
+	otp, 7, 0, do_otp,
 	"One-Time-Programmable sub-system",
 	"read <addr> <page> [count] [half]\n"
 	" - read 'count' half-pages starting at 'page' (offset 'half') to 'addr'\n"

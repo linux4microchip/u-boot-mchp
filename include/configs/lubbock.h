@@ -34,31 +34,29 @@
  * High Level Configuration Options
  * (easy to change)
  */
-#define CONFIG_PXA250		1	/* This is an PXA250 CPU    */
+#define CONFIG_CPU_PXA25X		1	/* This is an PXA250 CPU    */
 #define CONFIG_LUBBOCK		1	/* on an LUBBOCK Board	    */
 #define CONFIG_LCD		1
 #ifdef CONFIG_LCD
 #define CONFIG_SHARP_LM8V31
 #endif
 #define CONFIG_MMC
-#define BOARD_LATE_INIT		1
+#define CONFIG_BOARD_LATE_INIT
 #define CONFIG_DOS_PARTITION
-
+#define	CONFIG_SYS_TEXT_BASE	0x0
 #undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff */
 
 /* we will never enable dcache, because we have to setup MMU first */
-#define CONFIG_SYS_NO_DCACHE
+#define CONFIG_SYS_DCACHE_OFF
 
 /*
  * Size of malloc() pool
  */
 #define CONFIG_SYS_MALLOC_LEN	    (CONFIG_ENV_SIZE + 128*1024)
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
 
 /*
  * Hardware drivers
  */
-#define CONFIG_NET_MULTI
 #define CONFIG_LAN91C96
 #define CONFIG_LAN91C96_BASE 0x0C000000
 
@@ -176,6 +174,9 @@
 
 #define CONFIG_SYS_FLASH_BASE		PHYS_FLASH_1
 
+#define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
+#define	CONFIG_SYS_INIT_SP_ADDR		0xfffff800
+
 #define FPGA_REGS_BASE_PHYSICAL 0x08000000
 
 /*
@@ -199,6 +200,9 @@
 
 #define CONFIG_SYS_PSSR_VAL		0x20
 
+#define	CONFIG_SYS_CCCR			CCCR_L27|CCCR_M2|CCCR_N10
+#define	CONFIG_SYS_CKEN			0x0
+
 /*
  * Memory settings
  */
@@ -208,6 +212,9 @@
 #define CONFIG_SYS_MDCNFG_VAL		0x00001AC9
 #define CONFIG_SYS_MDREFR_VAL		0x00018018
 #define CONFIG_SYS_MDMRS_VAL		0x00000000
+
+#define	CONFIG_SYS_FLYCNFG_VAL		0x00000000
+#define	CONFIG_SYS_SXCNFG_VAL		0x00000000
 
 /*
  * PCMCIA and CF Interfaces

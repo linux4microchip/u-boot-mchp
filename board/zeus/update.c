@@ -26,7 +26,7 @@
 #include <command.h>
 #include <asm/processor.h>
 #include <asm/io.h>
-#include <asm/gpio.h>
+#include <asm/ppc4xx-gpio.h>
 #include <i2c.h>
 
 #if defined(CONFIG_ZEUS)
@@ -91,7 +91,7 @@ static int update_boot_eeprom(void)
 	return 0;
 }
 
-int do_update_boot_eeprom(cmd_tbl_t* cmdtp, int flag, int argc, char* argv[])
+int do_update_boot_eeprom(cmd_tbl_t* cmdtp, int flag, int argc, char * const argv[])
 {
 	return update_boot_eeprom();
 }

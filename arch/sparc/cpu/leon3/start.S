@@ -21,13 +21,13 @@
  * MA 02111-1307 USA
  */
 
+#include <asm-offsets.h>
 #include <config.h>
 #include <asm/asmmacro.h>
 #include <asm/winmacro.h>
 #include <asm/psr.h>
 #include <asm/stack.h>
 #include <asm/leon.h>
-#include <timestamp.h>
 #include <version.h>
 
 /* Entry for traps which jump to a programmer-specified trap handler.  */
@@ -200,9 +200,7 @@ _trap_table:
 	.extern leon3_snooping_avail
 	.globl	version_string
 version_string:
-	.ascii U_BOOT_VERSION
-	.ascii " (", U_BOOT_DATE, " - ", U_BOOT_TIME, ")"
-	.ascii CONFIG_IDENT_STRING, "\0"
+	.ascii U_BOOT_VERSION_STRING, "\0"
 
 	.section	".text"
 	.align 4
@@ -369,8 +367,8 @@ snoop_detect:
 	sethi	%hi(0x00800000), %o0
 	lda	[%g0] 2, %o1
 	and	%o0, %o1, %o0
-	sethi	%hi(leon3_snooping_avail+CONFIG_SYS_RELOC_MONITOR_BASE-TEXT_BASE), %o1
-	st	%o0, [%lo(leon3_snooping_avail+CONFIG_SYS_RELOC_MONITOR_BASE-TEXT_BASE)+%o1]
+	sethi	%hi(leon3_snooping_avail+CONFIG_SYS_RELOC_MONITOR_BASE-CONFIG_SYS_TEXT_BASE), %o1
+	st	%o0, [%lo(leon3_snooping_avail+CONFIG_SYS_RELOC_MONITOR_BASE-CONFIG_SYS_TEXT_BASE)+%o1]
 
 /*	call	relocate*/
 	nop
@@ -410,7 +408,7 @@ _irq_entry:
 	WRITE_PAUSE
 	mov	%l7, %o0		! irq level
 	set	handler_irq, %o1
-	set	(CONFIG_SYS_RELOC_MONITOR_BASE-TEXT_BASE), %o2
+	set	(CONFIG_SYS_RELOC_MONITOR_BASE-CONFIG_SYS_TEXT_BASE), %o2
 	add	%o1, %o2, %o1
 	call	%o1
 	add	%sp, SF_REGS_SZ, %o1	! pt_regs ptr

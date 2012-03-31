@@ -53,8 +53,7 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#if defined(CONFIG_ETHER_ON_FCC) && defined(CONFIG_CMD_NET) && \
-	defined(CONFIG_NET_MULTI)
+#if defined(CONFIG_ETHER_ON_FCC) && defined(CONFIG_CMD_NET)
 
 static struct ether_fcc_info_s
 {
@@ -383,7 +382,7 @@ int fec_initialize(bd_t *bis)
 		dev = (struct eth_device*) malloc(sizeof *dev);
 		memset(dev, 0, sizeof *dev);
 
-		sprintf(dev->name, "FCC%d ETHERNET",
+		sprintf(dev->name, "FCC%d",
 			ether_fcc_info[i].ether_index + 1);
 		dev->priv   = &ether_fcc_info[i];
 		dev->init   = fec_init;
@@ -687,7 +686,7 @@ eth_loopback_test (void)
 	immr->im_cpmux.cmx_fcr = CMXFCR_RF1CS_CLK10|CMXFCR_TF1CS_CLK11|\
 	    CMXFCR_RF2CS_CLK13|CMXFCR_TF2CS_CLK14|\
 	    CMXFCR_RF3CS_CLK15|CMXFCR_TF3CS_CLK16;
-#elif defined(CONFIG_SBC8260) || defined(CONFIG_SACSng)
+#elif defined(CONFIG_SACSng)
 	/*
 	 * Attention: this is board-specific
 	 * 1, FCC2

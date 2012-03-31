@@ -55,6 +55,7 @@ struct erase_info {
 	u_long priv;
 	u_char state;
 	struct erase_info *next;
+	int scrub;
 };
 
 struct mtd_erase_region_info {
@@ -115,7 +116,7 @@ struct mtd_info {
 	u_int32_t flags;
 	uint64_t size;	 /* Total size of the MTD */
 
-	/* "Major" erase size for the device. Naïve users may take this
+	/* "Major" erase size for the device. NaÃ¯ve users may take this
 	 * to be the only erase size available, or may use the more detailed
 	 * information below if they desire
 	 */
@@ -208,10 +209,6 @@ struct mtd_info {
 	int (*lock) (struct mtd_info *mtd, loff_t ofs, uint64_t len);
 	int (*unlock) (struct mtd_info *mtd, loff_t ofs, uint64_t len);
 
-	/* Power Management functions */
-	int (*suspend) (struct mtd_info *mtd);
-	void (*resume) (struct mtd_info *mtd);
-
 	/* Bad block management functions */
 	int (*block_isbad) (struct mtd_info *mtd, loff_t ofs);
 	int (*block_markbad) (struct mtd_info *mtd, loff_t ofs);
@@ -259,7 +256,9 @@ extern struct mtd_info *get_mtd_device(struct mtd_info *mtd, int num);
 extern struct mtd_info *get_mtd_device_nm(const char *name);
 
 extern void put_mtd_device(struct mtd_info *mtd);
-
+extern void mtd_get_len_incl_bad(struct mtd_info *mtd, uint64_t offset,
+				 const uint64_t length, uint64_t *len_incl_bad,
+				 int *truncated);
 /* XXX U-BOOT XXX */
 #if 0
 struct mtd_notifier {

@@ -24,7 +24,7 @@
 
 #include <common.h>
 #include <asm/io.h>
-#include <asm/arch/smc.h>
+#include <asm/arch/sromc.h>
 #include <asm/arch/gpio.h>
 #include <netdev.h>
 
@@ -38,10 +38,10 @@ static void smc9115_pre_init(void)
 	u32 smc_bw_conf, smc_bc_conf;
 
 	struct s5pc100_gpio *const gpio =
-		(struct s5pc100_gpio *)S5PC100_GPIO_BASE;
+		(struct s5pc100_gpio *)samsung_get_base_gpio();
 
 	/* gpio configuration GPK0CON */
-	gpio_cfg_pin(&gpio->gpio_k0, CONFIG_ENV_SROM_BANK, GPIO_FUNC(2));
+	s5p_gpio_cfg_pin(&gpio->k0, CONFIG_ENV_SROM_BANK, GPIO_FUNC(2));
 
 	/* Ethernet needs bus width of 16 bits */
 	smc_bw_conf = SMC_DATA16_WIDTH(CONFIG_ENV_SROM_BANK);
@@ -50,7 +50,7 @@ static void smc9115_pre_init(void)
 			| SMC_BC_TACP(0x6) | SMC_BC_PMC(0x0);
 
 	/* Select and configure the SROMC bank */
-	s5pc1xx_config_sromc(CONFIG_ENV_SROM_BANK, smc_bw_conf, smc_bc_conf);
+	s5p_config_sromc(CONFIG_ENV_SROM_BANK, smc_bw_conf, smc_bc_conf);
 }
 
 int board_init(void)
@@ -65,11 +65,15 @@ int board_init(void)
 
 int dram_init(void)
 {
-	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
-	gd->bd->bi_dram[0].size = get_ram_size((long *)PHYS_SDRAM_1,
-						PHYS_SDRAM_1_SIZE);
+	gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
 
 	return 0;
+}
+
+void dram_init_banksize(void)
+{
+	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
+	gd->bd->bi_dram[0].size = PHYS_SDRAM_1_SIZE;
 }
 
 #ifdef CONFIG_DISPLAY_BOARDINFO

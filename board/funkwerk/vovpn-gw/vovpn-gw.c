@@ -25,6 +25,7 @@
 #include <mpc8260.h>
 #include <asm/m8260_pci.h>
 #include <miiphy.h>
+#include <linux/compiler.h>
 
 #include "m88e6060.h"
 
@@ -198,7 +199,7 @@ void reset_phy (void)
 	iop->pdat |= 0x00080000;
 	for (i=0; i<100; i++) {
 		udelay(20000);
-		if (bb_miiphy_read("FCC1 ETHERNET", CONFIG_SYS_PHY_ADDR,2,&val ) == 0) {
+		if (bb_miiphy_read("FCC1", CONFIG_SYS_PHY_ADDR,2,&val ) == 0) {
 			break;
 		}
 	}
@@ -263,7 +264,7 @@ int board_early_init_f (void)
 int misc_init_r (void)
 {
 	volatile ioport_t *iop;
-	unsigned char temp;
+	__maybe_unused unsigned char temp;
 #if 0
 	/* DUMP UPMA RAM */
 	volatile immap_t *immap;
@@ -306,7 +307,7 @@ int misc_init_r (void)
 
 #if defined(CONFIG_HAVE_OWN_RESET)
 int
-do_reset (void *cmdtp, int flag, int argc, char *argv[])
+do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	volatile ioport_t *iop;
 

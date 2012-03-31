@@ -35,7 +35,7 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#if defined(CONFIG_CMD_NET) && defined(CONFIG_NET_MULTI)
+#if defined(CONFIG_CMD_NET)
 #undef MII_DEBUG
 #undef ET_DEBUG
 
@@ -171,7 +171,7 @@ int mii_discover_phy(struct eth_device *dev)
 
 		for (phyno = 0; phyno < 32 && phyaddr < 0; ++phyno) {
 
-			phytype = mii_send(mk_mii_read(phyno, PHY_PHYIDR1));
+			phytype = mii_send(mk_mii_read(phyno, MII_PHYSID1));
 #ifdef ET_DEBUG
 			printf("PHY type 0x%x pass %d type\n", phytype, pass);
 #endif
@@ -180,7 +180,7 @@ int mii_discover_phy(struct eth_device *dev)
 			phyaddr = phyno;
 			phytype <<= 16;
 			phytype |=
-			    mii_send(mk_mii_read(phyno, PHY_PHYIDR2));
+			    mii_send(mk_mii_read(phyno, MII_PHYSID2));
 
 #ifdef ET_DEBUG
 			printf("PHY @ 0x%x pass %d\n", phyno, pass);
@@ -256,18 +256,18 @@ void __mii_init(void)
 		status = 0;
 		i++;
 		/* Read PHY control register */
-		miiphy_read(dev->name, info->phy_addr, PHY_BMCR, &status);
+		miiphy_read(dev->name, info->phy_addr, MII_BMCR, &status);
 
 		/* If phy set to autonegotiate, wait for autonegotiation done,
 		 * if phy is not autonegotiating, just wait for link up.
 		 */
-		if ((status & PHY_BMCR_AUTON) == PHY_BMCR_AUTON) {
-			linkgood = (PHY_BMSR_AUTN_COMP | PHY_BMSR_LS);
+		if ((status & BMCR_ANENABLE) == BMCR_ANENABLE) {
+			linkgood = (BMSR_ANEGCOMPLETE | BMSR_LSTATUS);
 		} else {
-			linkgood = PHY_BMSR_LS;
+			linkgood = BMSR_LSTATUS;
 		}
 		/* Read PHY status register */
-		miiphy_read(dev->name, info->phy_addr, PHY_BMSR, &status);
+		miiphy_read(dev->name, info->phy_addr, MII_BMSR, &status);
 		if ((status & linkgood) == linkgood)
 			break;
 
@@ -293,7 +293,7 @@ void __mii_init(void)
  *	  Otherwise they hang in mii_send() !!! Sorry!
  */
 
-int mcffec_miiphy_read(char *devname, unsigned char addr, unsigned char reg,
+int mcffec_miiphy_read(const char *devname, unsigned char addr, unsigned char reg,
 		       unsigned short *value)
 {
 	short rdreg;		/* register working value */
@@ -312,7 +312,7 @@ int mcffec_miiphy_read(char *devname, unsigned char addr, unsigned char reg,
 	return 0;
 }
 
-int mcffec_miiphy_write(char *devname, unsigned char addr, unsigned char reg,
+int mcffec_miiphy_write(const char *devname, unsigned char addr, unsigned char reg,
 			unsigned short value)
 {
 	short rdreg;		/* register working value */
@@ -330,4 +330,4 @@ int mcffec_miiphy_write(char *devname, unsigned char addr, unsigned char reg,
 	return 0;
 }
 
-#endif				/* CONFIG_CMD_NET, FEC_ENET & NET_MULTI */
+#endif				/* CONFIG_CMD_NET */

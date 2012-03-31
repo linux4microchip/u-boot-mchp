@@ -30,9 +30,7 @@
 #include <ioports.h>
 #include <asm/io.h>
 #endif
-#if defined(CONFIG_AT91RM9200) || \
-	defined(CONFIG_AT91SAM9260) ||  defined(CONFIG_AT91SAM9261) || \
-	defined(CONFIG_AT91SAM9263)
+#if defined(CONFIG_AT91FAMILY)
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
 #include <asm/arch/at91_pio.h>
@@ -50,6 +48,58 @@
 #include <asm/io.h>
 #endif
 #include <i2c.h>
+
+#if defined(CONFIG_SOFT_I2C_GPIO_SCL)
+# include <asm/gpio.h>
+
+# ifndef I2C_GPIO_SYNC
+#  define I2C_GPIO_SYNC
+# endif
+
+# ifndef I2C_INIT
+#  define I2C_INIT \
+	do { \
+		gpio_request(CONFIG_SOFT_I2C_GPIO_SCL, "soft_i2c"); \
+		gpio_request(CONFIG_SOFT_I2C_GPIO_SDA, "soft_i2c"); \
+	} while (0)
+# endif
+
+# ifndef I2C_ACTIVE
+#  define I2C_ACTIVE do { } while (0)
+# endif
+
+# ifndef I2C_TRISTATE
+#  define I2C_TRISTATE do { } while (0)
+# endif
+
+# ifndef I2C_READ
+#  define I2C_READ gpio_get_value(CONFIG_SOFT_I2C_GPIO_SDA)
+# endif
+
+# ifndef I2C_SDA
+#  define I2C_SDA(bit) \
+	do { \
+		if (bit) \
+			gpio_direction_input(CONFIG_SOFT_I2C_GPIO_SDA); \
+		else \
+			gpio_direction_output(CONFIG_SOFT_I2C_GPIO_SDA, 0); \
+		I2C_GPIO_SYNC; \
+	} while (0)
+# endif
+
+# ifndef I2C_SCL
+#  define I2C_SCL(bit) \
+	do { \
+		gpio_direction_output(CONFIG_SOFT_I2C_GPIO_SCL, bit); \
+		I2C_GPIO_SYNC; \
+	} while (0)
+# endif
+
+# ifndef I2C_DELAY
+#  define I2C_DELAY udelay(5)	/* 1/4 I2C clock duration */
+# endif
+
+#endif
 
 /* #define	DEBUG_I2C	*/
 
@@ -69,7 +119,6 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #ifdef DEBUG_I2C
 #define PRINTD(fmt,args...)	do {	\
-	if (gd->have_console)		\
 		printf (fmt ,##args);	\
 	} while (0)
 #else
@@ -236,6 +285,7 @@ int i2c_set_bus_num(unsigned int bus)
 		int	ret;
 
 		ret = i2x_mux_select_mux(bus);
+		i2c_init_board();
 		if (ret == 0)
 			i2c_bus_num = bus;
 		else

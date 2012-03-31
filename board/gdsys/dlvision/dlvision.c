@@ -25,7 +25,7 @@
 #include <command.h>
 #include <asm/processor.h>
 #include <asm/io.h>
-#include <asm/gpio.h>
+#include <asm/ppc4xx-gpio.h>
 
 enum {
 	HWTYPE_DLVISION_CPU = 0,
@@ -75,7 +75,8 @@ int misc_init_r(void)
  */
 int checkboard(void)
 {
-	char *s = getenv("serial#");
+	char buf[64];
+	int i = getenv_f("serial#", buf, sizeof(buf));
 	u8 channel2_msr = in_8((void *)CONFIG_UART_BASE + 0x26);
 	u8 channel3_msr = in_8((void *)CONFIG_UART_BASE + 0x36);
 	u8 channel7_msr = in_8((void *)CONFIG_UART_BASE + 0x76);
@@ -108,9 +109,9 @@ int checkboard(void)
 		break;
 	}
 
-	if (s != NULL) {
+	if (i > 0) {
 		puts(", serial# ");
-		puts(s);
+		puts(buf);
 	}
 	puts("\n       ");
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2010 Freescale Semiconductor, Inc.
+ * Copyright 2008-2011 Freescale Semiconductor, Inc.
  *
  * (C) Copyright 2000
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
@@ -24,59 +24,70 @@
  */
 
 #include <common.h>
+#include <linux/compiler.h>
 #include <asm/fsl_law.h>
 #include <asm/io.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
-/* number of LAWs in the hw implementation */
-#if defined(CONFIG_MPC8540) || defined(CONFIG_MPC8541) || \
-    defined(CONFIG_MPC8560) || defined(CONFIG_MPC8555)
-#define FSL_HW_NUM_LAWS 8
-#elif defined(CONFIG_MPC8548) || defined(CONFIG_MPC8544) || \
-      defined(CONFIG_MPC8568) || defined(CONFIG_MPC8569) || \
-      defined(CONFIG_MPC8641) || defined(CONFIG_MPC8610)
-#define FSL_HW_NUM_LAWS 10
-#elif defined(CONFIG_MPC8536) || defined(CONFIG_MPC8572) || \
-      defined(CONFIG_P1011) || defined(CONFIG_P1020) || \
-      defined(CONFIG_P1012) || defined(CONFIG_P1021) || \
-      defined(CONFIG_P1013) || defined(CONFIG_P1022) || \
-      defined(CONFIG_P2010) || defined(CONFIG_P2020)
-#define FSL_HW_NUM_LAWS 12
-#elif defined(CONFIG_PPC_P4080)
-#define FSL_HW_NUM_LAWS 32
-#else
-#error FSL_HW_NUM_LAWS not defined for this platform
-#endif
+#define FSL_HW_NUM_LAWS CONFIG_SYS_FSL_NUM_LAWS
 
 #ifdef CONFIG_FSL_CORENET
+#define LAW_BASE (CONFIG_SYS_FSL_CORENET_CCM_ADDR)
+#define LAWAR_ADDR(x) (&((ccsr_local_t *)LAW_BASE)->law[x].lawar)
+#define LAWBARH_ADDR(x) (&((ccsr_local_t *)LAW_BASE)->law[x].lawbarh)
+#define LAWBARL_ADDR(x) (&((ccsr_local_t *)LAW_BASE)->law[x].lawbarl)
+#define LAWBAR_SHIFT 0
+#else
+#define LAW_BASE (CONFIG_SYS_IMMR + 0xc08)
+#define LAWAR_ADDR(x) ((u32 *)LAW_BASE + 8 * x + 2)
+#define LAWBAR_ADDR(x) ((u32 *)LAW_BASE + 8 * x)
+#define LAWBAR_SHIFT 12
+#endif
+
+
+static inline phys_addr_t get_law_base_addr(int idx)
+{
+#ifdef CONFIG_FSL_CORENET
+	return (phys_addr_t)
+		((u64)in_be32(LAWBARH_ADDR(idx)) << 32) |
+		in_be32(LAWBARL_ADDR(idx));
+#else
+	return (phys_addr_t)in_be32(LAWBAR_ADDR(idx)) << LAWBAR_SHIFT;
+#endif
+}
+
+static inline void set_law_base_addr(int idx, phys_addr_t addr)
+{
+#ifdef CONFIG_FSL_CORENET
+	out_be32(LAWBARL_ADDR(idx), addr & 0xffffffff);
+	out_be32(LAWBARH_ADDR(idx), (u64)addr >> 32);
+#else
+	out_be32(LAWBAR_ADDR(idx), addr >> LAWBAR_SHIFT);
+#endif
+}
+
 void set_law(u8 idx, phys_addr_t addr, enum law_size sz, enum law_trgt_if id)
 {
-	volatile ccsr_local_t *ccm = (void *)(CONFIG_SYS_FSL_CORENET_CCM_ADDR);
-
 	gd->used_laws |= (1 << idx);
 
-	out_be32(&ccm->law[idx].lawar, 0);
-	out_be32(&ccm->law[idx].lawbarh, ((u64)addr >> 32));
-	out_be32(&ccm->law[idx].lawbarl, addr & 0xffffffff);
-	out_be32(&ccm->law[idx].lawar, LAW_EN | ((u32)id << 20) | (u32)sz);
+	out_be32(LAWAR_ADDR(idx), 0);
+	set_law_base_addr(idx, addr);
+	out_be32(LAWAR_ADDR(idx), LAW_EN | ((u32)id << 20) | (u32)sz);
 
 	/* Read back so that we sync the writes */
-	in_be32(&ccm->law[idx].lawar);
+	in_be32(LAWAR_ADDR(idx));
 }
 
 void disable_law(u8 idx)
 {
-	volatile ccsr_local_t *ccm = (void *)(CONFIG_SYS_FSL_CORENET_CCM_ADDR);
-
 	gd->used_laws &= ~(1 << idx);
 
-	out_be32(&ccm->law[idx].lawar, 0);
-	out_be32(&ccm->law[idx].lawbarh, 0);
-	out_be32(&ccm->law[idx].lawbarl, 0);
+	out_be32(LAWAR_ADDR(idx), 0);
+	set_law_base_addr(idx, 0);
 
 	/* Read back so that we sync the writes */
-	in_be32(&ccm->law[idx].lawar);
+	in_be32(LAWAR_ADDR(idx));
 
 	return;
 }
@@ -84,76 +95,19 @@ void disable_law(u8 idx)
 #ifndef CONFIG_NAND_SPL
 static int get_law_entry(u8 i, struct law_entry *e)
 {
-	volatile ccsr_local_t *ccm = (void *)(CONFIG_SYS_FSL_CORENET_CCM_ADDR);
 	u32 lawar;
 
-	lawar = in_be32(&ccm->law[i].lawar);
+	lawar = in_be32(LAWAR_ADDR(i));
 
 	if (!(lawar & LAW_EN))
 		return 0;
 
-	e->addr = ((u64)in_be32(&ccm->law[i].lawbarh) << 32) |
-			in_be32(&ccm->law[i].lawbarl);
+	e->addr = get_law_base_addr(i);
 	e->size = lawar & 0x3f;
 	e->trgt_id = (lawar >> 20) & 0xff;
 
 	return 1;
 }
-#endif
-#else
-void set_law(u8 idx, phys_addr_t addr, enum law_size sz, enum law_trgt_if id)
-{
-	volatile u32 *base = (volatile u32 *)(CONFIG_SYS_IMMR + 0xc08);
-	volatile u32 *lawbar = base + 8 * idx;
-	volatile u32 *lawar = base + 8 * idx + 2;
-
-	gd->used_laws |= (1 << idx);
-
-	out_be32(lawar, 0);
-	out_be32(lawbar, addr >> 12);
-	out_be32(lawar, LAW_EN | ((u32)id << 20) | (u32)sz);
-
-	/* Read back so that we sync the writes */
-	in_be32(lawar);
-}
-
-void disable_law(u8 idx)
-{
-	volatile u32 *base = (volatile u32 *)(CONFIG_SYS_IMMR + 0xc08);
-	volatile u32 *lawbar = base + 8 * idx;
-	volatile u32 *lawar = base + 8 * idx + 2;
-
-	gd->used_laws &= ~(1 << idx);
-
-	out_be32(lawar, 0);
-	out_be32(lawbar, 0);
-
-	/* Read back so that we sync the writes */
-	in_be32(lawar);
-
-	return;
-}
-
-#ifndef CONFIG_NAND_SPL
-static int get_law_entry(u8 i, struct law_entry *e)
-{
-	volatile u32 *base = (volatile u32 *)(CONFIG_SYS_IMMR + 0xc08);
-	volatile u32 *lawbar = base + 8 * i;
-	volatile u32 *lawar = base + 8 * i + 2;
-	u32 temp;
-
-	temp = in_be32(lawar);
-
-	if (!(temp & LAW_EN))
-		return 0;
-
-	e->addr = (u64)in_be32(lawbar) << 12;
-	e->size = temp & 0x3f;
-	e->trgt_id = (temp >> 20) & 0xff;
-
-	return 1;
-}
-#endif
 #endif
 
 int set_next_law(phys_addr_t addr, enum law_size sz, enum law_trgt_if id)
@@ -216,17 +170,23 @@ struct law_entry find_law(phys_addr_t addr)
 
 void print_laws(void)
 {
-	volatile u32 *base = (volatile u32 *)(CONFIG_SYS_IMMR + 0xc08);
-	volatile u32 *lawbar = base;
-	volatile u32 *lawar = base + 2;
 	int i;
+	u32 lawar;
 
 	printf("\nLocal Access Window Configuration\n");
-	for(i = 0; i < FSL_HW_NUM_LAWS; i++) {
-		printf("\tLAWBAR%d : 0x%08x, LAWAR%d : 0x%08x\n",
-		       i, in_be32(lawbar), i, in_be32(lawar));
-		lawbar += 8;
-		lawar += 8;
+	for (i = 0; i < FSL_HW_NUM_LAWS; i++) {
+		lawar = in_be32(LAWAR_ADDR(i));
+#ifdef CONFIG_FSL_CORENET
+		printf("LAWBARH%02d: 0x%08x LAWBARL%02d: 0x%08x",
+		       i, in_be32(LAWBARH_ADDR(i)),
+		       i, in_be32(LAWBARL_ADDR(i)));
+#else
+		printf("LAWBAR%02d: 0x%08x", i, in_be32(LAWBAR_ADDR(i)));
+#endif
+		printf(" LAWAR%02d: 0x%08x\n", i, lawar);
+		printf("\t(EN: %d TGT: 0x%02x SIZE: ",
+		       (lawar & LAW_EN) ? 1 : 0, (lawar >> 20) & 0xff);
+		print_size(lawar_size(lawar), ")\n");
 	}
 
 	return;
@@ -285,6 +245,25 @@ void init_laws(void)
 	gd->used_laws = 0;
 #else
 #error FSL_HW_NUM_LAWS can not be greater than 32 w/o code changes
+#endif
+
+	/*
+	 * Any LAWs that were set up before we booted assume they are meant to
+	 * be around and mark them used.
+	 */
+	for (i = 0; i < FSL_HW_NUM_LAWS; i++) {
+		u32 lawar = in_be32(LAWAR_ADDR(i));
+
+		if (lawar & LAW_EN)
+			gd->used_laws |= (1 << i);
+	}
+
+#if defined(CONFIG_NAND_U_BOOT) && !defined(CONFIG_NAND_SPL)
+	/*
+	 * in NAND boot we've already parsed the law_table and setup those LAWs
+	 * so don't do it again.
+	 */
+	return;
 #endif
 
 	for (i = 0; i < num_law_entries; i++) {

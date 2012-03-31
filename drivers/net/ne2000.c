@@ -78,7 +78,6 @@ Add SNMP
 /* NE2000 base header file */
 #include "ne2000_base.h"
 
-#define mdelay(n) udelay((n)*1000)
 /* find prom (taken from pc_net_cs.c from Linux) */
 
 #include "8390.h"
@@ -164,7 +163,8 @@ static hw_info_t hw_info[] = {
 	{ /* Volktek NPL-402CT */ 0x0060, 0x00, 0x40, 0x05, 0 },
 	{ /* NEC PC-9801N-J12 */ 0x0ff0, 0x00, 0x00, 0x4c, 0 },
 	{ /* PCMCIA Technology OEM */ 0x01c8, 0x00, 0xa0, 0x0c, 0 },
-	{ /* Qemu */ 0x0, 0x52, 0x54, 0x00, 0 }
+	{ /* Qemu */ 0x0, 0x52, 0x54, 0x00, 0 },
+	{ /* RTL8019AS */ 0x0, 0x0, 0x18, 0x5f, 0 }
 };
 
 #define NR_INFO		(sizeof(hw_info)/sizeof(hw_info_t))

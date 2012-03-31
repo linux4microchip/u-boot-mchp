@@ -1,6 +1,7 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#define	CONFIG_SYS_TEXT_BASE	0x80F00000
 
 /*****************************************************************************
  *
@@ -34,7 +35,7 @@
 #undef CONFIG_SYS_SBC_BOOT_LOW
 
 /* What should the base address of the main FLASH be and how big is
- * it (in MBytes)? This must contain TEXT_BASE from board/sbc8260/config.mk
+ * it (in MBytes)? This must contain CONFIG_SYS_TEXT_BASE.
  * The main FLASH is whichever is connected to *CS0. U-Boot expects
  * this to be the SIMM.
  */
@@ -106,8 +107,8 @@
  * - RAM for BD/Buffers is on the 60x Bus (see 28-13)
  * - Enable Half Duplex in FSMR
  */
-# define CONFIG_SYS_CMXFCR_MASK	(CMXFCR_FC3|CMXFCR_RF3CS_MSK|CMXFCR_TF3CS_MSK)
-# define CONFIG_SYS_CMXFCR_VALUE	(CMXFCR_RF3CS_CLK15|CMXFCR_TF3CS_CLK16)
+# define CONFIG_SYS_CMXFCR_MASK3	(CMXFCR_FC3|CMXFCR_RF3CS_MSK|CMXFCR_TF3CS_MSK)
+# define CONFIG_SYS_CMXFCR_VALUE3	(CMXFCR_RF3CS_CLK15|CMXFCR_TF3CS_CLK16)
 # define CONFIG_SYS_CPMFCR_RAMTYPE	0
 /*#define CONFIG_SYS_FCC_PSMR		(FCC_PSMR_FDE|FCC_PSMR_LPB) */
 # define CONFIG_SYS_FCC_PSMR		0
@@ -264,9 +265,8 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR       CONFIG_SYS_IMMR
-#define CONFIG_SYS_INIT_RAM_END        0x4000  /* End of used area in DPRAM    */
-#define CONFIG_SYS_GBL_DATA_SIZE      128     /* bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET    (CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE        0x4000  /* Size of used area in DPRAM    */
+#define CONFIG_SYS_GBL_DATA_OFFSET    (CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET      CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -503,13 +503,5 @@
 			   ORxG_ACS_DIV1               |\
 			   ORxG_SCY_5_CLK              |\
 			   ORxG_TRLX)
-
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD   0x01    /* Normal Power-On: Boot from FLASH  */
-#define BOOTFLAG_WARM   0x02    /* Software reboot                   */
 
 #endif  /* __CONFIG_H */

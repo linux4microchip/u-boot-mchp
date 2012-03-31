@@ -32,9 +32,8 @@
  * High Level Configuration Options
  * (easy to change)
  */
-#define CONFIG_ARMCORTEXA8	1	/* This is an ARM V7 CPU core */
 #define CONFIG_SAMSUNG		1	/* in a SAMSUNG core */
-#define CONFIG_S5PC1XX		1	/* which is in a S5PC1XX Family */
+#define CONFIG_S5P		1	/* which is in a S5P Family */
 #define CONFIG_S5PC100		1	/* which is in a S5PC100 */
 #define CONFIG_SMDKC100		1	/* working with SMDKC100 */
 
@@ -44,8 +43,6 @@
 
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
-
-#undef CONFIG_SKIP_RELOCATE_UBOOT
 
 /* input clock of PLL: SMDKC100 has 12MHz input clock */
 #define CONFIG_SYS_CLK_FREQ		12000000
@@ -63,13 +60,14 @@
  * 1MB = 0x100000, 0x100000 = 1024 * 1024
  */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (1 << 20))
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes for */
-						/* initial data */
 /*
  * select serial console configuration
  */
 #define CONFIG_SERIAL0			1	/* use SERIAL 0 on SMDKC100 */
 #define CONFIG_SERIAL_MULTI		1
+
+/* PWM */
+#define CONFIG_PWM			1
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
@@ -210,7 +208,7 @@
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* 256 KiB */
 #define CONFIG_IDENT_STRING		" for SMDKC100"
 
-#if !defined(CONFIG_NAND_SPL) && (TEXT_BASE >= 0xc0000000)
+#if !defined(CONFIG_NAND_SPL) && (CONFIG_SYS_TEXT_BASE >= 0xc0000000)
 #define CONFIG_ENABLE_MMU
 #endif
 
@@ -234,11 +232,12 @@
 
 #define CONFIG_DOS_PARTITION		1
 
+#define CONFIG_SYS_INIT_SP_ADDR	(CONFIG_SYS_LOAD_ADDR - 0x1000000)
+
 /*
  * Ethernet Contoller driver
  */
 #ifdef CONFIG_CMD_NET
-#define CONFIG_NET_MULTI
 #define CONFIG_SMC911X         1       /* we have a SMC9115 on-board   */
 #define CONFIG_SMC911X_16_BIT  1       /* SMC911X_16_BIT Mode          */
 #define CONFIG_SMC911X_BASE    0x98800300      /* SMC911X Drive Base   */

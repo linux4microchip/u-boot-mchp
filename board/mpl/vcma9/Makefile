@@ -26,10 +26,10 @@ ifneq ($(OBJTREE),$(SRCTREE))
 $(shell mkdir -p $(obj)../common)
 endif
 
-LIB	= $(obj)lib$(BOARD).a
+LIB	= $(obj)lib$(BOARD).o
 
-COBJS	:= vcma9.o flash.o cmd_vcma9.o
-COBJS	+= ../common/common_util.o ../common/memtst.o
+COBJS	:= ../common/common_util.o
+COBJS	+= $(BOARD).o cmd_$(BOARD).o
 
 SOBJS	:= lowlevel_init.o
 
@@ -38,13 +38,7 @@ OBJS	:= $(addprefix $(obj),$(COBJS))
 SOBJS	:= $(addprefix $(obj),$(SOBJS))
 
 $(LIB):	$(obj).depend $(OBJS) $(SOBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS) $(SOBJS)
-
-clean:
-	rm -f $(SOBJS) $(OBJS)
-
-distclean:	clean
-	rm -f $(LIB) core *.bak $(obj).depend
+	$(call cmd_link_o_target, $(OBJS) $(SOBJS))
 
 #########################################################################
 

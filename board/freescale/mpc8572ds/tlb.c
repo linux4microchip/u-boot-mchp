@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 Freescale Semiconductor, Inc.
+ * Copyright 2008-2010 Freescale Semiconductor, Inc.
  *
  * (C) Copyright 2000
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
@@ -58,6 +58,7 @@ struct fsl_e_tlb_entry tlb_table[] = {
 		      MAS3_SX|MAS3_SR, MAS2_W|MAS2_G,
 		      0, 2, BOOKE_PAGESZ_256M, 1),
 
+#ifndef CONFIG_NAND_SPL
 	/* *I*G* - PCI */
 	SET_TLB_ENTRY(1, CONFIG_SYS_PCIE3_MEM_VIRT, CONFIG_SYS_PCIE3_MEM_PHYS,
 		      MAS3_SX|MAS3_SW|MAS3_SR, MAS2_I|MAS2_G,
@@ -76,6 +77,7 @@ struct fsl_e_tlb_entry tlb_table[] = {
 	SET_TLB_ENTRY(1, CONFIG_SYS_PCIE3_IO_VIRT, CONFIG_SYS_PCIE3_IO_PHYS,
 		      MAS3_SX|MAS3_SW|MAS3_SR, MAS2_I|MAS2_G,
 		      0, 6, BOOKE_PAGESZ_256K, 1),
+#endif
 
 	/* *I*G - NAND */
 	SET_TLB_ENTRY(1, CONFIG_SYS_NAND_BASE, CONFIG_SYS_NAND_BASE_PHYS,
@@ -85,6 +87,18 @@ struct fsl_e_tlb_entry tlb_table[] = {
 	SET_TLB_ENTRY(1, PIXIS_BASE, PIXIS_BASE_PHYS,
 		      MAS3_SX|MAS3_SW|MAS3_SR, MAS2_I|MAS2_G,
 		      0, 8, BOOKE_PAGESZ_4K, 1),
+
+#if defined(CONFIG_SYS_RAMBOOT) && defined(CONFIG_SYS_INIT_L2_ADDR)
+	/* *I*G - L2SRAM */
+	SET_TLB_ENTRY(1, CONFIG_SYS_INIT_L2_ADDR,
+			CONFIG_SYS_INIT_L2_ADDR_PHYS,
+			MAS3_SX|MAS3_SW|MAS3_SR, MAS2_I|MAS2_G,
+			0, 9, BOOKE_PAGESZ_256K, 1),
+	SET_TLB_ENTRY(1, CONFIG_SYS_INIT_L2_ADDR + 0x40000,
+			CONFIG_SYS_INIT_L2_ADDR_PHYS + 0x40000,
+			MAS3_SX|MAS3_SW|MAS3_SR, MAS2_I|MAS2_G,
+			0, 10, BOOKE_PAGESZ_256K, 1),
+#endif
 };
 
 int num_tlb_entries = ARRAY_SIZE(tlb_table);

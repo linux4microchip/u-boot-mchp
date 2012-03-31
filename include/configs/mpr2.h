@@ -35,7 +35,7 @@
 /* Default environment variables */
 #define CONFIG_BAUDRATE		115200
 #define CONFIG_BOOTARGS		"console=ttySC0,115200"
-#define CONFIG_BOOTFILE		/boot/zImage
+#define CONFIG_BOOTFILE		"/boot/zImage"
 #define CONFIG_LOADADDR		0x8E000000
 #define CONFIG_VERSION_VARIABLE
 
@@ -57,7 +57,8 @@
 #define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_FLASH_BASE
 #define CONFIG_SYS_MONITOR_LEN		(128 * 1024)
 #define CONFIG_SYS_MALLOC_LEN		(256 * 1024)
-#define CONFIG_SYS_GBL_DATA_SIZE	256
+
+#define CONFIG_SYS_TEXT_BASE	0x8FFC0000
 
 /* Memory */
 #define CONFIG_SYS_SDRAM_BASE		0x8C000000

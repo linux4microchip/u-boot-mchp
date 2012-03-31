@@ -40,18 +40,18 @@
  *----------------------------------------------------------------------*/
 #define CONFIG_P3Mx			/* used for both board versions	*/
 
+#define	CONFIG_SYS_TEXT_BASE	0xfff00000
+
 #if defined (CONFIG_P3M750)
 #define CONFIG_750FX			/* 750GL/GX/FX			*/
 #define CONFIG_HIGH_BATS		/* High BATs supported		*/
 #define CONFIG_SYS_BOARD_NAME		"P3M750"
-#define CONFIG_SYS_BUS_HZ		100000000
-#define CONFIG_SYS_BUS_CLK		CONFIG_SYS_BUS_HZ
+#define CONFIG_SYS_BUS_CLK		100000000
 #define CONFIG_SYS_TCLK		100000000
 #elif defined (CONFIG_P3M7448)
 #define CONFIG_74xx
 #define CONFIG_SYS_BOARD_NAME		"P3M7448"
-#define CONFIG_SYS_BUS_HZ		133333333
-#define CONFIG_SYS_BUS_CLK		CONFIG_SYS_BUS_HZ
+#define CONFIG_SYS_BUS_CLK		133333333
 #define CONFIG_SYS_TCLK		133333333
 #endif
 #define CONFIG_SYS_GT_DUAL_CPU			/* also for JTAG even with one cpu */
@@ -98,9 +98,8 @@
 */
 #undef	CONFIG_SYS_INIT_RAM_LOCK
 #define CONFIG_SYS_INIT_RAM_ADDR	0x42000000
-#define CONFIG_SYS_INIT_RAM_END	0x1000
-#define CONFIG_SYS_GBL_DATA_SIZE	128  /* size in bytes reserved for init data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE	0x1000
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 
 
 /*-----------------------------------------------------------------------
@@ -118,7 +117,6 @@
  *----------------------------------------------------------------------*/
 /* Change the default ethernet port, use this define (options: 0, 1, 2) */
 #define CONFIG_SYS_ETH_PORT		ETH_0
-#define CONFIG_NET_MULTI
 #define MV_ETH_DEVS		2
 #define CONFIG_PHY_RESET        1	/* reset phy upon startup         */
 #define CONFIG_PHY_GIGE		1	/* Include GbE speed/duplex detection */
@@ -449,12 +447,8 @@
 
 #define L2_ENABLE	(L2_INIT | L2CR_L2E)
 
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH */
-#define BOOTFLAG_WARM	0x02		/* Software reboot		    */
+#ifndef __ASSEMBLY__
+#include <../board/Marvell/include/core.h>
+#endif
 
 #endif	/* __CONFIG_H */

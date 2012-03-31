@@ -79,7 +79,7 @@ int misc_init_r (void)
 int checkboard (void)
 {
 	char str[64];
-	int i = getenv_r ("serial#", str, sizeof(str));
+	int i = getenv_f("serial#", str, sizeof(str));
 
 	puts ("Board: ");
 
@@ -92,13 +92,6 @@ int checkboard (void)
 	putc ('\n');
 
 	return 0;
-}
-
-/* ------------------------------------------------------------------------- */
-
-phys_size_t initdram (int board_type)
-{
-	return  spd_sdram ();
 }
 
 /* ------------------------------------------------------------------------- */

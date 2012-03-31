@@ -122,7 +122,6 @@ static char show_config_tab[][15] = {{"PCI0DLL_2     "},  /* 31 */
 
 extern flash_info_t flash_info[];
 
-extern int do_bootm (cmd_tbl_t *, int, int, char *[]);
 extern int do_bootvx (cmd_tbl_t *, int, int, char *[]);
 
 /* ------------------------------------------------------------------------- */
@@ -562,12 +561,12 @@ int display_mem_map (void)
 /*
  * Command loadpci: wait for signal from host and boot image.
  */
-int do_loadpci(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_loadpci(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	volatile unsigned int *ptr;
 	int count = 0;
 	int count2 = 0;
-	int status;
+	int status = 0;
 	char addr[16];
 	char str[] = "\\|/-";
 	char *local_args[2];
@@ -623,7 +622,7 @@ int do_loadpci(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		break;
 	}
 
-	return 0;
+	return status;
 }
 
 U_BOOT_CMD(
@@ -1056,7 +1055,7 @@ void board_prebootm_init ()
 	dcache_disable ();
 }
 
-int do_show_config(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+int do_show_config(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	unsigned int reset_sample_low;
 	unsigned int reset_sample_high;
@@ -1091,7 +1090,7 @@ U_BOOT_CMD(
 	"Show Marvell strapping register (ResetSampleLow ResetSampleHigh)"
 );
 
-int do_pldver(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_pldver(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	printf("PLD version:0x%02x\n", in_8((void *)CONFIG_SYS_PLD_VER));
 

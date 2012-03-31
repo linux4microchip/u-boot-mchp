@@ -22,8 +22,10 @@
  */
 
 #include <common.h>
-#include <asm/arch/mx31-regs.h>
+#include <asm/arch/imx-regs.h>
 #include <div64.h>
+#include <watchdog.h>
+#include <asm/io.h>
 
 #define TIMER_BASE 0x53f90000 /* General purpose timer 1 */
 
@@ -39,10 +41,13 @@
 #define GPTCR_CLKSOURCE_32	(4 << 6)	/* Clock source		*/
 #define GPTCR_TEN		1		/* Timer enable		*/
 
-static ulong timestamp;
-static ulong lastinc;
+DECLARE_GLOBAL_DATA_PTR;
 
-/* "time" is measured in 1 / CONFIG_SYS_HZ seconds, "tick" is internal timer period */
+/*
+ * "time" is measured in 1 / CONFIG_SYS_HZ seconds,
+ * "tick" is internal timer period
+ */
+
 #ifdef CONFIG_MX31_TIMER_HIGH_PRECISION
 /* ~0.4% error - measured with stop-watch on 100s boot-delay */
 static inline unsigned long long tick_to_time(unsigned long long tick)
@@ -67,7 +72,8 @@ static inline unsigned long long us_to_tick(unsigned long long us)
 }
 #else
 /* ~2% error */
-#define TICK_PER_TIME	((CONFIG_MX31_CLK32 + CONFIG_SYS_HZ / 2) / CONFIG_SYS_HZ)
+#define TICK_PER_TIME	((CONFIG_MX31_CLK32 + CONFIG_SYS_HZ / 2) \
+							/ CONFIG_SYS_HZ)
 #define US_PER_TICK	(1000000 / CONFIG_MX31_CLK32)
 
 static inline unsigned long long tick_to_time(unsigned long long tick)
@@ -90,7 +96,7 @@ static inline unsigned long long us_to_tick(unsigned long long us)
 #endif
 
 /* The 32768Hz 32-bit timer overruns in 131072 seconds */
-int timer_init (void)
+int timer_init(void)
 {
 	int i;
 
@@ -105,32 +111,20 @@ int timer_init (void)
 	return 0;
 }
 
-void reset_timer_masked (void)
-{
-	/* reset time */
-	lastinc = GPTCNT; /* capture current incrementer value time */
-	timestamp = 0; /* start "advancing" time stamp from 0 */
-}
-
-void reset_timer(void)
-{
-	reset_timer_masked();
-}
-
-unsigned long long get_ticks (void)
+unsigned long long get_ticks(void)
 {
 	ulong now = GPTCNT; /* current tick value */
 
-	if (now >= lastinc)	/* normal mode (non roll) */
+	if (now >= gd->lastinc)	/* normal mode (non roll) */
 		/* move stamp forward with absolut diff ticks */
-		timestamp += (now - lastinc);
+		gd->tbl += (now - gd->lastinc);
 	else			/* we have rollover of incrementer */
-		timestamp += (0xFFFFFFFF - lastinc) + now;
-	lastinc = now;
-	return timestamp;
+		gd->tbl += (0xFFFFFFFF - gd->lastinc) + now;
+	gd->lastinc = now;
+	return gd->tbl;
 }
 
-ulong get_timer_masked (void)
+ulong get_timer_masked(void)
 {
 	/*
 	 * get_ticks() returns a long long (64 bit), it wraps in
@@ -141,18 +135,13 @@ ulong get_timer_masked (void)
 	return tick_to_time(get_ticks());
 }
 
-ulong get_timer (ulong base)
+ulong get_timer(ulong base)
 {
-	return get_timer_masked () - base;
-}
-
-void set_timer (ulong t)
-{
-	timestamp = time_to_tick(t);
+	return get_timer_masked() - base;
 }
 
 /* delay x useconds AND preserve advance timestamp value */
-void __udelay (unsigned long usec)
+void __udelay(unsigned long usec)
 {
 	unsigned long long tmp;
 	ulong tmo;
@@ -164,7 +153,41 @@ void __udelay (unsigned long usec)
 		 /*NOP*/;
 }
 
-void reset_cpu (ulong addr)
+void reset_cpu(ulong addr)
 {
-	__REG16(WDOG_BASE) = 4;
+	struct wdog_regs *wdog = (struct wdog_regs *)WDOG_BASE;
+	wdog->wcr = WDOG_ENABLE;
+	while (1)
+		;
 }
+
+#ifdef CONFIG_HW_WATCHDOG
+void mxc_hw_watchdog_enable(void)
+{
+	struct wdog_regs *wdog = (struct wdog_regs *)WDOG_BASE;
+	u16 secs;
+
+	/*
+	 * The timer watchdog can be set between
+	 * 0.5 and 128 Seconds. If not defined
+	 * in configuration file, sets 64 Seconds
+	 */
+#ifdef CONFIG_SYS_WD_TIMER_SECS
+	secs = (CONFIG_SYS_WD_TIMER_SECS << 1) & 0xFF;
+	if (!secs) secs = 1;
+#else
+	secs = 64;
+#endif
+	setbits_le16(&wdog->wcr, (secs << WDOG_WT_SHIFT) | WDOG_ENABLE
+							 | WDOG_WDZST);
+}
+
+
+void mxc_hw_watchdog_reset(void)
+{
+	struct wdog_regs *wdog = (struct wdog_regs *)WDOG_BASE;
+
+	writew(0x5555, &wdog->wsr);
+	writew(0xAAAA, &wdog->wsr);
+}
+#endif

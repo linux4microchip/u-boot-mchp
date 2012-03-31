@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Albert ARIBAUD <albert.aribaud@free.fr>
+ * Copyright (C) 2010 Albert ARIBAUD <albert.u.boot@aribaud.net>
  *
  * Based on original Kirkwood support which is
  * (C) Copyright 2009
@@ -45,6 +45,7 @@
 #define CONFIG_88F5182		1	/* SOC Name */
 #define CONFIG_MACH_EDMINIV2	1	/* Machine type */
 
+#include <asm/arch/orion5x.h>
 /*
  * CLKs configurations
  */
@@ -60,7 +61,7 @@
 
 #define ORION5X_MPP0_7		0x00000003
 #define ORION5X_MPP8_15		0x55550000
-#define ORION5X_MPP16_23	0x00000000
+#define ORION5X_MPP16_23	0x00005555
 
 /*
  * Board-specific values for Orion5x GPIO low level init:
@@ -131,12 +132,65 @@
  * Commands configuration - using default command set for now
  */
 #include <config_cmd_default.h>
+#define CONFIG_CMD_IDE
+#define CONFIG_CMD_I2C
+
 /*
- * Disabling some default commands for staggered bring-up
+ * Network
  */
-#undef CONFIG_CMD_BOOTD	/* no bootd since no net */
-#undef CONFIG_CMD_NET	/* no net since no eth */
-#undef CONFIG_CMD_NFS	/* no NFS since no net */
+
+#ifdef CONFIG_CMD_NET
+#define CONFIG_MVGBE				/* Enable Marvell GbE Driver */
+#define CONFIG_MVGBE_PORTS	{1}		/* enable port 0 only */
+#define CONFIG_SKIP_LOCAL_MAC_RANDOMIZATION	/* don't randomize MAC */
+#define CONFIG_PHY_BASE_ADR	0x8
+#define CONFIG_RESET_PHY_R	/* use reset_phy() to init mv8831116 PHY */
+#define CONFIG_NETCONSOLE	/* include NetConsole support   */
+#define	CONFIG_MII		/* expose smi ove miiphy interface */
+#define CONFIG_SYS_FAULT_ECHO_LINK_DOWN	/* detect link using phy */
+#define CONFIG_ENV_OVERWRITE	/* ethaddr can be reprogrammed */
+#endif
+
+/*
+ * IDE
+ */
+#ifdef CONFIG_CMD_IDE
+#define __io
+#define CONFIG_IDE_PREINIT
+#define CONFIG_DOS_PARTITION
+#define CONFIG_CMD_EXT2
+/* ED Mini V has an IDE-compatible SATA connector for port 1 */
+#define CONFIG_MVSATA_IDE
+#define CONFIG_MVSATA_IDE_USE_PORT1
+/* Needs byte-swapping for ATA data register */
+#define CONFIG_IDE_SWAP_IO
+/* Data, registers and alternate blocks are at the same offset */
+#define CONFIG_SYS_ATA_DATA_OFFSET	(0x0100)
+#define CONFIG_SYS_ATA_REG_OFFSET	(0x0100)
+#define CONFIG_SYS_ATA_ALT_OFFSET	(0x0100)
+/* Each 8-bit ATA register is aligned to a 4-bytes address */
+#define CONFIG_SYS_ATA_STRIDE		4
+/* Controller supports 48-bits LBA addressing */
+#define CONFIG_LBA48
+/* A single bus, a single device */
+#define CONFIG_SYS_IDE_MAXBUS		1
+#define CONFIG_SYS_IDE_MAXDEVICE	1
+/* ATA registers base is at SATA controller base */
+#define CONFIG_SYS_ATA_BASE_ADDR	ORION5X_SATA_BASE
+/* ATA bus 0 is orion5x port 1 on ED Mini V2 */
+#define CONFIG_SYS_ATA_IDE0_OFFSET	ORION5X_SATA_PORT1_OFFSET
+/* end of IDE defines */
+#endif /* CMD_IDE */
+
+/*
+ * I2C related stuff
+ */
+#ifdef CONFIG_CMD_I2C
+#define CONFIG_I2C_MVTWSI
+#define CONFIG_I2C_MVTWSI_BASE		ORION5X_TWSI_BASE
+#define CONFIG_SYS_I2C_SLAVE		0x0
+#define CONFIG_SYS_I2C_SPEED		100000
+#endif
 
 /*
  *  Environment variables configurations
@@ -150,8 +204,6 @@
  * Size of malloc() pool
  */
 #define CONFIG_SYS_MALLOC_LEN	(1024 * 128) /* 128kB for malloc() */
-/* size in bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_SIZE	128
 
 /*
  * Other required minimal configurations
@@ -168,5 +220,10 @@
 #define CONFIG_SYS_MEMTEST_END		0x007fffff
 #define CONFIG_SYS_RESET_ADDRESS	0xffff0000
 #define CONFIG_SYS_MAXARGS		16
+
+/* additions for new relocation code, must be added to all boards */
+#define CONFIG_SYS_SDRAM_BASE		0
+#define CONFIG_SYS_INIT_SP_ADDR	\
+	(CONFIG_SYS_SDRAM_BASE + 0x1000 - GENERATED_GBL_DATA_SIZE)
 
 #endif /* _CONFIG_EDMINIV2_H */

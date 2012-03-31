@@ -39,6 +39,24 @@
 #define CONFIG_405EX		1		/* Specifc 405EX support*/
 #define CONFIG_SYS_CLK_FREQ	33333333	/* ext frequency to pll	*/
 
+#ifndef CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_TEXT_BASE	0xFFFA0000
+#endif
+
+/*
+ * CHIP_21 errata - you must set this to match your exact CPU, else your
+ * board will not boot.  DO NOT enable this unless you have JTAG available
+ * for recovery, in the event you get it wrong.
+ *
+ * Kilauea uses the 405EX, while Haleakala uses the 405EXr.  Either board
+ * may be equipped for security or not.  You must look at the CPU part
+ * number to be sure what you have.
+ */
+/* #define CONFIG_SYS_4xx_CHIP_21_405EX_NO_SECURITY */
+/* #define CONFIG_SYS_4xx_CHIP_21_405EX_SECURITY */
+/* #define CONFIG_SYS_4xx_CHIP_21_405EXr_NO_SECURITY */
+/* #define CONFIG_SYS_4xx_CHIP_21_405EXr_SECURITY */
+
 /*
  * Include common defines/options for all AMCC eval boards
  */
@@ -57,7 +75,6 @@
 #define CONFIG_SYS_FLASH_BASE		0xFC000000
 #define CONFIG_SYS_NAND_ADDR		0xF8000000
 #define CONFIG_SYS_FPGA_BASE		0xF0000000
-#define CONFIG_SYS_PERIPHERAL_BASE	0xEF600000      /* internal peripherals*/
 
 /*-----------------------------------------------------------------------
  * Initial RAM & Stack Pointer Configuration Options
@@ -89,9 +106,8 @@
 #define CONFIG_SYS_INIT_RAM_ADDR	(CONFIG_SYS_SDRAM_BASE + (32 << 20))	/* 32 MiB */
 #endif /* defined(CONFIG_SYS_INIT_DCACHE_CS) */
 
-#define CONFIG_SYS_INIT_RAM_END        (4 << 10)			/*  4 KiB */
-#define CONFIG_SYS_GBL_DATA_SIZE	256		/* num bytes initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE        (4 << 10)			/*  4 KiB */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 
 /*
  * If the data cache is being used for the primordial stack and global
@@ -103,11 +119,10 @@
 
 #if defined(CONFIG_SYS_INIT_DCACHE_CS)
 # define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
-# define CONFIG_SYS_POST_ALT_WORD_ADDR	(CONFIG_SYS_PERIPHERAL_BASE + GPT0_COMP6)
+# define CONFIG_SYS_POST_WORD_ADDR	(CONFIG_SYS_PERIPHERAL_BASE + GPT0_COMP6)
 #else
 # define CONFIG_SYS_INIT_EXTRA_SIZE	16
 # define CONFIG_SYS_INIT_SP_OFFSET	(CONFIG_SYS_GBL_DATA_OFFSET - CONFIG_SYS_INIT_EXTRA_SIZE)
-# define CONFIG_SYS_POST_WORD_ADDR	(CONFIG_SYS_GBL_DATA_OFFSET - 4)
 # define CONFIG_SYS_OCM_DATA_ADDR	CONFIG_SYS_INIT_RAM_ADDR
 #endif /* defined(CONFIG_SYS_INIT_DCACHE_CS) */
 
@@ -115,8 +130,7 @@
  * Serial Port
  *----------------------------------------------------------------------*/
 #define CONFIG_SYS_EXT_SERIAL_CLOCK	11059200	/* ext. 11.059MHz clk	*/
-/* define this if you want console on UART1 */
-#undef CONFIG_UART1_CONSOLE
+#define CONFIG_CONS_INDEX	1	/* Use UART0			*/
 
 /*-----------------------------------------------------------------------
  * Environment
@@ -460,7 +474,8 @@
 				 CONFIG_SYS_POST_UART)
 
 /* Define here the base-addresses of the UARTs to test in POST */
-#define CONFIG_SYS_POST_UART_TABLE	{UART0_BASE, UART1_BASE}
+#define CONFIG_SYS_POST_UART_TABLE	{ CONFIG_SYS_NS16550_COM1, \
+			CONFIG_SYS_NS16550_COM2 }
 
 #define CONFIG_LOGBUFFER
 #define CONFIG_SYS_POST_CACHE_ADDR	0x00800000 /* free virtual address	*/

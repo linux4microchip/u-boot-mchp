@@ -46,9 +46,7 @@ int dram_init(void)
 	struct xloader_table_1_2 *table_1_2;
 	struct chip_data *chip = &chip_data;
 
-	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
-	gd->bd->bi_dram[0].size = get_ram_size(PHYS_SDRAM_1,
-					       PHYS_SDRAM_1_MAXSIZE);
+	gd->ram_size = get_ram_size(PHYS_SDRAM_1, PHYS_SDRAM_1_MAXSIZE);
 
 	if (XLOADER_TABLE_VERSION_1_1 == xloader_tb->table_version) {
 		table_1_1 = &xloader_tb->table.table_1_1;
@@ -64,6 +62,12 @@ int dram_init(void)
 	}
 
 	return 0;
+}
+
+void dram_init_banksize(void)
+{
+	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
+	gd->bd->bi_dram[0].size = gd->ram_size;
 }
 
 int misc_init_r(void)
@@ -206,7 +210,7 @@ static int write_mac(uchar *mac)
 	return -1;
 }
 
-int do_chip_config(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_chip_config(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	void (*sram_setfreq) (unsigned int, unsigned int);
 	struct chip_data *chip = &chip_data;
@@ -215,10 +219,8 @@ int do_chip_config(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	char *s, *e;
 	char i2c_mac[20];
 
-	if ((argc > 3) || (argc < 2)) {
-		cmd_usage(cmdtp);
-		return 1;
-	}
+	if ((argc > 3) || (argc < 2))
+		return cmd_usage(cmdtp);
 
 	if ((!strcmp(argv[1], "cpufreq")) || (!strcmp(argv[1], "ddrfreq"))) {
 
@@ -286,8 +288,7 @@ int do_chip_config(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		return 0;
 	}
 
-	cmd_usage(cmdtp);
-	return 1;
+	return cmd_usage(cmdtp);
 }
 
 U_BOOT_CMD(chip_config, 3, 1, do_chip_config,

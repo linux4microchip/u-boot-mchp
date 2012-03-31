@@ -42,6 +42,9 @@
 #define CONFIG_EVB64260		1	/* this is an EVB64260 board	*/
 #define CONFIG_SYS_GT_6426x        GT_64260 /* with a 64260 system controller */
 
+#define	CONFIG_SYS_TEXT_BASE	0xfff00000
+#define	CONFIG_SYS_LDSCRIPT	"board/evb64260/u-boot.lds"
+
 #define CONFIG_BAUDRATE		38400	/* console baudrate = 38400	*/
 
 #undef	CONFIG_ECC			/* enable ECC support */
@@ -75,7 +78,6 @@
 #define	CONFIG_MPSC
 #define CONFIG_MPSC_PORT	0
 
-#define CONFIG_NET_MULTI        /* attempt all available adapters */
 
 /* define this if you want to enable GT MAC filtering */
 #define CONFIG_GT_USE_MAC_HASH_TABLE
@@ -141,8 +143,7 @@
 #define	CONFIG_SYS_LOAD_ADDR		0x00300000	/* default load address	*/
 
 #define	CONFIG_SYS_HZ			1000		/* decr freq: 1ms ticks	*/
-#define CONFIG_SYS_BUS_HZ		100000000	/* 100 MHz		*/
-#define CONFIG_SYS_BUS_CLK		CONFIG_SYS_BUS_HZ
+#define CONFIG_SYS_BUS_CLK		100000000	/* 100 MHz		*/
 
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200, 230400 }
 
@@ -161,9 +162,8 @@
  * Definitions for initial stack pointer and data area
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	0x40000000
-#define	CONFIG_SYS_INIT_RAM_END	0x1000
-#define	CONFIG_SYS_GBL_DATA_SIZE	128  /* size in bytes reserved for init data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define	CONFIG_SYS_INIT_RAM_SIZE	0x1000
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_RAM_LOCK
 
 
@@ -419,14 +419,6 @@
 #endif
 
 #define L2_ENABLE	(L2_INIT | L2CR_L2E)
-
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define	BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH */
-#define BOOTFLAG_WARM	0x02		/* Software reboot		    */
 
 #define CONFIG_SYS_BOARD_ASM_INIT      1
 

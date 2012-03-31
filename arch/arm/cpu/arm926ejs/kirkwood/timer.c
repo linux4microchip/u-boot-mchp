@@ -22,6 +22,7 @@
  */
 
 #include <common.h>
+#include <asm/io.h>
 #include <asm/arch/kirkwood.h>
 
 #define UBOOT_CNTR	0	/* counter to use for uboot timer */
@@ -83,15 +84,10 @@ struct kwtmr_registers *kwtmr_regs = (struct kwtmr_registers *)KW_TIMER_BASE;
 #define READ_TIMER			(readl(CNTMR_VAL_REG(UBOOT_CNTR)) /	\
 					 (CONFIG_SYS_TCLK / 1000))
 
-static ulong timestamp;
-static ulong lastdec;
+DECLARE_GLOBAL_DATA_PTR;
 
-void reset_timer_masked(void)
-{
-	/* reset time */
-	lastdec = READ_TIMER;
-	timestamp = 0;
-}
+#define timestamp gd->tbl
+#define lastdec gd->lastinc
 
 ulong get_timer_masked(void)
 {
@@ -110,19 +106,9 @@ ulong get_timer_masked(void)
 	return timestamp;
 }
 
-void reset_timer(void)
-{
-	reset_timer_masked();
-}
-
 ulong get_timer(ulong base)
 {
 	return get_timer_masked() - base;
-}
-
-void set_timer(ulong t)
-{
-	timestamp = t;
 }
 
 void __udelay(unsigned long usec)
@@ -162,7 +148,8 @@ int timer_init(void)
 	writel(cntmrctrl, CNTMR_CTRL_REG);
 
 	/* init the timestamp and lastdec value */
-	reset_timer_masked();
+	lastdec = READ_TIMER;
+	timestamp = 0;
 
 	return 0;
 }

@@ -45,10 +45,9 @@
 #define CONFIG_MPC8245		1
 #define CONFIG_BMW		1
 
-#define	CONFIG_MISC_INIT_F	1	/* Use misc_init_f()			*/
+#define	CONFIG_SYS_TEXT_BASE	0xFFF00000
 
-#define CONFIG_BCM570x		1	/* Use Broadcom BCM570x Ethernet Driver */
-#define	CONFIG_TIGON3		1
+#define	CONFIG_MISC_INIT_F	1	/* Use misc_init_f()			*/
 
 #define CONFIG_CONS_INDEX	1
 #define CONFIG_BAUDRATE		9600
@@ -82,6 +81,8 @@
 
 #define CONFIG_CMD_DATE
 #define CONFIG_CMD_ELF
+#undef CONFIG_CMD_NET
+#undef CONFIG_CMD_NFS
 
 
 #if 0
@@ -124,7 +125,7 @@
 
 #define CONFIG_SYS_EUMB_ADDR	    0xFC000000
 
-#define CONFIG_SYS_MONITOR_BASE    TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE    CONFIG_SYS_TEXT_BASE
 
 #define CONFIG_SYS_MONITOR_LEN	    (256 << 10) /* Reserve 256 kB for Monitor	*/
 #define CONFIG_SYS_MALLOC_LEN	    (2048 << 10) /* Reserve 2MB for malloc()	*/
@@ -148,9 +149,8 @@
  * Definitions for initial stack pointer and data area
  */
 #define CONFIG_SYS_INIT_RAM_ADDR CONFIG_SYS_SDRAM_BASE + CONFIG_SYS_MONITOR_LEN
-#define CONFIG_SYS_INIT_RAM_END   0x2F00  /* End of used area in DPRAM  */
-#define CONFIG_SYS_GBL_DATA_SIZE  128  /* size in bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET  (CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE   0x2F00  /* Size of used area in DPRAM  */
+#define CONFIG_SYS_GBL_DATA_OFFSET  (CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET  CONFIG_SYS_GBL_DATA_OFFSET
 
 /*
@@ -299,14 +299,5 @@
 #if defined(CONFIG_CMD_KGDB)
 #  define CONFIG_SYS_CACHELINE_SHIFT	5	/* log base 2 of the above value   */
 #endif
-
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH */
-#define BOOTFLAG_WARM		0x02	/* Software reboot		    */
-
 
 #endif	/* __CONFIG_H */

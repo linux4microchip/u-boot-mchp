@@ -30,6 +30,8 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#define	CONFIG_SYS_TEXT_BASE	0xFFF00000
+
 /* Environments */
 
 /* bootargs */
@@ -79,7 +81,7 @@
 #undef CONFIG_SYS_AUTOLOAD
 
 /* rootpath */
-#define CONFIG_ROOTPATH /tftpboot/target
+#define CONFIG_ROOTPATH "/tftpboot/target"
 
 /* gatewayip */
 #define CONFIG_GATEWAYIP 192.168.0.1
@@ -91,7 +93,7 @@
 #define CONFIG_HOSTNAME debris
 
 /* bootfile */
-#define CONFIG_BOOTFILE pImage
+#define CONFIG_BOOTFILE "pImage"
 
 /* loadaddr */
 #define CONFIG_LOADADDR 800000
@@ -172,7 +174,6 @@
 #define CONFIG_PCI				/* include pci support		*/
 #define CONFIG_PCI_PNP
 
-#define CONFIG_NET_MULTI		/* Multi ethernet cards support */
 #define CONFIG_EEPRO100
 #define CONFIG_SYS_RX_ETH_BUFFER	8	/* use 8 rx buffer on eepro100  */
 #define CONFIG_EEPRO100_SROM_WRITE
@@ -197,21 +198,18 @@
 #define CONFIG_SYS_MONITOR_BASE	0x00090000
 #define CONFIG_SYS_RAMBOOT		1
 #define CONFIG_SYS_INIT_RAM_ADDR	(CONFIG_SYS_MONITOR_BASE + CONFIG_SYS_MONITOR_LEN)
-#define CONFIG_SYS_INIT_RAM_END	0x10000
-#define CONFIG_SYS_GBL_DATA_SIZE	256  /* size in bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE	0x10000
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 #else
 #undef	CONFIG_SYS_RAMBOOT
 #define CONFIG_SYS_MONITOR_LEN		0x00040000
-#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
 
-/*#define CONFIG_SYS_GBL_DATA_SIZE    256*/
-#define CONFIG_SYS_GBL_DATA_SIZE	128
 
 #define CONFIG_SYS_INIT_RAM_ADDR     0x40000000
-#define CONFIG_SYS_INIT_RAM_END      0x1000
-#define CONFIG_SYS_GBL_DATA_OFFSET  (CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE      0x1000
+#define CONFIG_SYS_GBL_DATA_OFFSET  (CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 
 #endif
 
@@ -450,16 +448,6 @@
 #if defined(CONFIG_CMD_KGDB)
 #  define CONFIG_SYS_CACHELINE_SHIFT	5	/* log base 2 of the above value */
 #endif
-
-
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH	*/
-#define BOOTFLAG_WARM		0x02	/* Software reboot			*/
-
 
 /* values according to the manual */
 

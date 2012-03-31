@@ -26,7 +26,7 @@
 #include <common.h>
 #include <asm/processor.h>
 #include <spd_sdram.h>
-#include <ppc4xx_enet.h>
+#include <asm/ppc4xx-emac.h>
 #include <netdev.h>
 
 #ifdef CONFIG_SYS_INIT_SHOW_RESET_REG
@@ -193,12 +193,13 @@ int misc_init_r(void)
 
 int checkboard (void)
 {
-	char *s = getenv ("serial#");
+	char buf[64];
+	int i = getenv_f("serial#", buf, sizeof(buf));
 
 	printf ("Board: Taishan - AMCC PPC440GX Evaluation Board");
-	if (s != NULL) {
-		puts (", serial# ");
-		puts (s);
+	if (i > 0) {
+		puts(", serial# ");
+		puts(buf);
 	}
 	putc ('\n');
 

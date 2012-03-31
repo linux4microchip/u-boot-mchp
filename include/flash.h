@@ -58,6 +58,8 @@ typedef struct {
 #endif
 } flash_info_t;
 
+extern flash_info_t flash_info[]; /* info for FLASH chips	*/
+
 typedef unsigned long flash_sect_t;
 
 /*
@@ -90,6 +92,7 @@ typedef unsigned long flash_sect_t;
 /* Prototypes */
 
 extern unsigned long flash_init (void);
+extern void flash_protect_default(void);
 extern void flash_print_info (flash_info_t *);
 extern int flash_erase	(flash_info_t *, int, int);
 extern int flash_sect_erase (ulong addr_first, ulong addr_last);

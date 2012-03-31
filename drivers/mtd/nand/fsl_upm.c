@@ -21,6 +21,7 @@
 static void fsl_upm_start_pattern(struct fsl_upm *upm, u32 pat_offset)
 {
 	clrsetbits_be32(upm->mxmr, MxMR_MAD_MSK, MxMR_OP_RUNP | pat_offset);
+	(void)in_be32(upm->mxmr);
 }
 
 static void fsl_upm_end_pattern(struct fsl_upm *upm)
@@ -35,6 +36,7 @@ static void fsl_upm_run_pattern(struct fsl_upm *upm, int width,
 				void __iomem *io_addr, u32 mar)
 {
 	out_be32(upm->mar, mar);
+	(void)in_be32(upm->mar);
 	switch (width) {
 	case 8:
 		out_8(io_addr, 0x0);
@@ -122,14 +124,14 @@ static void fun_cmd_ctrl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
 		fun_wait(fun);
 }
 
-static u8 nand_read_byte(struct mtd_info *mtd)
+static u8 upm_nand_read_byte(struct mtd_info *mtd)
 {
 	struct nand_chip *chip = mtd->priv;
 
 	return in_8(chip->IO_ADDR_R);
 }
 
-static void nand_write_buf(struct mtd_info *mtd, const u_char *buf, int len)
+static void upm_nand_write_buf(struct mtd_info *mtd, const u_char *buf, int len)
 {
 	int i;
 	struct nand_chip *chip = mtd->priv;
@@ -145,7 +147,7 @@ static void nand_write_buf(struct mtd_info *mtd, const u_char *buf, int len)
 		fun_wait(fun);
 }
 
-static void nand_read_buf(struct mtd_info *mtd, u_char *buf, int len)
+static void upm_nand_read_buf(struct mtd_info *mtd, u_char *buf, int len)
 {
 	int i;
 	struct nand_chip *chip = mtd->priv;
@@ -154,7 +156,7 @@ static void nand_read_buf(struct mtd_info *mtd, u_char *buf, int len)
 		buf[i] = in_8(chip->IO_ADDR_R);
 }
 
-static int nand_verify_buf(struct mtd_info *mtd, const u_char *buf, int len)
+static int upm_nand_verify_buf(struct mtd_info *mtd, const u_char *buf, int len)
 {
 	int i;
 	struct nand_chip *chip = mtd->priv;
@@ -189,10 +191,10 @@ int fsl_upm_nand_init(struct nand_chip *chip, struct fsl_upm_nand *fun)
 #if CONFIG_SYS_NAND_MAX_CHIPS > 1
 	chip->select_chip = fun_select_chip;
 #endif
-	chip->read_byte = nand_read_byte;
-	chip->read_buf = nand_read_buf;
-	chip->write_buf = nand_write_buf;
-	chip->verify_buf = nand_verify_buf;
+	chip->read_byte = upm_nand_read_byte;
+	chip->read_buf = upm_nand_read_buf;
+	chip->write_buf = upm_nand_write_buf;
+	chip->verify_buf = upm_nand_verify_buf;
 	if (fun->dev_ready)
 		chip->dev_ready = nand_dev_ready;
 

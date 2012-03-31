@@ -29,7 +29,7 @@
  * global variables during system initialization (until we have set
  * up the memory controller so that we can use RAM).
  *
- * Keep it *SMALL* and remember to set CONFIG_SYS_GBL_DATA_SIZE > sizeof(gd_t)
+ * Keep it *SMALL* and remember to set GENERATED_GBL_DATA_SIZE > sizeof(gd_t)
  */
 
 typedef	struct	global_data {
@@ -38,6 +38,9 @@ typedef	struct	global_data {
 	unsigned long	baudrate;
 	unsigned long	stack_end;	/* highest stack address */
 	unsigned long	have_console;	/* serial_init() was called */
+#ifdef CONFIG_PRE_CONSOLE_BUFFER
+	unsigned long	precon_buf_idx;	/* Pre-Console buffer index */
+#endif
 	unsigned long	reloc_off;	/* Relocation Offset */
 	unsigned long	env_addr;	/* Address of env struct */
 	unsigned long	env_valid;	/* Checksum of env valid? */
@@ -46,18 +49,20 @@ typedef	struct	global_data {
 	void		*fb_base;	/* framebuffer address */
 #endif
 	void		**jt;		/* jump table */
+	char		env_buf[32];	/* buffer for getenv() before reloc. */
 } gd_t;
 
 /*
  * Global Data Flags
  */
-#define GD_FLG_RELOC	0x00001		/* Code was relocated to RAM	 */
-#define GD_FLG_DEVINIT	0x00002		/* Devices have been initialized */
-#define GD_FLG_SILENT	0x00004		/* Silent mode			 */
-#define GD_FLG_POSTFAIL	0x00008		/* Critical POST test failed	 */
-#define GD_FLG_POSTSTOP	0x00010		/* POST seqeunce aborted	 */
-#define GD_FLG_LOGINIT	0x00020		/* Log Buf has been initialized	 */
-#define GD_FLG_DISABLE_CONSOLE	0x00040		/* Disable console (in & out)	 */
+#define	GD_FLG_RELOC		0x00001	/* Code was relocated to RAM		*/
+#define	GD_FLG_DEVINIT		0x00002	/* Devices have been initialized	*/
+#define	GD_FLG_SILENT		0x00004	/* Silent mode				*/
+#define	GD_FLG_POSTFAIL		0x00008	/* Critical POST test failed		*/
+#define	GD_FLG_POSTSTOP		0x00010	/* POST seqeunce aborted		*/
+#define	GD_FLG_LOGINIT		0x00020	/* Log Buffer has been initialized	*/
+#define GD_FLG_DISABLE_CONSOLE	0x00040	/* Disable console (in & out)		*/
+#define GD_FLG_ENV_READY	0x00080	/* Environment imported into hash table	*/
 
 #define DECLARE_GLOBAL_DATA_PTR register gd_t *gd asm("r5")
 

@@ -271,7 +271,7 @@ void imx_gpio_mode(int gpio_mode)
 }
 
 #ifdef CONFIG_MXC_UART
-void mx27_uart_init_pins(void)
+void mx27_uart1_init_pins(void)
 {
 	int i;
 	unsigned int mode[] = {
@@ -312,6 +312,18 @@ void mx27_fec_init_pins(void)
 
 	for (i = 0; i < ARRAY_SIZE(mode); i++)
 		imx_gpio_mode(mode[i]);
+}
+
+void imx_get_mac_from_fuse(unsigned char *mac)
+{
+	int i;
+	struct iim_regs *iim = (struct iim_regs *)IMX_IIM_BASE;
+	struct fuse_bank *bank = &iim->bank[0];
+	struct fuse_bank0_regs *fuse =
+			(struct fuse_bank0_regs *)bank->fuse_regs;
+
+	for (i = 0; i < 6; i++)
+		mac[6 - 1 - i] = readl(&fuse->mac_addr[i]) & 0xff;
 }
 #endif /* CONFIG_FEC_MXC */
 

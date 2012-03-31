@@ -40,18 +40,21 @@
 #define CONFIG_S3C64XX		1	/* in a SAMSUNG S3C64XX Family  */
 #define CONFIG_SMDK6400		1	/* on a SAMSUNG SMDK6400 Board  */
 
-#define CONFIG_SKIP_RELOCATE_UBOOT
-
 #define CONFIG_PERIPORT_REMAP
 #define CONFIG_PERIPORT_BASE	0x70000000
 #define CONFIG_PERIPORT_SIZE	0x13
+
+#define CONFIG_SYS_IRAM_BASE    0x0c000000  /* Internal SRAM base address */
+#define CONFIG_SYS_IRAM_SIZE    0x2000      /* 8 KB of internal SRAM memory */
+#define CONFIG_SYS_IRAM_END     (CONFIG_SYS_IRAM_BASE + CONFIG_SYS_IRAM_SIZE)
+#define CONFIG_SYS_INIT_SP_ADDR (CONFIG_SYS_IRAM_END - GENERATED_GBL_DATA_SIZE)
 
 #define CONFIG_SYS_SDRAM_BASE	0x50000000
 
 /* input clock of PLL: SMDK6400 has 12MHz input clock */
 #define CONFIG_SYS_CLK_FREQ	12000000
 
-#if !defined(CONFIG_NAND_SPL) && (TEXT_BASE >= 0xc0000000)
+#if !defined(CONFIG_NAND_SPL) && (CONFIG_SYS_TEXT_BASE >= 0xc0000000)
 #define CONFIG_ENABLE_MMU
 #endif
 
@@ -62,7 +65,7 @@
 /*
  * Architecture magic and machine type
  */
-#define MACH_TYPE		1270
+#define CONFIG_MACH_TYPE		1270
 
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
@@ -71,12 +74,10 @@
  * Size of malloc() pool
  */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 1024 * 1024)
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes for initial data */
 
 /*
  * Hardware drivers
  */
-#define CONFIG_NET_MULTI
 #define CONFIG_CS8900			/* we have a CS8900 on-board	*/
 #define CONFIG_CS8900_BASE	  	0x18800300
 #define CONFIG_CS8900_BUS16		/* follow the Linux driver	*/

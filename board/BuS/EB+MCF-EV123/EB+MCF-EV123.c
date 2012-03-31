@@ -43,7 +43,7 @@ unsigned long display_height;
 int checkboard (void)
 {
 	puts ("Board: MCF-EV1 + MCF-EV23 (BuS Elektronik GmbH & Co. KG)\n");
-#if (TEXT_BASE ==  CONFIG_SYS_INT_FLASH_BASE)
+#if (CONFIG_SYS_TEXT_BASE ==  CONFIG_SYS_INT_FLASH_BASE)
 	puts ("       Boot from Internal FLASH\n");
 #endif
 
@@ -193,7 +193,7 @@ int drv_video_init(void)
 /*---------------------------------------------------------------------------*/
 
 #ifdef CONFIG_VIDEO
-int do_brightness(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_brightness(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	int rcode = 0;
 	ulong side;

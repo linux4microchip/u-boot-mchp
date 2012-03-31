@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 Freescale Semiconductor, Inc.
+ * Copyright 2008, 2011 Freescale Semiconductor, Inc.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -14,6 +14,7 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 extern void ft_fixup_num_cores(void *blob);
+extern void ft_srio_setup(void *blob);
 
 void ft_cpu_setup(void *blob, bd_t *bd)
 {
@@ -55,6 +56,11 @@ void ft_cpu_setup(void *blob, bd_t *bd)
 	off = fdt_add_mem_rsv(blob, bootpg, (u64)4096);
 	if (off < 0)
 		printf("%s: %s\n", __FUNCTION__, fdt_strerror(off));
-#endif
+
 	ft_fixup_num_cores(blob);
+#endif
+
+#ifdef CONFIG_SYS_SRIO
+	ft_srio_setup(blob);
+#endif
 }

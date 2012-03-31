@@ -25,9 +25,7 @@
 /*
  * KARO TX25 board - SoC Configuration
  */
-#define CONFIG_ARM926EJS			/* arm926ejs CPU core */
 #define CONFIG_MX25
-#define CONFIG_TX25
 #define CONFIG_MX25_CLK32		32000	/* OSC32K frequency */
 #define CONFIG_SYS_HZ			1000
 
@@ -36,13 +34,19 @@
 /* NAND BOOT is the only boot method */
 #define CONFIG_NAND_U_BOOT
 
+#ifndef MACH_TYPE_TX25
+#define MACH_TYPE_TX25	2177
+#endif
+
+#define CONFIG_MACH_TYPE MACH_TYPE_TX25
+
 #ifdef CONFIG_NAND_SPL
 /* Start copying real U-boot from the second page */
 #define CONFIG_SYS_NAND_U_BOOT_OFFS	0x800
 #define CONFIG_SYS_NAND_U_BOOT_SIZE	0x30000
-/* Load U-Boot to this address */
-#define CONFIG_SYS_NAND_U_BOOT_DST	0x81f00000
-#define CONFIG_SYS_NAND_U_BOOT_START	CONFIG_SYS_NAND_U_BOOT_DST
+
+#define CONFIG_SYS_NAND_U_BOOT_DST      (0x81200000)
+#define CONFIG_SYS_NAND_U_BOOT_START    CONFIG_SYS_NAND_U_BOOT_DST
 
 #define CONFIG_SYS_NAND_PAGE_SIZE	2048
 #define CONFIG_SYS_NAND_SPARE_SIZE	64
@@ -52,22 +56,19 @@
 #define CONFIG_SYS_NAND_BAD_BLOCK_POS	0
 #else
 #define CONFIG_SKIP_LOWLEVEL_INIT
-#define CONFIG_SKIP_RELOCATE_UBOOT
 #endif
 
 #define CONFIG_DISPLAY_CPUINFO
 
-#define CONFIG_CMDLINE_TAG		1	/* enable passing of ATAGs */
-#define CONFIG_SETUP_MEMORY_TAGS	1
-#define CONFIG_INITRD_TAG		1
+#define CONFIG_CMDLINE_TAG			/* enable passing of ATAGs */
+#define CONFIG_SETUP_MEMORY_TAGS
+#define CONFIG_INITRD_TAG
 
 /*
  * Memory Info
  */
 /* malloc() len */
 #define CONFIG_SYS_MALLOC_LEN		(1 << 20)	/* 1 MiB */
-/* reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_SIZE	128
 /*
  * Board has 2 32MB banks of DRAM but there is a bug when using
  * both so only the first is configured
@@ -88,17 +89,19 @@
 /*
  * Serial Info
  */
-#define CONFIG_MXC_UART		1
-#define CONFIG_SYS_MX25_UART1	1
+#define CONFIG_MXC_UART
+#define CONFIG_MXC_UART_BASE	UART1_BASE
 #define CONFIG_CONS_INDEX	1	/* use UART0 for console */
 #define CONFIG_BAUDRATE		115200	/* Default baud rate */
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
+
+#define CONFIG_MXC_GPIO
 
 /*
  * Flash & Environment
  */
 /* No NOR flash present */
-#define CONFIG_SYS_NO_FLASH	1
+#define CONFIG_SYS_NO_FLASH
 #define	CONFIG_ENV_IS_IN_NAND
 #define	CONFIG_ENV_OFFSET	CONFIG_SYS_MONITOR_LEN
 #define CONFIG_ENV_SIZE		(128 * 1024)	/* 128 kB NAND block size */
@@ -131,6 +134,7 @@
 /* U-Boot commands */
 #include <config_cmd_default.h>
 #define CONFIG_CMD_NAND
+#define CONFIG_CMD_CACHE
 
 /*
  * Ethernet
@@ -139,8 +143,7 @@
 #define CONFIG_FEC_MXC_PHYADDR		0x1f
 #define CONFIG_MII
 #define CONFIG_CMD_NET
-#define CONFIG_NET_MULTI
-#define BOARD_LATE_INIT
+#define CONFIG_BOARD_LATE_INIT
 #define CONFIG_ENV_OVERWRITE
 
 #define CONFIG_BOOTDELAY	5
@@ -175,5 +178,10 @@
 	"load=tftp ${loadaddr} ${u-boot}\0"				\
 	"update=nand erase 0 40000;nand write ${loadaddr} 0 40000\0"	\
 	"upd=run load update\0"						\
+
+/* additions for new relocation code, must be added to all boards */
+#define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
+#define CONFIG_SYS_INIT_SP_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x1000 - /* Fix this */ \
+					GENERATED_GBL_DATA_SIZE)
 
 #endif /* __CONFIG_H */

@@ -40,17 +40,18 @@
  * High Level Configuration Options
  * (easy to change)
  */
-#define CONFIG_PXA250		1	/* This is an PXA255 CPU    */
+#define CONFIG_CPU_PXA25X		1	/* This is an PXA255 CPU    */
 #define CONFIG_XAENIAX		1	/* on a xaeniax board	    */
+#define	CONFIG_SYS_TEXT_BASE	0x0
 
 
-#define BOARD_LATE_INIT		1
+#define CONFIG_BOARD_LATE_INIT
 
 
 #undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff */
 
 /* we will never enable dcache, because we have to setup MMU first */
-#define CONFIG_SYS_NO_DCACHE
+#define CONFIG_SYS_DCACHE_OFF
 
 /*
  * select serial console configuration
@@ -114,7 +115,6 @@
  * used for the RAM copy of the uboot code
  */
 #define CONFIG_SYS_MALLOC_LEN	    (CONFIG_ENV_SIZE + 128*1024)
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
 
 /*
  * Miscellaneous configurable options
@@ -167,6 +167,9 @@
 
 #define CONFIG_SYS_FLASH_BASE		PHYS_FLASH_1
 
+#define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
+#define	CONFIG_SYS_INIT_SP_ADDR		0xfffff800
+
 /*
  * FLASH and environment organization
  */
@@ -196,7 +199,6 @@
 /*
  * SMSC91C111 Network Card
  */
-#define CONFIG_NET_MULTI
 #define CONFIG_SMC91111		1
 #define CONFIG_SMC91111_BASE		0x10000300  /* chip select 3         */
 #define CONFIG_SMC_USE_32_BIT		1          /* 32 bit bus  */
@@ -434,8 +436,9 @@
  */
 #define CONFIG_SYS_PSSR_VAL		0x00000030
 
-#define CONFIG_SYS_CKEN_VAL            0x00000080  /*  */
-#define CONFIG_SYS_ICMR_VAL            0x00000000  /* No interrupts enabled        */
+#define CONFIG_SYS_CKEN			0x00000080  /*  */
+#define CONFIG_SYS_ICMR			0x00000000  /* No interrupts enabled        */
+#define	CONFIG_SYS_CCCR			CCCR_L27|CCCR_M2|CCCR_N10
 
 
 /*
@@ -558,6 +561,9 @@
  * [02:00]   010     - MDBL0:  SDRAM0/1 burst Length. Fixed to 4.
  */
 #define CONFIG_SYS_MDMRS_VAL		0x00320032
+
+#define	CONFIG_SYS_FLYCNFG_VAL		0x00000000
+#define	CONFIG_SYS_SXCNFG_VAL		0x00000000
 
 /*
  * PCMCIA and CF Interfaces

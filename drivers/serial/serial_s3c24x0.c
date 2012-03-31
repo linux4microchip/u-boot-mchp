@@ -19,6 +19,7 @@
  */
 
 #include <common.h>
+#include <linux/compiler.h>
 #include <asm/arch/s3c24x0_cpu.h>
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -27,15 +28,9 @@ DECLARE_GLOBAL_DATA_PTR;
 #define UART_NR	S3C24X0_UART0
 
 #elif defined(CONFIG_SERIAL2)
-# if defined(CONFIG_TRAB)
-#  error "TRAB supports only CONFIG_SERIAL1"
-# endif
 #define UART_NR	S3C24X0_UART1
 
 #elif defined(CONFIG_SERIAL3)
-# if defined(CONFIG_TRAB)
-#  error "TRAB supports only CONFIG_SERIAL1"
-# endif
 #define UART_NR	S3C24X0_UART2
 
 #else
@@ -74,9 +69,8 @@ DECLARE_GLOBAL_DATA_PTR;
 		serial_puts_dev(port, s); \
 	}
 
-#define INIT_S3C_SERIAL_STRUCTURE(port, name, bus) { \
+#define INIT_S3C_SERIAL_STRUCTURE(port, name) { \
 	name, \
-	bus, \
 	s3serial##port##_init, \
 	NULL,\
 	s3serial##port##_setbrg, \
@@ -101,7 +95,7 @@ void _serial_setbrg(const int dev_index)
 	/* value is calculated so : (int)(PCLK/16./baudrate) -1 */
 	reg = get_PCLK() / (16 * gd->baudrate) - 1;
 
-	writel(reg, &uart->UBRDIV);
+	writel(reg, &uart->ubrdiv);
 	for (i = 0; i < 100; i++)
 		/* Delay */ ;
 }
@@ -131,26 +125,26 @@ static int serial_init_dev(const int dev_index)
 #endif
 
 	/* FIFO enable, Tx/Rx FIFO clear */
-	writel(0x07, &uart->UFCON);
-	writel(0x0, &uart->UMCON);
+	writel(0x07, &uart->ufcon);
+	writel(0x0, &uart->umcon);
 
 	/* Normal,No parity,1 stop,8 bit */
-	writel(0x3, &uart->ULCON);
+	writel(0x3, &uart->ulcon);
 	/*
 	 * tx=level,rx=edge,disable timeout int.,enable rx error int.,
 	 * normal,interrupt or polling
 	 */
-	writel(0x245, &uart->UCON);
+	writel(0x245, &uart->ucon);
 
 #ifdef CONFIG_HWFLOW
-	writel(0x1, &uart->UMCON);	/* RTS up */
+	writel(0x1, &uart->umcon);	/* rts up */
 #endif
 
 	/* FIXME: This is sooooooooooooooooooo ugly */
 #if defined(CONFIG_ARCH_GTA02_v1) || defined(CONFIG_ARCH_GTA02_v2)
 	/* we need auto hw flow control on the gsm and gps port */
 	if (dev_index == 0 || dev_index == 1)
-		writel(0x10, &uart->UMCON);
+		writel(0x10, &uart->umcon);
 #endif
 	_serial_setbrg(dev_index);
 
@@ -176,10 +170,10 @@ int _serial_getc(const int dev_index)
 {
 	struct s3c24x0_uart *uart = s3c24x0_get_base_uart(dev_index);
 
-	while (!(readl(&uart->UTRSTAT) & 0x1))
+	while (!(readl(&uart->utrstat) & 0x1))
 		/* wait for character to arrive */ ;
 
-	return readb(&uart->URXH) & 0xff;
+	return readb(&uart->urxh) & 0xff;
 }
 
 #if defined(CONFIG_SERIAL_MULTI)
@@ -237,15 +231,15 @@ void _serial_putc(const char c, const int dev_index)
 		return;
 #endif
 
-	while (!(readl(&uart->UTRSTAT) & 0x2))
+	while (!(readl(&uart->utrstat) & 0x2))
 		/* wait for room in the tx FIFO */ ;
 
 #ifdef CONFIG_HWFLOW
-	while (hwflow && !(readl(&uart->UMSTAT) & 0x1))
+	while (hwflow && !(readl(&uart->umstat) & 0x1))
 		/* Wait for CTS up */ ;
 #endif
 
-	writeb(c, &uart->UTXH);
+	writeb(c, &uart->utxh);
 
 	/* If \n, also do \r */
 	if (c == '\n')
@@ -272,7 +266,7 @@ int _serial_tstc(const int dev_index)
 {
 	struct s3c24x0_uart *uart = s3c24x0_get_base_uart(dev_index);
 
-	return readl(&uart->UTRSTAT) & 0x1;
+	return readl(&uart->utrstat) & 0x1;
 }
 
 #if defined(CONFIG_SERIAL_MULTI)
@@ -309,11 +303,24 @@ void serial_puts(const char *s)
 #if defined(CONFIG_SERIAL_MULTI)
 DECLARE_S3C_SERIAL_FUNCTIONS(0);
 struct serial_device s3c24xx_serial0_device =
-INIT_S3C_SERIAL_STRUCTURE(0, "s3ser0", "S3UART1");
+INIT_S3C_SERIAL_STRUCTURE(0, "s3ser0");
 DECLARE_S3C_SERIAL_FUNCTIONS(1);
 struct serial_device s3c24xx_serial1_device =
-INIT_S3C_SERIAL_STRUCTURE(1, "s3ser1", "S3UART2");
+INIT_S3C_SERIAL_STRUCTURE(1, "s3ser1");
 DECLARE_S3C_SERIAL_FUNCTIONS(2);
 struct serial_device s3c24xx_serial2_device =
-INIT_S3C_SERIAL_STRUCTURE(2, "s3ser2", "S3UART3");
+INIT_S3C_SERIAL_STRUCTURE(2, "s3ser2");
+
+__weak struct serial_device *default_serial_console(void)
+{
+#if defined(CONFIG_SERIAL1)
+	return &s3c24xx_serial0_device;
+#elif defined(CONFIG_SERIAL2)
+	return &s3c24xx_serial1_device;
+#elif defined(CONFIG_SERIAL3)
+	return &s3c24xx_serial2_device;
+#else
+#error "CONFIG_SERIAL? missing."
+#endif
+}
 #endif /* CONFIG_SERIAL_MULTI */

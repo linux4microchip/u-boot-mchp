@@ -14,6 +14,7 @@
 #include <spi.h>
 #include <asm/blackfin.h>
 #include <asm/net.h>
+#include <asm/portmux.h>
 #include <asm/mach-common/bits/otp.h>
 #include <asm/sdh.h>
 
@@ -29,24 +30,21 @@ int checkboard(void)
 #if defined(CONFIG_BFIN_MAC)
 static void board_init_enetaddr(uchar *mac_addr)
 {
+#ifdef CONFIG_SYS_NO_FLASH
+# define USE_MAC_IN_FLASH 0
+#else
+# define USE_MAC_IN_FLASH 1
+#endif
 	bool valid_mac = false;
 
-#if 0
-	/* the MAC is stored in OTP memory page 0xDF */
-	uint32_t ret;
-	uint64_t otp_mac;
-
-	ret = bfrom_OtpRead(0xDF, OTP_LOWER_HALF, &otp_mac);
-	if (!(ret & OTP_MASTER_ERROR)) {
-		uchar *otp_mac_p = (uchar *)&otp_mac;
-
-		for (ret = 0; ret < 6; ++ret)
-			mac_addr[ret] = otp_mac_p[5 - ret];
-
-		if (is_valid_ether_addr(mac_addr))
+	if (USE_MAC_IN_FLASH) {
+		/* we cram the MAC in the last flash sector */
+		uchar *board_mac_addr = (uchar *)0x203F0096;
+		if (is_valid_ether_addr(board_mac_addr)) {
+			memcpy(mac_addr, board_mac_addr, 6);
 			valid_mac = true;
+		}
 	}
-#endif
 
 	if (!valid_mac) {
 		puts("Warning: Generating 'random' MAC address\n");
@@ -56,11 +54,19 @@ static void board_init_enetaddr(uchar *mac_addr)
 	eth_setenv_enetaddr("ethaddr", mac_addr);
 }
 
+/* Only the first run of boards had a KSZ switch */
+#if defined(CONFIG_BFIN_SPI) && __SILICON_REVISION__ == 0
+# define KSZ_POSSIBLE 1
+#else
+# define KSZ_POSSIBLE 0
+#endif
+
 #define KSZ_MAX_HZ    5000000
 
 #define KSZ_WRITE     0x02
 #define KSZ_READ      0x03
 
+#define KSZ_REG_CHID  0x00	/* Register 0: Chip ID0 */
 #define KSZ_REG_STPID 0x01	/* Register 1: Chip ID1 / Start Switch */
 #define KSZ_REG_GC9   0x0b	/* Register 11: Global Control 9 */
 #define KSZ_REG_P3C0  0x30	/* Register 48: Port 3 Control 0 */
@@ -78,15 +84,17 @@ static int ksz8893m_reg_set(struct spi_slave *slave, uchar reg, uchar data)
 	return ksz8893m_transfer(slave, KSZ_WRITE, reg, data, din);
 }
 
+static int ksz8893m_reg_read(struct spi_slave *slave, uchar reg)
+{
+	int ret;
+	unsigned char din[3];
+	ret = ksz8893m_transfer(slave, KSZ_READ, reg, 0, din);
+	return ret ? ret : din[2];
+}
+
 static int ksz8893m_reg_clear(struct spi_slave *slave, uchar reg, uchar mask)
 {
-	int ret = 0;
-	unsigned char din[3];
-
-	ret |= ksz8893m_transfer(slave, KSZ_READ, reg, 0, din);
-	ret |= ksz8893m_reg_set(slave, reg, din[2] & mask);
-
-	return ret;
+	return ksz8893m_reg_set(slave, reg, ksz8893m_reg_read(slave, reg) & mask);
 }
 
 static int ksz8893m_reset(struct spi_slave *slave)
@@ -105,28 +113,33 @@ static int ksz8893m_reset(struct spi_slave *slave)
 	return ret;
 }
 
-int board_eth_init(bd_t *bis)
+static bool board_ksz_init(void)
 {
 	static bool switch_is_alive = false;
-	int ret;
 
 	if (!switch_is_alive) {
 		struct spi_slave *slave = spi_setup_slave(0, 1, KSZ_MAX_HZ, SPI_MODE_3);
 		if (slave) {
 			if (!spi_claim_bus(slave)) {
-				ret = ksz8893m_reset(slave);
-				if (!ret)
-					switch_is_alive = true;
+				bool phy_is_ksz = (ksz8893m_reg_read(slave, KSZ_REG_CHID) == 0x88);
+				int ret = phy_is_ksz ? ksz8893m_reset(slave) : 0;
+				switch_is_alive = (ret == 0);
 				spi_release_bus(slave);
 			}
 			spi_free_slave(slave);
 		}
 	}
 
-	if (switch_is_alive)
-		return bfin_EMAC_initialize(bis);
-	else
-		return -1;
+	return switch_is_alive;
+}
+
+int board_eth_init(bd_t *bis)
+{
+	if (KSZ_POSSIBLE) {
+		if (!board_ksz_init())
+			return 0;
+	}
+	return bfin_EMAC_initialize(bis);
 }
 #endif
 
@@ -138,23 +151,22 @@ int misc_init_r(void)
 		board_init_enetaddr(enetaddr);
 #endif
 
+#ifndef CONFIG_SYS_NO_FLASH
+	/* we use the last sector for the MAC address / POST LDR */
+	extern flash_info_t flash_info[];
+	flash_protect(FLAG_PROTECT_SET, 0x203F0000, 0x203FFFFF, &flash_info[0]);
+#endif
+
 	return 0;
 }
 
 int board_early_init_f(void)
 {
-#if !defined(CONFIG_SYS_NO_FLASH)
-	/* setup BF518-EZBRD GPIO pin PG11 to AMS2. */
-	bfin_write_PORTG_MUX((bfin_read_PORTG_MUX() & ~PORT_x_MUX_6_MASK) | PORT_x_MUX_6_FUNC_2);
-	bfin_write_PORTG_FER(bfin_read_PORTG_FER() | PG11);
-
-# if !defined(CONFIG_BFIN_SPI)
-	/* setup BF518-EZBRD GPIO pin PG15 to AMS3. */
-	bfin_write_PORTG_MUX((bfin_read_PORTG_MUX() & ~PORT_x_MUX_7_MASK) | PORT_x_MUX_7_FUNC_3);
-	bfin_write_PORTG_FER(bfin_read_PORTG_FER() | PG15);
-# endif
-#endif
-	return 0;
+	/* connect async banks by default */
+	const unsigned short pins[] = {
+		P_AMS2, P_AMS3, 0,
+	};
+	return peripheral_request_list(pins, "async");
 }
 
 #ifdef CONFIG_BFIN_SDH

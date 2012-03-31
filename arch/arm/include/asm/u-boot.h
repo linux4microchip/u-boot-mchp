@@ -39,7 +39,6 @@
 typedef struct bd_info {
     int			bi_baudrate;	/* serial console baudrate */
     unsigned long	bi_ip_addr;	/* IP Address */
-    struct environment_s	       *bi_env;
     ulong	        bi_arch_number;	/* unique id for this board */
     ulong	        bi_boot_params;	/* where this board expects params */
     struct				/* RAM configuration */
@@ -49,7 +48,7 @@ typedef struct bd_info {
     }			bi_dram[CONFIG_NR_DRAM_BANKS];
 } bd_t;
 
-#define bi_env_data bi_env->data
-#define bi_env_crc  bi_env->crc
+/* For image.h:image_check_target_arch() */
+#define IH_ARCH_DEFAULT IH_ARCH_ARM
 
 #endif	/* _U_BOOT_H_ */

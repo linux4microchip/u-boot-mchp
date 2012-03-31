@@ -91,7 +91,7 @@
 		"bootm ${kernel_addr} ${ramdisk_addr}\0"		\
 	"net_nfs=tftp 40000000 ${bootfile};run nfsargs addip;bootm\0"	\
 	"scratch=40200000\0"					\
-	"getkernel=tftpboot \$\(scratch\)\ \$\(bootfile\)\0" \
+	"getkernel=tftpboot $(scratch) $(bootfile)\0" \
 	"bootargs=console=ttyS0,38400 root=/dev/nfs rw nfsroot=192.168.0.20:/export/rootfs ip=192.168.0.206:192.168.0.20:192.168.0.1:255.255.255.0:grxc3s1500_daniel:eth0\0" \
 	""
 
@@ -99,9 +99,9 @@
 #define CONFIG_GATEWAYIP 192.168.0.1
 #define CONFIG_SERVERIP 192.168.0.20
 #define CONFIG_IPADDR 192.168.0.206
-#define CONFIG_ROOTPATH /export/rootfs
+#define CONFIG_ROOTPATH "/export/rootfs"
 #define CONFIG_HOSTNAME  grxc3s1500
-#define CONFIG_BOOTFILE  /uImage
+#define CONFIG_BOOTFILE "/uImage"
 
 #define CONFIG_BOOTCOMMAND	"run flash_self"
 
@@ -206,16 +206,15 @@
 #define CONFIG_SYS_RAM_SIZE CONFIG_SYS_SDRAM_SIZE
 #define CONFIG_SYS_RAM_END CONFIG_SYS_SDRAM_END
 
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_RAM_END - GENERATED_GBL_DATA_SIZE)
 
-#define CONFIG_SYS_PROM_SIZE		(8192-CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_PROM_SIZE		(8192-GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_PROM_OFFSET		(CONFIG_SYS_GBL_DATA_OFFSET-CONFIG_SYS_PROM_SIZE)
 
 #define CONFIG_SYS_INIT_SP_OFFSET	(CONFIG_SYS_PROM_OFFSET-32)
 #define CONFIG_SYS_STACK_SIZE		(0x10000-32)
 
-#define CONFIG_SYS_MONITOR_BASE    TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE    CONFIG_SYS_TEXT_BASE
 #if (CONFIG_SYS_MONITOR_BASE < CONFIG_SYS_FLASH_BASE)
 #   define CONFIG_SYS_RAMBOOT		1
 #endif
@@ -232,13 +231,12 @@
 #define CONFIG_SYS_RELOC_MONITOR_BASE     (CONFIG_SYS_RELOC_MONITOR_MAX_END-CONFIG_SYS_MONITOR_LEN)
 
 /* make un relocated address from relocated address */
-#define UN_RELOC(address) (address-(CONFIG_SYS_RELOC_MONITOR_BASE-TEXT_BASE))
+#define UN_RELOC(address) (address-(CONFIG_SYS_RELOC_MONITOR_BASE-CONFIG_SYS_TEXT_BASE))
 
 /*
  * Ethernet configuration
  */
 #define CONFIG_GRETH	1
-#define CONFIG_NET_MULTI	1
 
 /* Default GRETH Ethernet HARDWARE address */
 #define GRETH_HWADDR_0 0x00

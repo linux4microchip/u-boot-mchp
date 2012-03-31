@@ -98,12 +98,6 @@ ulong get_timer (ulong base)
 	return (timestamp - base);
 }
 
-void set_timer (ulong t)
-{
-	timestamp = t;
-}
-
-
 /* The board must handle this interrupt if a timer is not
  * provided.
  */
@@ -239,7 +233,7 @@ int interrupt_init (void)
 
 /*************************************************************************/
 #if defined(CONFIG_CMD_IRQ)
-int do_irqinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_irqinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	int i;
 	struct irq_action *act = vecs;

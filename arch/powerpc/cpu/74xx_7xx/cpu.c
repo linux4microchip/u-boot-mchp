@@ -49,11 +49,6 @@
 #include <fdt_support.h>
 #endif
 
-#ifdef CONFIG_AMIGAONEG3SE
-#include "../board/MAI/AmigaOneG3SE/via686.h"
-#include "../board/MAI/AmigaOneG3SE/memio.h"
-#endif
-
 DECLARE_GLOBAL_DATA_PTR;
 
 cpu_t
@@ -239,8 +234,7 @@ soft_restart(unsigned long addr)
     !defined(CONFIG_ELPPC)   && \
     !defined(CONFIG_PPMC7XX)
 /* no generic way to do board reset. simply call soft_reset. */
-void
-do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	ulong addr;
 	/* flush and disable I/D cache */
@@ -268,7 +262,12 @@ do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	addr = CONFIG_SYS_MONITOR_BASE - sizeof (ulong);
 #endif
 	soft_restart(addr);
-	while(1);	/* not reached */
+
+	/* not reached */
+	while(1)
+		;
+
+	return 1;
 }
 #endif
 
@@ -277,19 +276,17 @@ do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 /*
  * For the 7400 the TB clock runs at 1/4 the cpu bus speed.
  */
-#if defined(CONFIG_AMIGAONEG3SE) || defined(CONFIG_SYS_CONFIG_BUS_CLK)
+#ifndef CONFIG_SYS_BUS_CLK
+#define	CONFIG_SYS_BUS_CLK gd->bus_clk
+#endif
+
 unsigned long get_tbclk(void)
 {
-	return (gd->bus_clk / 4);
+	return CONFIG_SYS_BUS_CLK / 4;
 }
-#else	/* ! CONFIG_AMIGAONEG3SE and !CONFIG_SYS_CONFIG_BUS_CLK*/
 
-unsigned long get_tbclk (void)
-{
-	return CONFIG_SYS_BUS_HZ / 4;
-}
-#endif	/* CONFIG_AMIGAONEG3SE or CONFIG_SYS_CONFIG_BUS_CLK*/
 /* ------------------------------------------------------------------------- */
+
 #if defined(CONFIG_WATCHDOG)
 #if !defined(CONFIG_PCIPPC2) && !defined(CONFIG_BAB7xx)
 void

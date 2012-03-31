@@ -54,14 +54,12 @@
  * Size of malloc() pool
  */
 #define CONFIG_SYS_MALLOC_LEN	(CONFIG_ENV_SIZE + 128*1024)
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
 
 /*
  * Hardware drivers
  */
 /*
 */
-#define CONFIG_NET_MULTI
 #define CONFIG_LAN91C96
 #define CONFIG_LAN91C96_BASE 0x04800300
 #define CONFIG_LAN91C96_EXT_PHY
@@ -169,6 +167,8 @@
 
 #define CONFIG_SYS_MONITOR_BASE       CONFIG_SYS_FLASH_BASE  /* Monitor at beginning of flash */
 
+#define PHYS_SRAM		0x20000000
+
 /*-----------------------------------------------------------------------
  * FLASH driver setup
  */
@@ -199,5 +199,8 @@
 
 #define CONFIG_ENV_SIZE	0x20000	/* Total Size of Environment Sector */
 #define CONFIG_ENV_OFFSET	0x20000	/* environment starts here  */
+
+#define CONFIG_SYS_SDRAM_BASE	PHYS_SDRAM_1
+#define CONFIG_SYS_INIT_SP_ADDR PHYS_SRAM
 
 #endif							/* __CONFIG_H */

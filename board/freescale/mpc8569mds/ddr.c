@@ -7,37 +7,9 @@
  */
 
 #include <common.h>
-#include <i2c.h>
 
 #include <asm/fsl_ddr_sdram.h>
 #include <asm/fsl_ddr_dimm_params.h>
-
-static void
-get_spd(ddr3_spd_eeprom_t *spd, unsigned char i2c_address)
-{
-	i2c_read(i2c_address, 0, 1, (uchar *)spd, sizeof(ddr3_spd_eeprom_t));
-}
-
-
-unsigned int fsl_ddr_get_mem_data_rate(void)
-{
-	return get_ddr_freq(0);
-}
-
-void fsl_ddr_get_spd(ddr3_spd_eeprom_t *ctrl_dimms_spd,
-		      unsigned int ctrl_num)
-{
-	unsigned int i;
-	unsigned int i2c_address = 0;
-
-	for (i = 0; i < CONFIG_DIMM_SLOTS_PER_CTLR; i++) {
-		if (ctrl_num == 0 && i == 0)
-			i2c_address = SPD_EEPROM_ADDRESS1;
-		if (ctrl_num == 0 && i == 1)
-			i2c_address = SPD_EEPROM_ADDRESS2;
-		get_spd(&(ctrl_dimms_spd[i]), i2c_address);
-	}
-}
 
 void fsl_ddr_board_options(memctl_options_t *popts,
 				dimm_params_t *pdimm,
@@ -77,8 +49,18 @@ void fsl_ddr_board_options(memctl_options_t *popts,
 	popts->write_data_delay = 2;
 
 	/*
-	 * Factors to consider for half-strength driver enable:
-	 *	- number of DIMMs installed
+	 * Enable half drive strength
 	 */
-	popts->half_strength_driver_enable = 0;
+	popts->half_strength_driver_enable = 1;
+
+	/* Write leveling override */
+	popts->wrlvl_en = 1;
+	popts->wrlvl_override = 1;
+	popts->wrlvl_sample = 0xa;
+	popts->wrlvl_start = 0x4;
+
+	/* Rtt and Rtt_W override */
+	popts->rtt_override = 1;
+	popts->rtt_override_value = DDR3_RTT_60_OHM;
+	popts->rtt_wr_override_value = 0; /* Rtt_WR= dynamic ODT off */
 }

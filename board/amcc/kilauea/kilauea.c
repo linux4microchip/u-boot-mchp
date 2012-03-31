@@ -22,8 +22,8 @@
  */
 
 #include <common.h>
-#include <ppc4xx.h>
-#include <ppc405.h>
+#include <asm/ppc4xx.h>
+#include <asm/ppc405.h>
 #include <libfdt.h>
 #include <fdt_support.h>
 #include <asm/processor.h>
@@ -307,16 +307,17 @@ int board_pcie_last(void)
 
 int checkboard (void)
 {
-	char *s = getenv("serial#");
+	char buf[64];
+	int i = getenv_f("serial#", buf, sizeof(buf));
 
 	if (is_405exr())
 		printf("Board: Haleakala - AMCC PPC405EXr Evaluation Board");
 	else
 		printf("Board: Kilauea - AMCC PPC405EX Evaluation Board");
 
-	if (s != NULL) {
+	if (i > 0) {
 		puts(", serial# ");
-		puts(s);
+		puts(buf);
 	}
 	printf(" (CPLD rev. %ld)\n", gd->board_type);
 

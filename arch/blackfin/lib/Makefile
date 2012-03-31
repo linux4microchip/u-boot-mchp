@@ -29,7 +29,7 @@ include $(TOPDIR)/config.mk
 
 CFLAGS += -DBFIN_BOARD_NAME='"$(BOARD)"'
 
-LIB	= $(obj)lib$(ARCH).a
+LIB	= $(obj)lib$(ARCH).o
 
 SOBJS-y	+= ins.o
 SOBJS-y	+= memcmp.o
@@ -46,14 +46,14 @@ COBJS-y	+= clocks.o
 COBJS-$(CONFIG_CMD_CACHE_DUMP) += cmd_cache_dump.o
 COBJS-$(CONFIG_CMD_KGDB) += kgdb.o
 COBJS-y	+= muldi3.o
-COBJS-$(CONFIG_POST) += post.o tests.o
+COBJS-$(CONFIG_HAS_POST) += post.o
 COBJS-y	+= string.o
 
 SRCS	:= $(SOBJS-y:.o=.S) $(COBJS-y:.o=.c)
 OBJS	:= $(addprefix $(obj),$(SOBJS-y) $(COBJS-y))
 
 $(LIB):	$(obj).depend $(OBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS)
+	$(call cmd_link_o_target, $(OBJS))
 
 #########################################################################
 

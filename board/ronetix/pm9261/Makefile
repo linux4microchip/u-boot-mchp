@@ -3,7 +3,7 @@
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
 # (C) Copyright 2008
-# Stelian Pop <stelian.pop@leadtechdesign.com>
+# Stelian Pop <stelian@popies.net>
 # Lead Tech Design <www.leadtechdesign.com>
 # Ilko Iliev <www.ronetix.at>
 #
@@ -28,7 +28,7 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)lib$(BOARD).a
+LIB	= $(obj)lib$(BOARD).o
 
 COBJS-y += $(BOARD).o
 COBJS-y += led.o
@@ -39,13 +39,7 @@ OBJS	:= $(addprefix $(obj),$(COBJS-y) $(SOBJS-y))
 SOBJS	:= $(addprefix $(obj),$(SOBJS-y))
 
 $(LIB):	$(obj).depend $(OBJS) $(SOBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS)
-
-clean:
-	rm -f $(SOBJS) $(OBJS)
-
-distclean:	clean
-	rm -f $(LIB) core *.bak $(obj).depend
+	$(call cmd_link_o_target, $(OBJS))
 
 #########################################################################
 

@@ -38,13 +38,11 @@
 #undef DEBUG
 
 #include <common.h>
-#include <ppc4xx.h>
+#include <asm/ppc4xx.h>
 #include <asm/io.h>
 #include <asm/processor.h>
 
 #include "ecc.h"
-
-#if defined(CONFIG_PPC4xx_DDR_AUTOCALIBRATION)
 
 /*
  * Only compile the DDR auto-calibration code for NOR boot and
@@ -81,11 +79,6 @@ struct ddrautocal {
 	u32 rqfd_size;
 	u32 rdcc;
 	u32 flags;
-};
-
-struct sdram_timing {
-	u32 wrdtr;
-	u32 clktr;
 };
 
 struct sdram_timing_clks {
@@ -145,11 +138,12 @@ void
 spd_ddr_init_hang(void) __attribute__((weak, alias("__spd_ddr_init_hang")));
 #endif /* defined(CONFIG_SPD_EEPROM) */
 
-ulong __ddr_scan_option(ulong default_val)
+struct sdram_timing *__ddr_scan_option(struct sdram_timing *default_val)
 {
 	return default_val;
 }
-ulong ddr_scan_option(ulong) __attribute__((weak, alias("__ddr_scan_option")));
+struct sdram_timing *ddr_scan_option(struct sdram_timing *)
+	__attribute__((weak, alias("__ddr_scan_option")));
 
 u32 __ddr_rdss_opt(u32 default_val)
 {
@@ -160,18 +154,20 @@ u32 ddr_rdss_opt(ulong) __attribute__((weak, alias("__ddr_rdss_opt")));
 
 static u32 *get_membase(int bxcr_num)
 {
-	ulong bxcf;
 	u32 *membase;
 
 #if defined(SDRAM_R0BAS)
 	/* BAS from Memory Queue rank reg. */
 	membase =
 	    (u32 *)(SDRAM_RXBAS_SDBA_DECODE(mfdcr_any(SDRAM_R0BAS+bxcr_num)));
-	bxcf = 0;	/* just to satisfy the compiler */
 #else
-	/* BAS from SDRAM_MBxCF mem rank reg. */
-	mfsdram(SDRAM_MB0CF + (bxcr_num<<2), bxcf);
-	membase = (u32 *)((bxcf & 0xfff80000) << 3);
+	{
+		ulong bxcf;
+
+		/* BAS from SDRAM_MBxCF mem rank reg. */
+		mfsdram(SDRAM_MB0CF + (bxcr_num<<2), bxcf);
+		membase = (u32 *)((bxcf & 0xfff80000) << 3);
+	}
 #endif
 
 	return membase;
@@ -725,7 +721,9 @@ static u32 program_DQS_calibration_methodB(struct ddrautocal *ddrcal)
 static u32 DQS_calibration_methodB(struct ddrautocal *cal)
 {
 	ulong rfdc_reg;
+#ifndef CONFIG_DDR_RFDC_FIXED
 	ulong rffd;
+#endif
 
 	ulong rqdc_reg;
 	ulong rqfd;
@@ -771,6 +769,13 @@ static u32 DQS_calibration_methodB(struct ddrautocal *cal)
 
 	debug("\n\n");
 
+#if defined(CONFIG_DDR_RFDC_FIXED)
+	mtsdram(SDRAM_RFDC, CONFIG_DDR_RFDC_FIXED);
+	size = 512;
+	rffd_average = CONFIG_DDR_RFDC_FIXED & SDRAM_RFDC_RFFD_MASK;
+	mfsdram(SDRAM_RDCC, rdcc);	/* record this value */
+	cal->rdcc = rdcc;
+#else /* CONFIG_DDR_RFDC_FIXED */
 	in_window = 0;
 	rdcc = 0;
 
@@ -834,8 +839,8 @@ static u32 DQS_calibration_methodB(struct ddrautocal *cal)
 		rffd_average = SDRAM_RFDC_RFFD_MAX;
 
 	mtsdram(SDRAM_RFDC, rfdc_reg | SDRAM_RFDC_RFFD_ENCODE(rffd_average));
+#endif /* CONFIG_DDR_RFDC_FIXED */
 
-	rffd = rffd_average;
 	in_window = 0;
 
 	curr_win_min = curr_win_max = 0;
@@ -905,8 +910,8 @@ static u32 DQS_calibration_methodB(struct ddrautocal *cal)
 	mtsdram(SDRAM_RQDC, rqdc_reg);
 	mtsdram(SDRAM_RFDC, rfdc_reg);
 
-	debug("RQDC: 0x%08X\n", rqdc_reg);
-	debug("RFDC: 0x%08X\n", rfdc_reg);
+	debug("RQDC: 0x%08lX\n", rqdc_reg);
+	debug("RFDC: 0x%08lX\n", rfdc_reg);
 
 	/* if something passed, then return the size of the largest window */
 	if (passed != 0) {
@@ -931,7 +936,7 @@ static u32 DQS_calibration_methodB(struct ddrautocal *cal)
  * known working {SDRAM_WRDTR.[WDTR], SDRAM_CLKTR.[CKTR]} value
  * pairs via a board defined ddr_scan_option() function.
  */
-struct sdram_timing full_scan_options[] = {
+static struct sdram_timing full_scan_options[] = {
 	{0, 0}, {0, 1}, {0, 2}, {0, 3},
 	{1, 0}, {1, 1}, {1, 2}, {1, 3},
 	{2, 0}, {2, 1}, {2, 2}, {2, 3},
@@ -970,10 +975,7 @@ u32 DQS_autocalibration(void)
 
 	memset(&tcal, 0, sizeof(tcal));
 
-	ddr_scan_option((ulong)full_scan_options);
-
-	scan_list =
-	      (struct sdram_timing *)ddr_scan_option((ulong)full_scan_options);
+	scan_list = ddr_scan_option(full_scan_options);
 
 	mfsdram(SDRAM_MCOPT1, val);
 	if ((val & SDRAM_MCOPT1_MCHK_CHK_REP) == SDRAM_MCOPT1_MCHK_CHK_REP)
@@ -984,7 +986,7 @@ u32 DQS_autocalibration(void)
 	puts(str);
 
 #if defined(DEBUG_PPC4xx_DDR_AUTOCALIBRATION)
-	i = getenv_r("autocalib", tmp, sizeof(tmp));
+	i = getenv_f("autocalib", tmp, sizeof(tmp));
 	if (i < 0)
 		strcpy(tmp, CONFIG_AUTOCALIB);
 
@@ -1215,16 +1217,20 @@ u32 DQS_autocalibration(void)
 				SDRAM_RQDC_RQFD_ENCODE(tcal.autocal.rqfd));
 
 		mfsdram(SDRAM_RQDC, rqdc_reg);
-		debug("*** best_result: read value SDRAM_RQDC 0x%08x\n",
+		debug("*** best_result: read value SDRAM_RQDC 0x%08lx\n",
 				rqdc_reg);
 
+#if defined(CONFIG_DDR_RFDC_FIXED)
+		mtsdram(SDRAM_RFDC, CONFIG_DDR_RFDC_FIXED);
+#else /* CONFIG_DDR_RFDC_FIXED */
 		mfsdram(SDRAM_RFDC, rfdc_reg);
 		rfdc_reg &= ~(SDRAM_RFDC_RFFD_MASK);
 		mtsdram(SDRAM_RFDC, rfdc_reg |
 				SDRAM_RFDC_RFFD_ENCODE(tcal.autocal.rffd));
+#endif /* CONFIG_DDR_RFDC_FIXED */
 
 		mfsdram(SDRAM_RFDC, rfdc_reg);
-		debug("*** best_result: read value SDRAM_RFDC 0x%08x\n",
+		debug("*** best_result: read value SDRAM_RFDC 0x%08lx\n",
 				rfdc_reg);
 		mfsdram(SDRAM_RDCC, val);
 		debug("***  SDRAM_RDCC 0x%08x\n", val);
@@ -1248,4 +1254,3 @@ u32 DQS_autocalibration(void)
 	return 0;
 }
 #endif /* !defined(CONFIG_NAND_U_BOOT) && !defined(CONFIG_NAND_SPL) */
-#endif /* defined(CONFIG_PPC4xx_DDR_AUTOCALIBRATION) */

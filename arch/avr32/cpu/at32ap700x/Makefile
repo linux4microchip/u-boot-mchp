@@ -22,16 +22,16 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	:= $(obj)lib$(SOC).a
+LIB	:= $(obj)lib$(SOC).o
 
-COBJS	:= portmux.o clk.o
+COBJS	:= portmux.o clk.o mmu.o
 SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS))
 
 all: $(obj).depend $(LIB)
 
 $(LIB): $(OBJS)
-	$(AR) $(ARFLAGS) $@ $^
+	$(call cmd_link_o_target, $^)
 
 #########################################################################
 

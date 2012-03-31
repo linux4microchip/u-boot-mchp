@@ -28,18 +28,17 @@
 
 #include <post.h>
 
-#if CONFIG_POST & CONFIG_SYS_POST_FPU
-
 GNU_FPOST_ATTR
+
+#if CONFIG_POST & CONFIG_SYS_POST_FPU
 
 int fpu_post_test_math1 (void)
 {
-	volatile double a, *p;
+	volatile double a;
 	double c, d;
 	volatile double b;
 
 	d = 1.0;
-	p = &b;
 
 	do
 	{

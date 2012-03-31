@@ -27,7 +27,7 @@ ifneq ($(OBJTREE),$(SRCTREE))
 $(shell mkdir -p $(obj)board/$(VENDOR)/common)
 endif
 
-LIB	= $(obj)lib$(VENDOR).a
+LIB	= $(obj)lib$(VENDOR).o
 
 COBJS	:= spr_misc.o
 SOBJS	:= spr_lowlevel_init.o
@@ -37,13 +37,7 @@ OBJS	:= $(addprefix $(obj),$(COBJS))
 SOBJS	:= $(addprefix $(obj),$(SOBJS))
 
 $(LIB):	$(obj).depend $(OBJS) $(SOBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS) $(SOBJS)
-
-clean:
-	rm -f $(SOBJS) $(OBJS)
-
-distclean:	clean
-	rm -f $(LIB) core *.bak $(obj).depend
+	$(call cmd_link_o_target, $(OBJS) $(SOBJS))
 
 #########################################################################
 # This is for $(obj).depend target

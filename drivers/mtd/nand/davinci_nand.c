@@ -176,12 +176,22 @@ static void nand_davinci_hwcontrol(struct mtd_info *mtd, int cmd,
 
 #ifdef CONFIG_SYS_NAND_HW_ECC
 
+static u_int32_t nand_davinci_readecc(struct mtd_info *mtd)
+{
+	u_int32_t	ecc = 0;
+
+	ecc = __raw_readl(&(davinci_emif_regs->nandfecc[
+				CONFIG_SYS_NAND_CS - 2]));
+
+	return ecc;
+}
+
 static void nand_davinci_enable_hwecc(struct mtd_info *mtd, int mode)
 {
 	u_int32_t	val;
 
-	(void)__raw_readl(&(davinci_emif_regs->nandfecc[
-				CONFIG_SYS_NAND_CS - 2]));
+	/* reading the ECC result register resets the ECC calculation */
+	nand_davinci_readecc(mtd);
 
 	val = __raw_readl(&davinci_emif_regs->nandfcr);
 	val |= DAVINCI_NANDFCR_NAND_ENABLE(CONFIG_SYS_NAND_CS);
@@ -189,22 +199,12 @@ static void nand_davinci_enable_hwecc(struct mtd_info *mtd, int mode)
 	__raw_writel(val, &davinci_emif_regs->nandfcr);
 }
 
-static u_int32_t nand_davinci_readecc(struct mtd_info *mtd, u_int32_t region)
-{
-	u_int32_t	ecc = 0;
-
-	ecc = __raw_readl(&(davinci_emif_regs->nandfecc[region - 1]));
-
-	return ecc;
-}
-
 static int nand_davinci_calculate_ecc(struct mtd_info *mtd, const u_char *dat,
 		u_char *ecc_code)
 {
 	u_int32_t		tmp;
-	const int region = 1;
 
-	tmp = nand_davinci_readecc(mtd, region);
+	tmp = nand_davinci_readecc(mtd);
 
 	/* Squeeze 4 bytes ECC into 3 bytes by removing RESERVED bits
 	 * and shifting. RESERVED bits are 31 to 28 and 15 to 12. */
@@ -481,10 +481,24 @@ static int nand_davinci_4bit_correct_data(struct mtd_info *mtd, uint8_t *dat,
 	 * Set the addr_calc_st bit(bit no 13) in the NAND Flash Control
 	 * register to 1.
 	 */
-	__raw_writel(1 << 13, &davinci_emif_regs->nandfcr);
+	__raw_writel(DAVINCI_NANDFCR_4BIT_CALC_START,
+			&davinci_emif_regs->nandfcr);
 
 	/*
-	 * Wait for the corr_state field (bits 8 to 11)in the
+	 * Wait for the corr_state field (bits 8 to 11) in the
+	 * NAND Flash Status register to be not equal to 0x0, 0x1, 0x2, or 0x3.
+	 * Otherwise ECC calculation has not even begun and the next loop might
+	 * fail because of a false positive!
+	 */
+	i = NAND_TIMEOUT;
+	do {
+		val = __raw_readl(&davinci_emif_regs->nandfsr);
+		val &= 0xc00;
+		i--;
+	} while ((i > 0) && !val);
+
+	/*
+	 * Wait for the corr_state field (bits 8 to 11) in the
 	 * NAND Flash Status register to be equal to 0x0, 0x1, 0x2, or 0x3.
 	 */
 	i = NAND_TIMEOUT;

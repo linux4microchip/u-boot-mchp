@@ -284,7 +284,7 @@ static void set_px_go_with_watchdog(void)
  *
  */
 static int pixis_disable_watchdog_cmd(cmd_tbl_t *cmdtp, int flag, int argc,
-				      char *argv[])
+				      char * const argv[])
 {
 	/* Disable the VELA sequencer and the watchdog */
 	clrbits_8(pixis_base + PIXIS_VCTL, 9);
@@ -302,7 +302,7 @@ U_BOOT_CMD(
 
 /* Enable or disable SGMII mode for a TSEC
  */
-static int pixis_set_sgmii(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+static int pixis_set_sgmii(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	int which_tsec = -1;
 	unsigned char mask;
@@ -380,7 +380,7 @@ static unsigned long strfractoint(char *strptr)
 {
 	int i, j;
 	int mulconst;
-	int intarr_len, no_dec = 0;
+	int no_dec = 0;
 	unsigned long intval = 0, decval = 0;
 	char intarr[3], decarr[3];
 
@@ -399,8 +399,6 @@ static unsigned long strfractoint(char *strptr)
 		i++;
 	}
 
-	/* Assign length of integer part to intarr_len. */
-	intarr_len = i;
 	intarr[i] = '\0';
 
 	if (no_dec) {
@@ -430,7 +428,7 @@ static unsigned long strfractoint(char *strptr)
 	return intval + decval;
 }
 
-static int pixis_reset_cmd(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+static int pixis_reset_cmd(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	unsigned int i;
 	char *p_cf = NULL;

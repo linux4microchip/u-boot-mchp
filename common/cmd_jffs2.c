@@ -281,7 +281,7 @@ static inline u32 get_part_sector_size_nor(struct mtdids *id, struct part_info *
 	flash = &flash_info[id->num];
 
 	start_phys = flash->start[0] + part->offset;
-	end_phys = start_phys + part->size;
+	end_phys = start_phys + part->size - 1;
 
 	for (i = 0; i < flash->sector_count; i++) {
 		if (flash->start[i] >= end_phys)
@@ -485,7 +485,7 @@ static struct part_info* jffs2_part_info(struct mtd_device *dev, unsigned int pa
  * @param argv arguments list
  * @return 0 on success, 1 otherwise
  */
-int do_jffs2_fsload(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_jffs2_fsload(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	char *fsname;
 	char *filename;
@@ -549,7 +549,7 @@ int do_jffs2_fsload(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
  * @param argv arguments list
  * @return 0 on success, 1 otherwise
  */
-int do_jffs2_ls(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_jffs2_ls(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	char *filename = "/";
 	int ret;
@@ -587,7 +587,7 @@ int do_jffs2_ls(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
  * @param argv arguments list
  * @return 0 on success, 1 otherwise
  */
-int do_jffs2_fsinfo(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_jffs2_fsinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	struct part_info *part;
 	char *fsname;

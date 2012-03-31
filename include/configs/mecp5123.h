@@ -48,6 +48,8 @@
 #define CONFIG_E300		1	/* E300 Family */
 #define CONFIG_MPC512X		1	/* MPC512X family */
 
+#define	CONFIG_SYS_TEXT_BASE	0xFFF00000
+
 #define CONFIG_SYS_MPC512X_CLKIN	33333333	/* in Hz */
 
 #define CONFIG_BOARD_EARLY_INIT_F		/* call board_early_init_f() */
@@ -204,13 +206,12 @@
 
 /* Use SRAM for initial stack */
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_SRAM_BASE /* Init RAM addr */
-#define CONFIG_SYS_INIT_RAM_END		CONFIG_SYS_SRAM_SIZE
+#define CONFIG_SYS_INIT_RAM_SIZE		CONFIG_SYS_SRAM_SIZE
 
-#define CONFIG_SYS_GBL_DATA_SIZE	0x100		/* num bytes initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
-#define CONFIG_SYS_MONITOR_BASE		TEXT_BASE	/* Start of monitor */
+#define CONFIG_SYS_MONITOR_BASE		CONFIG_SYS_TEXT_BASE	/* Start of monitor */
 #define CONFIG_SYS_MONITOR_LEN		(256 * 1024)	/* Monitor length */
 #define CONFIG_SYS_MALLOC_LEN		(6 * 1024 * 1024) /* Malloc size */
 
@@ -218,7 +219,6 @@
  * Serial Port
  */
 #define CONFIG_CONS_INDEX     1
-#undef CONFIG_SERIAL_SOFTWARE_FIFO
 
 /*
  * Serial console configuration
@@ -268,7 +268,6 @@
  * Ethernet configuration
  */
 #define CONFIG_MPC512x_FEC	1
-#define CONFIG_NET_MULTI
 #define CONFIG_PHY_ADDR		0x1
 #define CONFIG_MII		1	/* MII PHY management		*/
 #define CONFIG_FEC_AN_TIMEOUT	1
@@ -344,10 +343,10 @@
 
 /*
  * For booting Linux, the board info and command line data
- * have to be in the first 8 MB of memory, since this is
+ * have to be in the first 256 MB of memory, since this is
  * the maximum mapped by the Linux kernel during initialization.
  */
-#define CONFIG_SYS_BOOTMAPSZ	(8 << 20)	/* Linux initial memory map */
+#define CONFIG_SYS_BOOTMAPSZ	(256 << 20)	/* Linux initial memory map */
 
 /* Cache Configuration */
 #define CONFIG_SYS_DCACHE_SIZE		32768
@@ -362,14 +361,6 @@
 
 #define CONFIG_HIGH_BATS	1	/* High BATs supported */
 
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH */
-#define BOOTFLAG_WARM		0x02	/* Software reboot */
-
 #ifdef CONFIG_CMD_KGDB
 #define CONFIG_KGDB_BAUDRATE	230400	/* speed of kgdb serial port */
 #define CONFIG_KGDB_SER_INDEX	2	/* which serial port to use */
@@ -381,8 +372,8 @@
 #define CONFIG_TIMESTAMP
 
 #define CONFIG_HOSTNAME		mecp512x
-#define CONFIG_BOOTFILE		/tftpboot/mecp512x/uImage
-#define CONFIG_ROOTPATH		/tftpboot/mecp512x/target_root
+#define CONFIG_BOOTFILE		"/tftpboot/mecp512x/uImage"
+#define CONFIG_ROOTPATH		"/tftpboot/mecp512x/target_root"
 
 #define CONFIG_LOADADDR		400000	/* def. location for tftp and bootm */
 

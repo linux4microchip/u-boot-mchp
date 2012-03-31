@@ -42,7 +42,6 @@
 #define CONFIG_SYS_EEPROM_PAGE_WRITE_DELAY_MS	20
 /* Memory Info */
 #define CONFIG_SYS_MALLOC_LEN		(0x10000 + 256*1024)	/* malloc() len */
-#define CONFIG_SYS_GBL_DATA_SIZE	128		/* reserved for initial data */
 #define CONFIG_SYS_MEMTEST_START	0x80000000	/* memtest start address */
 #define CONFIG_SYS_MEMTEST_END		0x81000000	/* 16MB RAM test */
 #define CONFIG_NR_DRAM_BANKS	1		/* we have 1 bank of DRAM */
@@ -73,7 +72,6 @@
 #define CONFIG_BOOTP_SEND_HOSTNAME
 #define CONFIG_NET_RETRY_COUNT	10
 #define CONFIG_OVERWRITE_ETHADDR_ONCE
-#define CONFIG_NET_MULTI
 /* Flash & Environment */
 #undef CONFIG_ENV_IS_IN_FLASH
 #define CONFIG_SYS_NO_FLASH
@@ -83,7 +81,6 @@
 #define CONFIG_ENV_SECT_SIZE	2048	/* Env sector Size */
 #define CONFIG_ENV_SIZE		(128 << 10)	/* 128 KiB */
 #define CONFIG_SKIP_LOWLEVEL_INIT	/* U-Boot is loaded by a bootloader */
-#define CONFIG_SKIP_RELOCATE_UBOOT	/* to a proper address, init done */
 #define CONFIG_SYS_NAND_BASE		0x02000000
 #define CONFIG_SYS_NAND_HW_ECC
 #define CONFIG_SYS_MAX_NAND_DEVICE	1	/* Max number of NAND devices */
@@ -144,9 +141,13 @@
 #undef CONFIG_CMD_SETGETDCR
 #undef CONFIG_CMD_FLASH
 #undef CONFIG_CMD_IMLS
-/* KGDB support (if any) */
-#ifdef CONFIG_CMD_KGDB
-#define CONFIG_KGDB_BAUDRATE	115200	/* speed to run kgdb serial port */
-#define CONFIG_KGDB_SER_INDEX	1	/* which serial port to use */
-#endif
+
+#define CONFIG_MAX_RAM_BANK_SIZE	(256 << 20)	/* 256 MB */
+
+#define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
+#define CONFIG_SYS_INIT_RAM_SIZE	0x1000
+#define CONFIG_SYS_INIT_SP_ADDR		(CONFIG_SYS_SDRAM_BASE + \
+					 CONFIG_SYS_INIT_RAM_SIZE - \
+					 GENERATED_GBL_DATA_SIZE)
+
 #endif /* __CONFIG_H */

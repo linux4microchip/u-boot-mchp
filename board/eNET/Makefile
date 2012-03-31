@@ -6,7 +6,7 @@
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
 # (C) Copyright 2002
-# Daniel Engström, Omicron Ceti AB, daniel@omicron.se.
+# Daniel EngstrÃ¶m, Omicron Ceti AB, daniel@omicron.se.
 #
 # See file CREDITS for list of people who contributed to this
 # project.
@@ -29,7 +29,7 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)lib$(BOARD).a
+LIB	= $(obj)lib$(BOARD).o
 
 COBJS-y	+= eNET.o
 COBJS-$(CONFIG_PCI) += eNET_pci.o
@@ -40,13 +40,7 @@ SRCS	:= $(SOBJS-y:.o=.S) $(COBJS-y:.o=.c)
 OBJS	:= $(addprefix $(obj),$(SOBJS-y) $(COBJS-y))
 
 $(LIB):	$(obj).depend $(OBJS) $(SOBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS) $(SOBJS)
-
-clean:
-	rm -f $(SOBJS) $(OBJS)
-
-distclean:	clean
-	rm -f $(LIB) core *.bak $(obj).depend
+	$(call cmd_link_o_target, $(OBJS) $(SOBJS))
 
 #########################################################################
 

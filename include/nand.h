@@ -98,21 +98,30 @@ struct nand_read_options {
 typedef struct nand_read_options nand_read_options_t;
 
 struct nand_erase_options {
-	ulong length;		/* number of bytes to erase */
-	ulong offset;		/* first address in NAND to erase */
+	loff_t length;		/* number of bytes to erase */
+	loff_t offset;		/* first address in NAND to erase */
 	int quiet;		/* don't display progress messages */
 	int jffs2;		/* if true: format for jffs2 usage
 				 * (write appropriate cleanmarker blocks) */
 	int scrub;		/* if true, really clean NAND by erasing
 				 * bad blocks (UNSAFE) */
+
+	/* Don't include skipped bad blocks in size to be erased */
+	int spread;
 };
 
 typedef struct nand_erase_options nand_erase_options_t;
 
 int nand_read_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
 		       u_char *buffer);
+
+#define WITH_YAFFS_OOB	(1 << 0) /* whether write with yaffs format. This flag
+				  * is a 'mode' meaning it cannot be mixed with
+				  * other flags */
+#define WITH_DROP_FFS	(1 << 1) /* drop trailing all-0xff pages */
+
 int nand_write_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
-			u_char *buffer);
+			u_char *buffer, int flags);
 int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts);
 
 #define NAND_LOCK_STATUS_TIGHT	0x01
@@ -123,10 +132,22 @@ int nand_lock( nand_info_t *meminfo, int tight );
 int nand_unlock( nand_info_t *meminfo, ulong start, ulong length );
 int nand_get_lock_status(nand_info_t *meminfo, loff_t offset);
 
+int nand_spl_load_image(uint32_t offs, unsigned int size, void *dst);
+void nand_deselect(void);
+
 #ifdef CONFIG_SYS_NAND_SELECT_DEVICE
 void board_nand_select_device(struct nand_chip *nand, int chip);
 #endif
 
 __attribute__((noreturn)) void nand_boot(void);
 
+#endif
+
+#ifdef CONFIG_ENV_OFFSET_OOB
+#define ENV_OOB_MARKER 0x30425645 /*"EVB0" in little-endian -- offset is stored
+				    as block number*/
+#define ENV_OOB_MARKER_OLD 0x30564e45 /*"ENV0" in little-endian -- offset is
+					stored as byte number */
+#define ENV_OFFSET_SIZE 8
+int get_nand_env_oob(nand_info_t *nand, unsigned long *result);
 #endif

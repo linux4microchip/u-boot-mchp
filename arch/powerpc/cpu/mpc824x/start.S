@@ -37,9 +37,9 @@
  * board_init will change CS0 to be positioned at the correct
  * address and (s)dram will be positioned at address 0
  */
+#include <asm-offsets.h>
 #include <config.h>
 #include <mpc824x.h>
-#include <timestamp.h>
 #include <version.h>
 
 #define _LINUX_CONFIG_H 1	/* avoid reading Linux autoconf.h file	*/
@@ -49,10 +49,7 @@
 
 #include <asm/cache.h>
 #include <asm/mmu.h>
-
-#ifndef CONFIG_IDENT_STRING
-#define CONFIG_IDENT_STRING ""
-#endif
+#include <asm/u-boot.h>
 
 /* We don't want the MMU yet.
 */
@@ -75,7 +72,7 @@
 	GOT_ENTRY(transfer_to_handler)
 
 	GOT_ENTRY(__init_end)
-	GOT_ENTRY(_end)
+	GOT_ENTRY(__bss_end__)
 	GOT_ENTRY(__bss_start)
 #if defined(CONFIG_FADS)
 	GOT_ENTRY(environment)
@@ -90,26 +87,11 @@
 	.long	0x27051956		/* U-Boot Magic Number			*/
 	.globl	version_string
 version_string:
-	.ascii U_BOOT_VERSION
-	.ascii " (", U_BOOT_DATE, " - ", U_BOOT_TIME, ")"
-	.ascii CONFIG_IDENT_STRING, "\0"
+	.ascii U_BOOT_VERSION_STRING, "\0"
 
 	. = EXC_OFF_SYS_RESET
 	.globl	_start
 _start:
-	li	r21, BOOTFLAG_COLD	/* Normal Power-On: Boot from FLASH	*/
-	b	boot_cold
-
-	. = EXC_OFF_SYS_RESET + 0x10
-
-	.globl	_start_warm
-_start_warm:
-	li	r21, BOOTFLAG_WARM	/* Software reboot			*/
-	b	boot_warm
-
-boot_cold:
-boot_warm:
-
 	/* Initialize machine status; enable machine check interrupt		*/
 	/*----------------------------------------------------------------------*/
 	li	r3, MSR_KERNEL		/* Set FP, ME, RI flags */
@@ -198,9 +180,9 @@ in_flash:
 	/* r3: IMMR */
 	bl	cpu_init_f	/* run low-level CPU init code     (from Flash)	*/
 
-	mr	r3, r21
-	/* r3: BOOTFLAG */
 	bl	board_init_f	/* run 1st part of board init code (from Flash) */
+
+	/* NOTREACHED - board_init_f() does not return */
 
 
 	.globl	_start_of_vectors
@@ -595,17 +577,19 @@ in_ram:
 	beq	4f
 3:	lwzu	r4,4(r3)
 	lwzux	r0,r4,r11
+	cmpwi	r0,0
 	add	r0,r0,r11
-	stw	r10,0(r3)
+	stw	r4,0(r3)
+	beq-	5f
 	stw	r0,0(r4)
-	bdnz	3b
+5:	bdnz	3b
 4:
 clear_bss:
 	/*
 	 * Now clear BSS segment
 	 */
 	lwz	r3,GOT(__bss_start)
-	lwz	r4,GOT(_end)
+	lwz	r4,GOT(__bss_end__)
 
 	cmplw	0, r3, r4
 	beq	6f

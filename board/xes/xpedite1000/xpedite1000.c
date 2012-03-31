@@ -112,19 +112,20 @@ int board_early_init_f(void)
 
 int checkboard(void)
 {
-	char *s;
+	char buf[64];
+	int i;
 
 	printf("Board: X-ES %s PMC SBC\n", CONFIG_SYS_BOARD_NAME);
 	printf("       ");
-	s = getenv("board_rev");
-	if (s)
-		printf("Rev %s, ", s);
-	s = getenv("serial#");
-	if (s)
-		printf("Serial# %s, ", s);
-	s = getenv("board_cfg");
-	if (s)
-		printf("Cfg %s", s);
+	i = getenv_f("board_rev", buf, sizeof(buf));
+	if (i > 0)
+		printf("Rev %s, ", buf);
+	i = getenv_f("serial#", buf, sizeof(buf));
+	if (i > 0)
+		printf("Serial# %s, ", buf);
+	i = getenv_f("board_cfg", buf, sizeof(buf));
+	if (i > 0)
+		printf("Cfg %s", buf);
 	printf("\n");
 
 	return 0;
@@ -195,21 +196,5 @@ int is_pci_host(struct pci_controller *hose)
 int post_hotkeys_pressed(void)
 {
 	return ctrlc();
-}
-
-void post_word_store(ulong a)
-{
-	volatile ulong *save_addr =
-		(volatile ulong *)(CONFIG_SYS_POST_WORD_ADDR);
-
-	*save_addr = a;
-}
-
-ulong post_word_load(void)
-{
-	volatile ulong *save_addr =
-		(volatile ulong *)(CONFIG_SYS_POST_WORD_ADDR);
-
-	return *save_addr;
 }
 #endif

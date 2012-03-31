@@ -50,14 +50,11 @@
  * Size of malloc() pool
  */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 128*1024)
-#define CONFIG_SYS_GBL_DATA_SIZE       128     /* size in bytes reserved for initial
-					 * data */
 
 /*
  * Hardware drivers
  */
 #define CONFIG_NS9750_UART		1	/* use on-chip UART */
-#define CONFIG_DRIVER_NS9750_ETHERNET	1	/* use on-chip ethernet */
 
 /*
  * select serial console configuration
@@ -88,7 +85,6 @@
 #define CONFIG_CMD_LOADB
 #define CONFIG_CMD_LOADS
 #define CONFIG_CMD_MEMORY
-#define CONFIG_CMD_NET
 #define CONFIG_CMD_PING
 
 

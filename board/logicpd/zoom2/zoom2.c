@@ -35,7 +35,8 @@
 #endif
 #include <twl4030.h>
 #include <asm/io.h>
-#include <asm/arch/gpio.h>
+#include <asm/arch/mmc_host_def.h>
+#include <asm/gpio.h>
 #include <asm/arch/mem.h>
 #include <asm/arch/mux.h>
 #include <asm/arch/sys_proto.h>
@@ -43,10 +44,12 @@
 #include "zoom2.h"
 #include "zoom2_serial.h"
 
+DECLARE_GLOBAL_DATA_PTR;
+
 /*
  * This the the zoom2, board specific, gpmc configuration for the
  * quad uart on the debug board.   The more general gpmc configurations
- * are setup at the cpu level in arch/arm/cpu/arm_cortexa8/omap3/mem.c
+ * are setup at the cpu level in arch/arm/cpu/armv7/omap3/mem.c
  *
  * The details of the setting of the serial gpmc setup are not available.
  * The values were provided by another party.
@@ -87,12 +90,11 @@ void zoom2_identify(void)
 	 * and they are not commonly used.  They are mentioned here
 	 * only for completeness.
 	 */
-	if (!omap_request_gpio(94)) {
+	if (!gpio_request(94, "")) {
 		unsigned int val;
 
-		omap_set_gpio_direction(94, 1);
-		val = omap_get_gpio_datain(94);
-		omap_free_gpio(94);
+		gpio_direction_input(94);
+		val = gpio_get_value(94);
 
 		if (val)
 			revision = ZOOM2_REVISION_BETA;
@@ -120,7 +122,6 @@ void zoom2_identify(void)
  */
 int board_init (void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
 	u32 *gpmc_config;
 
 	gpmc_init ();		/* in SRAM or SDRAM, finish GPMC */
@@ -178,6 +179,14 @@ void set_muxconf_regs (void)
 	/* platform specific muxes */
 	MUX_ZOOM2 ();
 }
+
+#ifdef CONFIG_GENERIC_MMC
+int board_mmc_init(bd_t *bis)
+{
+	omap_mmc_init(0);
+	return 0;
+}
+#endif
 
 #ifdef CONFIG_CMD_NET
 int board_eth_init(bd_t *bis)

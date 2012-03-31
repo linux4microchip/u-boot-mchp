@@ -43,10 +43,6 @@
 #include <command.h>
 #include <config.h>
 
-#ifndef CONFIG_NET_MULTI
-#error "CONFIG_NET_MULTI must be defined."
-#endif
-
 #if (CONFIG_ETHER_INDEX == 1)
 #  define PROFF_ENET            PROFF_SCC1
 #  define CPM_CR_ENET_PAGE      CPM_CR_SCC1_PAGE
@@ -375,7 +371,7 @@ int mpc82xx_scc_enet_initialize(bd_t *bis)
 	dev = (struct eth_device *) malloc(sizeof *dev);
 	memset(dev, 0, sizeof *dev);
 
-	sprintf(dev->name, "SCC ETHERNET");
+	sprintf(dev->name, "SCC");
 	dev->init   = sec_init;
 	dev->halt   = sec_halt;
 	dev->send   = sec_send;

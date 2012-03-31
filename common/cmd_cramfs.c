@@ -43,7 +43,13 @@
 #endif
 
 #ifdef CONFIG_CRAMFS_CMDLINE
-flash_info_t flash_info[1];
+#include <flash.h>
+
+#ifdef CONFIG_SYS_NO_FLASH
+# define OFFSET_ADJUSTMENT	0
+#else
+# define OFFSET_ADJUSTMENT	(flash_info[id.num].start[0])
+#endif
 
 #ifndef CONFIG_CMD_JFFS2
 #include <linux/stat.h>
@@ -98,7 +104,7 @@ extern int cramfs_info (struct part_info *info);
  * @param argv arguments list
  * @return 0 on success, 1 otherwise
  */
-int do_cramfs_load(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_cramfs_load(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	char *filename;
 	int size;
@@ -119,7 +125,7 @@ int do_cramfs_load(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	dev.id = &id;
 	part.dev = &dev;
 	/* fake the address offset */
-	part.offset = addr - flash_info[id.num].start[0];
+	part.offset = addr - OFFSET_ADJUSTMENT;
 
 	/* pre-set Boot file name */
 	if ((filename = getenv("bootfile")) == NULL) {
@@ -163,7 +169,7 @@ int do_cramfs_load(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
  * @param argv arguments list
  * @return 0 on success, 1 otherwise
  */
-int do_cramfs_ls(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_cramfs_ls(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	char *filename = "/";
 	int ret;
@@ -182,7 +188,7 @@ int do_cramfs_ls(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	dev.id = &id;
 	part.dev = &dev;
 	/* fake the address offset */
-	part.offset = addr - flash_info[id.num].start[0];
+	part.offset = addr - OFFSET_ADJUSTMENT;
 
 	if (argc == 2)
 		filename = argv[1];
@@ -199,14 +205,14 @@ int do_cramfs_ls(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 /***************************************************/
 U_BOOT_CMD(
 	cramfsload,	3,	0,	do_cramfs_load,
-	"cramfsload\t- load binary file from a filesystem image",
+	"load binary file from a filesystem image",
 	"[ off ] [ filename ]\n"
 	"    - load binary file from address 'cramfsaddr'\n"
 	"      with offset 'off'\n"
 );
 U_BOOT_CMD(
 	cramfsls,	2,	1,	do_cramfs_ls,
-	"cramfsls\t- list files in a directory (default /)",
+	"list files in a directory (default /)",
 	"[ directory ]\n"
 	"    - list files in a directory.\n"
 );

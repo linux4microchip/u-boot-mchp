@@ -1,7 +1,7 @@
 /*
  * MPC86xx Internal Memory Map
  *
- * Copyright 2004 Freescale Semiconductor
+ * Copyright 2004, 2011 Freescale Semiconductor
  * Jeff Brown (Jeffrey@freescale.com)
  * Srikanth Srinivasan (srikanth.srinivasan@freescale.com)
  *
@@ -12,6 +12,7 @@
 
 #include <asm/types.h>
 #include <asm/fsl_dma.h>
+#include <asm/fsl_lbc.h>
 #include <asm/fsl_i2c.h>
 
 /* Local-Access Registers and MCM Registers(0x0000-0x2000) */
@@ -189,51 +190,6 @@ typedef struct ccsr_duart {
 	u_char	udsr2;		/* 0x4610 - UART2 DMA Status Register */
 	char	res5[2543];
 } ccsr_duart_t;
-
-
-/* Local Bus Controller Registers(0x5000-0x6000) */
-typedef struct ccsr_lbc {
-	uint	br0;		/* 0x5000 - LBC Base Register 0 */
-	uint	or0;		/* 0x5004 - LBC Options Register 0 */
-	uint	br1;		/* 0x5008 - LBC Base Register 1 */
-	uint	or1;		/* 0x500c - LBC Options Register 1 */
-	uint	br2;		/* 0x5010 - LBC Base Register 2 */
-	uint	or2;		/* 0x5014 - LBC Options Register 2 */
-	uint	br3;		/* 0x5018 - LBC Base Register 3 */
-	uint	or3;		/* 0x501c - LBC Options Register 3 */
-	uint	br4;		/* 0x5020 - LBC Base Register 4 */
-	uint	or4;		/* 0x5024 - LBC Options Register 4 */
-	uint	br5;		/* 0x5028 - LBC Base Register 5 */
-	uint	or5;		/* 0x502c - LBC Options Register 5 */
-	uint	br6;		/* 0x5030 - LBC Base Register 6 */
-	uint	or6;		/* 0x5034 - LBC Options Register 6 */
-	uint	br7;		/* 0x5038 - LBC Base Register 7 */
-	uint	or7;		/* 0x503c - LBC Options Register 7 */
-	char	res1[40];
-	uint	mar;		/* 0x5068 - LBC UPM Address Register */
-	char	res2[4];
-	uint	mamr;		/* 0x5070 - LBC UPMA Mode Register */
-	uint	mbmr;		/* 0x5074 - LBC UPMB Mode Register */
-	uint	mcmr;		/* 0x5078 - LBC UPMC Mode Register */
-	char	res3[8];
-	uint	mrtpr;		/* 0x5084 - LBC Memory Refresh Timer Prescaler Register */
-	uint	mdr;		/* 0x5088 - LBC UPM Data Register */
-	char	res4[8];
-	uint	lsdmr;		/* 0x5094 - LBC SDRAM Mode Register */
-	char	res5[8];
-	uint	lurt;		/* 0x50a0 - LBC UPM Refresh Timer */
-	uint	lsrt;		/* 0x50a4 - LBC SDRAM Refresh Timer */
-	char	res6[8];
-	uint	ltesr;		/* 0x50b0 - LBC Transfer Error Status Register */
-	uint	ltedr;		/* 0x50b4 - LBC Transfer Error Disable Register */
-	uint	lteir;		/* 0x50b8 - LBC Transfer Error Interrupt Register */
-	uint	lteatr;		/* 0x50bc - LBC Transfer Error Attributes Register */
-	uint	ltear;		/* 0x50c0 - LBC Transfer Error Address Register */
-	char	res7[12];
-	uint	lbcr;		/* 0x50d0 - LBC Configuration Register */
-	uint	lcrr;		/* 0x50d4 - LBC Clock Ratio Register */
-	char	res8[3880];
-} ccsr_lbc_t;
 
 /* PCI Express Registers(0x8000-0x9000) and (0x9000-0xA000) */
 typedef struct ccsr_pex {
@@ -1249,6 +1205,8 @@ typedef struct ccsr_gur {
 #define MPC86xx_DEVDISR_PCI1	0x80000000
 #define MPC86xx_DEVDISR_PCIE1	0x40000000
 #define MPC86xx_DEVDISR_PCIE2	0x20000000
+#define MPC86xx_DEVDISR_SRIO	0x00080000
+#define MPC86xx_DEVDISR_RMSG	0x00040000
 #define MPC86xx_DEVDISR_CPU0	0x00008000
 #define MPC86xx_DEVDISR_CPU1	0x00004000
 #define MPC86xx_RSTCR_HRST_REQ	0x00000002
@@ -1270,7 +1228,7 @@ typedef struct immap {
 	ccsr_ddr_t		im_ddr1;
 	ccsr_i2c_t		im_i2c;
 	ccsr_duart_t		im_duart;
-	ccsr_lbc_t		im_lbc;
+	fsl_lbc_t		im_lbc;
 	ccsr_ddr_t		im_ddr2;
 	char                    res1[4096];
 	ccsr_pex_t		im_pex1;
@@ -1294,15 +1252,36 @@ typedef struct immap {
 
 extern immap_t  *immr;
 
-#define CONFIG_SYS_MPC86xx_DDR_OFFSET	(0x2000)
+#define CONFIG_SYS_MPC86xx_DDR_OFFSET	0x2000
 #define CONFIG_SYS_MPC86xx_DDR_ADDR	(CONFIG_SYS_IMMR + CONFIG_SYS_MPC86xx_DDR_OFFSET)
-#define CONFIG_SYS_MPC86xx_DDR2_OFFSET	(0x6000)
+#define CONFIG_SYS_MPC86xx_DDR2_OFFSET	0x6000
 #define CONFIG_SYS_MPC86xx_DDR2_ADDR	(CONFIG_SYS_IMMR + CONFIG_SYS_MPC86xx_DDR2_OFFSET)
-#define CONFIG_SYS_MPC86xx_DMA_OFFSET	(0x21000)
+#define CONFIG_SYS_MPC86xx_DMA_OFFSET	0x21000
 #define CONFIG_SYS_MPC86xx_DMA_ADDR	(CONFIG_SYS_IMMR + CONFIG_SYS_MPC86xx_DMA_OFFSET)
+#define CONFIG_SYS_MPC86xx_PIC_OFFSET	0x40000
+#define CONFIG_SYS_MPC8xxx_PIC_ADDR	(CONFIG_SYS_IMMR + CONFIG_SYS_MPC86xx_PIC_OFFSET)
+
+
+#define CONFIG_SYS_MPC86xx_PCI1_OFFSET		0x8000
+#ifdef CONFIG_MPC8610
+#define CONFIG_SYS_MPC86xx_PCIE1_OFFSET         0xa000
+#else
+#define CONFIG_SYS_MPC86xx_PCIE1_OFFSET         0x8000
+#endif
+#define CONFIG_SYS_MPC86xx_PCIE2_OFFSET         0x9000
+
+#define CONFIG_SYS_PCI1_ADDR \
+	(CONFIG_SYS_IMMR + CONFIG_SYS_MPC86xx_PCI1_OFFSET)
+#define CONFIG_SYS_PCI2_ADDR \
+	(CONFIG_SYS_IMMR + CONFIG_SYS_MPC86xx_PCI2_OFFSET)
+#define CONFIG_SYS_PCIE1_ADDR \
+	(CONFIG_SYS_IMMR + CONFIG_SYS_MPC86xx_PCIE1_OFFSET)
+#define CONFIG_SYS_PCIE2_ADDR \
+	(CONFIG_SYS_IMMR + CONFIG_SYS_MPC86xx_PCIE2_OFFSET)
 
 #define CONFIG_SYS_TSEC1_OFFSET		0x24000
 #define CONFIG_SYS_MDIO1_OFFSET		0x24000
+#define CONFIG_SYS_LBC_ADDR		(&((immap_t *)CONFIG_SYS_IMMR)->im_lbc)
 
 #define TSEC_BASE_ADDR		(CONFIG_SYS_IMMR + CONFIG_SYS_TSEC1_OFFSET)
 #define MDIO_BASE_ADDR		(CONFIG_SYS_IMMR + CONFIG_SYS_MDIO1_OFFSET)
