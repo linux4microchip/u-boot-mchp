@@ -21,30 +21,25 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
-#ifndef __ASM_ARM_ARCH_HARDWARE_H__
-#define __ASM_ARM_ARCH_HARDWARE_H__
 
-#if defined(CONFIG_AT91RM9200)
-# include <asm/arch/at91rm9200.h>
-#elif defined(CONFIG_AT91SAM9260) || defined(CONFIG_AT91SAM9G20) || \
-	defined(CONFIG_AT91SAM9XE)
-# include <asm/arch/at91sam9260.h>
-#elif defined(CONFIG_AT91SAM9261) || defined(CONFIG_AT91SAM9G10)
-# include <asm/arch/at91sam9261.h>
-#elif defined(CONFIG_AT91SAM9263)
-# include <asm/arch/at91sam9263.h>
-#elif defined(CONFIG_AT91SAM9RL)
-# include <asm/arch/at91sam9rl.h>
-#elif defined(CONFIG_AT91SAM9G45) || defined(CONFIG_AT91SAM9M10G45)
-# include <asm/arch/at91sam9g45.h>
-#elif defined(CONFIG_AT91SAMA5)
-# include <asm/arch/at91sama5.h>
-#elif defined(CONFIG_AT91CAP9)
-# include <asm/arch/at91cap9.h>
-#elif defined(CONFIG_AT91X40)
-# include <asm/arch/at91x40.h>
-#else
-# error "Unsupported AT91 processor"
+#include <common.h>
+#include <asm/io.h>
+#include <asm/arch/hardware.h>
+#include <asm/arch/at91_rstc.h>
+
+/* Reset the cpu by telling the reset controller to do so */
+void reset_cpu(ulong ignored)
+{
+	at91_rstc_t *rstc = (at91_rstc_t *) ATMEL_BASE_RSTC;
+
+	writel(AT91_RSTC_KEY
+		| AT91_RSTC_CR_PROCRST	/* Processor Reset */
+		| AT91_RSTC_CR_PERRST	/* Peripheral Reset */
+#ifdef CONFIG_AT91RESET_EXTRST
+		| AT91_RSTC_CR_EXTRST	/* External Reset (assert nRST pin) */
 #endif
-
-#endif /* __ASM_ARM_ARCH_HARDWARE_H__ */
+		, &rstc->cr);
+	/* never reached */
+	while (1)
+		;
+}

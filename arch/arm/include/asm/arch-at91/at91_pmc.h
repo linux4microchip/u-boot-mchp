@@ -43,19 +43,29 @@ typedef struct at91_pmc {
 	u32	mckr;		/* 0x30 Master Clock Register */
 	u32	reserved1;
 	u32	usb;		/* 0x38 USB Clock Register */
-	u32	reserved2;
-	u32	pck[4];		/* 0x40 Programmable Clock Register 0 - 3 */
+	u32	smd;		/* 0x3C Soft Modem Clock Register */
+	u32	pck[4];		/* 0x40 Programmable Clock Register 0 - 1 */
 	u32	reserved3[4];
 	u32	ier;		/* 0x60 Interrupt Enable Register */
 	u32	idr;		/* 0x64 Interrupt Disable Register */
 	u32	sr;		/* 0x68 Status Register */
 	u32	imr;		/* 0x6C Interrupt Mask Register */
-	u32	reserved4[4];
+	u32	fsmr;		/* 0x70 Fast Startup Mode Register */
+	u32	fspr;		/* 0x74 Fast Startup Polarity Register */
+	u32	focr;		/* 0x78 Fault Output Clear Register */
+	u32	reserved4;
 	u32	pllicpr;	/* 0x80 Change Pump Current Register (SAM9) */
 	u32	reserved5[21];
 	u32	wpmr;		/* 0xE4 Write Protect Mode Register (CAP0) */
 	u32	wpsr;		/* 0xE8 Write Protect Status Register (CAP0) */
-	u32	reserved8[5];
+	u32	reserved6[4];
+	u32	ver;		/* 0xFC Version register */
+	u32	reserved[3];
+	u32	pcer1;		/* 0x100 Periperial Clock Enable Register 1 */
+	u32	pcdr1;		/* 0x104 Periperial Clock Disable Register 1 */
+	u32 	pcsr1;		/* 0x108 Periperial Clcok Status Register 1 */
+	u32	pcr;		/* 0x10C Periperial Control Register */
+	u32	ocr;		/* 0x110 Oscillator Calibration Register */
 } at91_pmc_t;
 
 #endif	/* end not assembly */
