@@ -1,0 +1,125 @@
+/*
+ * (C) Copyright 2007-2008
+ * Stelian Pop <stelian@popies.net>
+ * Lead Tech Design <www.leadtechdesign.com>
+ *
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ */
+
+#include <common.h>
+#include <asm/arch/at91_common.h>
+#include <asm/arch/at91_pmc.h>
+#include <asm/arch/gpio.h>
+#include <asm/io.h>
+
+/*
+ * if CONFIG_AT91_GPIO_PULLUP ist set, keep pullups on on all
+ * peripheral pins. Good to have if hardware is soldered optionally
+ * or in case of SPI no slave is selected. Avoid lines to float
+ * needlessly. Use a short local PUP define.
+ *
+ * Due to errata "TXD floats when CTS is inactive" pullups are always
+ * on for TXD pins.
+ */
+#ifdef CONFIG_AT91_GPIO_PULLUP
+# define PUP CONFIG_AT91_GPIO_PULLUP
+#else
+# define PUP 0
+#endif
+
+#if 0
+void at91_serial0_hw_init(void)
+{
+	at91_pmc_t	*pmc	= (at91_pmc_t *) ATMEL_BASE_PMC;
+
+	at91_set_a_periph(AT91_PIO_PORTB, 19, 1);	/* TXD0 */
+	at91_set_a_periph(AT91_PIO_PORTB, 18, PUP);	/* RXD0 */
+	writel(1 << ATMEL_ID_USART0, &pmc->pcer);
+}
+#endif
+
+void at91_serial1_hw_init(void)
+{
+	at91_pmc_t	*pmc	= (at91_pmc_t *) ATMEL_BASE_PMC;
+
+	at91_set_a_periph(AT91_PIO_PORTB, 28, 0);		/* TXD1 */
+	at91_set_a_periph(AT91_PIO_PORTB, 29, PUP);		/* RXD1 */
+	writel(1 << ATMEL_ID_USART1, &pmc->pcer);
+}
+
+#if 0
+void at91_serial2_hw_init(void)
+{
+	at91_pmc_t	*pmc	= (at91_pmc_t *) ATMEL_BASE_PMC;
+
+	at91_set_a_periph(AT91_PIO_PORTD, 6, 1);		/* TXD2 */
+	at91_set_a_periph(AT91_PIO_PORTD, 7, PUP);		/* RXD2 */
+	writel(1 << ATMEL_ID_USART2, &pmc->pcer);
+}
+#endif
+
+void at91_seriald_hw_init(void)
+{
+	at91_pmc_t	*pmc	= (at91_pmc_t *) ATMEL_BASE_PMC;
+
+	at91_set_a_periph(AT91_PIO_PORTB, 30, 0);	/* DRXD */
+	at91_set_a_periph(AT91_PIO_PORTB, 31, 1);	/* DTXD */
+	writel(1 << ATMEL_ID_SYS, &pmc->pcer);
+}
+
+#ifdef CONFIG_MACB
+void at91_macb_hw_init(void)
+{
+	at91_set_a_periph(AT91_PIO_PORTC, 7, 0);	/* ETXCK_EREFCK */
+	at91_set_a_periph(AT91_PIO_PORTC, 5, 0);	/* ERXDV */
+	at91_set_a_periph(AT91_PIO_PORTC, 2, 0);	/* ERX0 */
+	at91_set_a_periph(AT91_PIO_PORTC, 3, 0);	/* ERX1 */
+	at91_set_a_periph(AT91_PIO_PORTC, 6, 0);	/* ERXER */
+	at91_set_a_periph(AT91_PIO_PORTC, 4, 0);	/* ETXEN */
+	at91_set_a_periph(AT91_PIO_PORTC, 0, 0);	/* ETX0 */
+	at91_set_a_periph(AT91_PIO_PORTC, 1, 0);	/* ETX1 */
+	at91_set_a_periph(AT91_PIO_PORTC, 9, 0);	/* EMDIO */
+	at91_set_a_periph(AT91_PIO_PORTC, 8, 0);	/* EMDC */
+}
+#endif
+
+#ifdef CONFIG_GMACB
+void at91_gmacb_hw_init(void)
+{
+	at91_set_a_periph(AT91_PIO_PORTB, 0, 0);	/* GTX0 */
+	at91_set_a_periph(AT91_PIO_PORTB, 1, 0);	/* GTX1 */
+	at91_set_a_periph(AT91_PIO_PORTB, 2, 0);	/* GTX2 */
+	at91_set_a_periph(AT91_PIO_PORTB, 3, 0);	/* GTX3 */
+	at91_set_a_periph(AT91_PIO_PORTB, 4, 0);	/* GRX0 */
+	at91_set_a_periph(AT91_PIO_PORTB, 5, 0);	/* GRX1 */
+	at91_set_a_periph(AT91_PIO_PORTB, 6, 0);	/* GRX2 */
+	at91_set_a_periph(AT91_PIO_PORTB, 7, 0);	/* GRX3 */
+	at91_set_a_periph(AT91_PIO_PORTB, 8, 0);	/* GTXCK */
+	at91_set_a_periph(AT91_PIO_PORTB, 9, 0);	/* GTXEN */
+	at91_set_a_periph(AT91_PIO_PORTB, 10, 0);	/* GTXER */
+	at91_set_a_periph(AT91_PIO_PORTB, 11, 0);	/* GRXCK */
+	at91_set_a_periph(AT91_PIO_PORTB, 12, 0);	/* GRXDV */
+	at91_set_a_periph(AT91_PIO_PORTB, 13, 0);	/* GRXER */
+	at91_set_a_periph(AT91_PIO_PORTB, 14, 0);	/* GCRS */
+	at91_set_a_periph(AT91_PIO_PORTB, 15, 0);	/* GCOL */
+	at91_set_a_periph(AT91_PIO_PORTB, 16, 0);	/* GMDC */
+	at91_set_a_periph(AT91_PIO_PORTB, 17, 0);	/* GMDIO */
+	at91_set_a_periph(AT91_PIO_PORTB, 18, 0);	/* G125CK */
+}
+#endif
