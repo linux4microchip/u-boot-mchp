@@ -195,7 +195,7 @@ void lcd_show_board_info(void)
 	lcd_printf ("(C) 2008 ATMEL Corp\n");
 	lcd_printf ("at91support@atmel.com\n");
 	lcd_printf ("%s CPU at %s MHz\n",
-		ATMEL_CPU_NAME,
+		get_cpu_name(),
 		strmhz(temp, get_cpu_clk_rate()));
 
 	dram_size = 0;
@@ -247,10 +247,12 @@ int board_init(void)
 	at91_spi0_hw_init(1 << 4);
 #endif
 #ifdef CONFIG_MACB
-	at91sama5ek_macb_hw_init();
+	if(has_emac())
+		at91sama5ek_macb_hw_init();
 #endif
 #ifdef CONFIG_GMACB
-	at91sama5ek_gmacb_hw_init();
+	if (has_gmac())
+		at91sama5ek_gmacb_hw_init();
 #endif
 #ifdef CONFIG_LCD
 	at91sama5ek_lcd_hw_init();
@@ -275,10 +277,12 @@ int board_eth_init(bd_t *bis)
 {
 	int rc = 0;
 #ifdef CONFIG_MACB
-	rc = macb_eth_initialize(0, (void *)ATMEL_BASE_EMAC, 0x00);
+	if (has_emac())
+		rc = macb_eth_initialize(0, (void *)ATMEL_BASE_EMAC, 0x00);
 #endif
 #ifdef CONFIG_GMACB
-	rc = gmacb_eth_initialize(0, (void *)ATMEL_BASE_GMAC, 0x00);
+	if (has_gmac())
+		rc = gmacb_eth_initialize(0, (void *)ATMEL_BASE_GMAC, 0x00);
 #endif
 	return rc;
 }

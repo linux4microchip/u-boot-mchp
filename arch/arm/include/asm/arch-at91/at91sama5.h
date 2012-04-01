@@ -18,7 +18,7 @@
 /*
  * defines to be used in other places
  */
-#define CONFIG_ARMV7		/* ARM926EJS Core */
+#define CONFIG_ARMV7		/* ARM A5 Core */
 #define CONFIG_AT91FAMILY	/* it's a member of AT91 */
 
 /*
@@ -74,6 +74,23 @@
 #define ATMEL_ID_IRQ0	47	/* Advanced Interrupt Controller */
 #define ATMEL_ID_FUSE	48
 #define ATMEL_ID_MPDDRC	49
+
+/* sama5 series chip id definitions */
+#define ARCH_ID_AT91SAMA5	0x8a5c07c1
+#define ARCH_EXID_AT91SAMA5D31	0x00444300
+#define ARCH_EXID_AT91SAMA5D33	0x00414300
+#define ARCH_EXID_AT91SAMA5D34	0x00414301
+#define ARCH_EXID_AT91SAMA5D35	0x00584300
+
+#define cpu_is_at91sama5()	(get_chip_id() == ARCH_ID_AT91SAMA5)
+#define cpu_is_at91sama5d31()	(cpu_is_at91sama5() && \
+		(get_extension_chip_id() == ARCH_EXID_AT91SAMA5D31))
+#define cpu_is_at91sama5d33()	(cpu_is_at91sama5() && \
+		(get_extension_chip_id() == ARCH_EXID_AT91SAMA5D33))
+#define cpu_is_at91sama5d34()	(cpu_is_at91sama5() && \
+		(get_extension_chip_id() == ARCH_EXID_AT91SAMA5D34))
+#define cpu_is_at91sama5d35()	(cpu_is_at91sama5() && \
+		(get_extension_chip_id() == ARCH_EXID_AT91SAMA5D35))
 
 /*
  * User Peripherals physical base addresses.
@@ -171,6 +188,11 @@
 /*
  * Cpu Name
  */
-#define ATMEL_CPU_NAME		"AT91SAMA5"
+#define CONFIG_SYS_AT91_D31_CPU_NAME	"AT91SAMA5D31"
+#define CONFIG_SYS_AT91_D33_CPU_NAME	"AT91SAMA5D33"
+#define CONFIG_SYS_AT91_D34_CPU_NAME	"AT91SAMA5D34"
+#define CONFIG_SYS_AT91_D35_CPU_NAME	"AT91SAMA5D35"
+#define CONFIG_SYS_AT91_UNKNOWN_CPU	"Unknown CPU type"
+
 
 #endif

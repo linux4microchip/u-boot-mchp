@@ -60,7 +60,7 @@ int print_cpuinfo(void)
 {
 	char buf[32];
 
-	printf("CPU: %s\n", ATMEL_CPU_NAME);
+	printf("CPU: %s\n", get_cpu_name());
 	printf("Crystal frequency: %8s MHz\n",
 					strmhz(buf, get_main_clk_rate()));
 	printf("CPU clock        : %8s MHz\n",
