@@ -239,7 +239,7 @@ int board_init(void)
 #ifdef CONFIG_CMD_USB
 	at91sama5ek_usb_hw_init();
 #endif
-#ifdef CONFIG_HAS_DATAFLASH
+#ifdef CONFIG_SYS_USE_DATAFLASH
 	at91_spi0_hw_init(1 << 0);
 #endif
 #ifdef CONFIG_ATMEL_SPI
@@ -288,18 +288,15 @@ int board_eth_init(bd_t *bis)
 
 int spi_cs_is_valid(unsigned int bus, unsigned int cs)
 {
-	return bus == 0 && cs < 2;
+	return bus == 0 && cs < 4;
 }
 
 void spi_cs_activate(struct spi_slave *slave)
 {
 	switch(slave->cs) {
-		case 1:
-			at91_set_gpio_output(AT91_PIN_PB18, 0);
-			break;
 		case 0:
 		default:
-			at91_set_gpio_output(AT91_PIN_PB3, 0);
+			at91_set_pio_output(AT91_PIO_PORTD, 13, 0);
 			break;
 	}
 }
@@ -307,12 +304,9 @@ void spi_cs_activate(struct spi_slave *slave)
 void spi_cs_deactivate(struct spi_slave *slave)
 {
 	switch(slave->cs) {
-		case 1:
-			at91_set_gpio_output(AT91_PIN_PB18, 1);
-			break;
 		case 0:
 		default:
-			at91_set_gpio_output(AT91_PIN_PB3, 1);
+			at91_set_pio_output(AT91_PIO_PORTD, 13, 1);
 		break;
 	}
 }

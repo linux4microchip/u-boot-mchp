@@ -83,6 +83,37 @@ void at91_seriald_hw_init(void)
 	writel(1 << ATMEL_ID_SYS, &pmc->pcer);
 }
 
+#if defined(CONFIG_ATMEL_SPI)
+void at91_spi0_hw_init(unsigned long cs_mask)
+{
+	at91_pmc_t      *pmc = (at91_pmc_t *) ATMEL_BASE_PMC;
+
+	at91_set_a_periph(AT91_PIO_PORTD, 10, 0);       /* SPI0_MISO */
+	at91_set_a_periph(AT91_PIO_PORTD, 11, 0);       /* SPI0_MOSI */
+	at91_set_a_periph(AT91_PIO_PORTD, 12, 0);       /* SPI0_SPCK */
+
+	/* Enable clock */
+	writel(1 << ATMEL_ID_SPI0, &pmc->pcer);
+
+	if (cs_mask & (1 << 0))
+		at91_set_a_periph(AT91_PIO_PORTD, 13, 0);
+	if (cs_mask & (1 << 1))
+		at91_set_b_periph(AT91_PIO_PORTD, 14, 0);
+	if (cs_mask & (1 << 2))
+	        at91_set_b_periph(AT91_PIO_PORTD, 15, 0);
+	if (cs_mask & (1 << 3))
+		at91_set_b_periph(AT91_PIO_PORTD, 16, 0);
+	if (cs_mask & (1 << 4))
+		at91_set_pio_output(AT91_PIO_PORTD, 13, 0);
+	if (cs_mask & (1 << 5))
+		at91_set_pio_output(AT91_PIO_PORTD, 14, 0);
+	if (cs_mask & (1 << 6))
+		at91_set_pio_output(AT91_PIO_PORTD, 15, 0);
+	if (cs_mask & (1 << 7))
+		at91_set_pio_output(AT91_PIO_PORTD, 16, 0);
+}
+#endif
+
 #ifdef CONFIG_MACB
 void at91_macb_hw_init(void)
 {
