@@ -78,8 +78,6 @@ void at91sama5ek_nand_hw_init(void)
 #ifdef CONFIG_CMD_USB
 static void at91sama5ek_usb_hw_init(void)
 {
-	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
-
 	at91_set_pio_output(AT91_PIO_PORTD, 26, 0);
 	at91_set_pio_output(AT91_PIO_PORTD, 27, 0);
 }
