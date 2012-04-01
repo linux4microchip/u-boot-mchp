@@ -23,6 +23,7 @@
  */
 
 #include <common.h>
+#include <asm/arch/at91sama5.h>
 #include <asm/arch/at91_common.h>
 #include <asm/arch/at91_pmc.h>
 #include <asm/arch/gpio.h>
@@ -42,6 +43,55 @@
 #else
 # define PUP 0
 #endif
+
+#define CIDR	0x40
+#define EXID	0x44
+
+unsigned int get_chip_id(void)
+{
+	return readl(ATMEL_BASE_DBGU + CIDR);
+}
+
+unsigned int get_extension_chip_id(void)
+{
+	return readl(ATMEL_BASE_DBGU + EXID);
+}
+
+unsigned int has_emac()
+{
+	return cpu_is_at91sama5d31() || cpu_is_at91sama5d35();
+}
+
+unsigned int has_gmac()
+{
+	return !cpu_is_at91sama5d31();
+}
+
+unsigned int has_lcdc()
+{
+	return !cpu_is_at91sama5d35();
+}
+
+char *get_cpu_name()
+{
+	unsigned int extension_id = get_extension_chip_id();
+
+	if (cpu_is_at91sama5())
+		switch (extension_id) {
+		case ARCH_EXID_AT91SAMA5D31:
+			return CONFIG_SYS_AT91_D31_CPU_NAME;
+		case ARCH_EXID_AT91SAMA5D33:
+			return CONFIG_SYS_AT91_D33_CPU_NAME;
+		case ARCH_EXID_AT91SAMA5D34:
+			return CONFIG_SYS_AT91_D34_CPU_NAME;
+		case ARCH_EXID_AT91SAMA5D35:
+			return CONFIG_SYS_AT91_D35_CPU_NAME;
+		default:
+			return CONFIG_SYS_AT91_UNKNOWN_CPU;
+		}
+	else
+		return CONFIG_SYS_AT91_UNKNOWN_CPU;
+}
 
 #if 0
 void at91_serial0_hw_init(void)
