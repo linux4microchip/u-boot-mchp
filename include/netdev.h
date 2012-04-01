@@ -72,6 +72,7 @@ int inca_switch_initialize(bd_t *bis);
 int ks8695_eth_initialize(void);
 int lan91c96_initialize(u8 dev_num, int base_addr);
 int macb_eth_initialize(int id, void *regs, unsigned int phy_addr);
+int gmacb_eth_initialize(int id, void *regs, unsigned int phy_addr);
 int mcdmafec_initialize(bd_t *bis);
 int mcffec_initialize(bd_t *bis);
 int mpc512x_fec_initialize(bd_t *bis);
