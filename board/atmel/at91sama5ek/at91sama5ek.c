@@ -255,7 +255,8 @@ int board_init(void)
 		at91sama5ek_gmacb_hw_init();
 #endif
 #ifdef CONFIG_LCD
-	at91sama5ek_lcd_hw_init();
+	if (has_lcdc())
+		at91sama5ek_lcd_hw_init();
 #endif
 	return 0;
 }
