@@ -80,10 +80,8 @@ static void at91sama5ek_usb_hw_init(void)
 {
 	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
 
-	writel(1 << ATMEL_ID_PIODE, &pmc->pcer);
-
-	at91_set_gpio_output(AT91_PIN_PD1, 0);
-	at91_set_gpio_output(AT91_PIN_PD3, 0);
+	at91_set_pio_output(AT91_PIO_PORTD, 26, 0);
+	at91_set_pio_output(AT91_PIO_PORTD, 27, 0);
 }
 #endif
 

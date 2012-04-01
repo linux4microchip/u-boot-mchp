@@ -68,12 +68,12 @@
  * This needs to be defined for the OHCI code to work but it is defined as
  * ATMEL_ID_UHPHS in the CPU specific header files.
  */
-// #define ATMEL_ID_UHP		ATMEL_ID_UHPHS
+#define ATMEL_ID_UHP		ATMEL_ID_UHPHS
 
 /*
  * Specify the clock enable bit in the PMC_SCER register.
  */
-// #define ATMEL_PMC_UHP		AT91SAM926x_PMC_UHP
+ #define ATMEL_PMC_UHP		AT91SAM926x_PMC_UHP
 
 /* LCD */
 /*
@@ -120,7 +120,7 @@
 #undef CONFIG_CMD_LOADS
 
 #define CONFIG_CMD_NAND
-//#define CONFIG_CMD_USB
+#define CONFIG_CMD_USB
 
 /* SDRAM */
 #define CONFIG_NR_DRAM_BANKS		1
@@ -159,17 +159,17 @@
 #define CONFIG_NET_RETRY_COUNT		20
 #define CONFIG_RESET_PHY_R
 #define CONFIG_MACB_SEARCH_PHY
+
 /* USB */
-/* comment by voice
 #define CONFIG_USB_ATMEL
 #define CONFIG_USB_OHCI_NEW
 #define CONFIG_DOS_PARTITION
 #define CONFIG_SYS_USB_OHCI_CPU_INIT
-#define CONFIG_SYS_USB_OHCI_REGS_BASE	ATMEL_BASE_HCI
-#define CONFIG_SYS_USB_OHCI_SLOT_NAME	"at91sam9g45"
-#define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	2
+#define CONFIG_SYS_USB_OHCI_REGS_BASE	ATMEL_BASE_OHCI
+#define CONFIG_SYS_USB_OHCI_SLOT_NAME	"at91sama5"
+#define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	3
 #define CONFIG_USB_STORAGE
-*/
+
 #define CONFIG_SYS_LOAD_ADDR		0x22000000	/* load address */
 
 #define CONFIG_SYS_MEMTEST_START	CONFIG_SYS_SDRAM_BASE
