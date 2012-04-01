@@ -76,9 +76,9 @@
  #define ATMEL_PMC_UHP		AT91SAM926x_PMC_UHP
 
 /* LCD */
-/*
 #define CONFIG_LCD
-#define LCD_BPP				LCD_COLOR8
+#define LCD_BPP				LCD_COLOR16
+#define LCD_OUTPUT_BPP                  24
 #define CONFIG_LCD_LOGO
 #undef LCD_TEST_PATTERN
 #define CONFIG_LCD_INFO
@@ -87,9 +87,9 @@
 #define CONFIG_ATMEL_LCD
 #define CONFIG_ATMEL_LCD_RGB565
 #define CONFIG_SYS_CONSOLE_IS_IN_ENV
-*/
+
 /* board specific(not enough SRAM) */
-//#define CONFIG_AT91SAM9G45_LCD_BASE		0x73E00000
+#define CONFIG_AT91SAMA5_LCD_BASE		0x23E00000
 
 /* LED */
 #if 0

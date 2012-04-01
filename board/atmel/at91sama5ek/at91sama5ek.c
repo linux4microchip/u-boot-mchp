@@ -113,69 +113,70 @@ static void at91sama5ek_gmacb_hw_init(void)
 #ifdef CONFIG_LCD
 
 vidinfo_t panel_info = {
-	vl_col:		480,
-	vl_row:		272,
-	vl_clk:		9000000,
+	vl_col:		800,
+	vl_row:		480,
+	vl_clk:		24000000,
 	vl_sync:	ATMEL_LCDC_INVLINE_NORMAL |
 			ATMEL_LCDC_INVFRAME_NORMAL,
-	vl_bpix:	3,
+	vl_bpix:	LCD_BPP,
 	vl_tft:		1,
-	vl_hsync_len:	45,
-	vl_left_margin:	1,
-	vl_right_margin:1,
-	vl_vsync_len:	1,
-	vl_upper_margin:40,
-	vl_lower_margin:1,
+	vl_hsync_len:	128,
+	vl_left_margin:	64,
+	vl_right_margin:64,
+	vl_vsync_len:	2,
+	vl_upper_margin:22,
+	vl_lower_margin:21,
 	mmio :		 ATMEL_BASE_LCDC,
 };
 
 
 void lcd_enable(void)
 {
-	at91_set_A_periph(AT91_PIN_PE6, 1);	/* power up */
+	at91_set_a_periph(AT91_PIO_PORTA, 29, 1);	/* power up */
 }
 
 void lcd_disable(void)
 {
-	at91_set_A_periph(AT91_PIN_PE6, 0);	/* power down */
+	at91_set_a_periph(AT91_PIO_PORTA, 29, 0);	/* power down */
 }
 
 static void at91sama5ek_lcd_hw_init(void)
 {
 	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
 
-	at91_set_A_periph(AT91_PIN_PE0, 0);	/* LCDDPWR */
-	at91_set_A_periph(AT91_PIN_PE2, 0);	/* LCDCC */
-	at91_set_A_periph(AT91_PIN_PE3, 0);	/* LCDVSYNC */
-	at91_set_A_periph(AT91_PIN_PE4, 0);	/* LCDHSYNC */
-	at91_set_A_periph(AT91_PIN_PE5, 0);	/* LCDDOTCK */
+	at91_set_a_periph(AT91_PIO_PORTA, 24, 0);	/* LCDPWM */
+	at91_set_a_periph(AT91_PIO_PORTA, 25, 0);	/* LCDDISP */
+	at91_set_a_periph(AT91_PIO_PORTA, 26, 0);	/* LCDVSYNC */
+	at91_set_a_periph(AT91_PIO_PORTA, 27, 0);	/* LCDHSYNC */
+	at91_set_a_periph(AT91_PIO_PORTA, 28, 0);	/* LCDDOTCK */
+	at91_set_a_periph(AT91_PIO_PORTA, 29, 0);	/* LCDDEN */
 
-	at91_set_A_periph(AT91_PIN_PE7, 0);	/* LCDD0 */
-	at91_set_A_periph(AT91_PIN_PE8, 0);	/* LCDD1 */
-	at91_set_A_periph(AT91_PIN_PE9, 0);	/* LCDD2 */
-	at91_set_A_periph(AT91_PIN_PE10, 0);	/* LCDD3 */
-	at91_set_A_periph(AT91_PIN_PE11, 0);	/* LCDD4 */
-	at91_set_A_periph(AT91_PIN_PE12, 0);	/* LCDD5 */
-	at91_set_A_periph(AT91_PIN_PE13, 0);	/* LCDD6 */
-	at91_set_A_periph(AT91_PIN_PE14, 0);	/* LCDD7 */
-	at91_set_A_periph(AT91_PIN_PE15, 0);	/* LCDD8 */
-	at91_set_A_periph(AT91_PIN_PE16, 0);	/* LCDD9 */
-	at91_set_A_periph(AT91_PIN_PE17, 0);	/* LCDD10 */
-	at91_set_A_periph(AT91_PIN_PE18, 0);	/* LCDD11 */
-	at91_set_A_periph(AT91_PIN_PE19, 0);	/* LCDD12 */
-	at91_set_B_periph(AT91_PIN_PE20, 0);	/* LCDD13 */
-	at91_set_A_periph(AT91_PIN_PE21, 0);	/* LCDD14 */
-	at91_set_A_periph(AT91_PIN_PE22, 0);	/* LCDD15 */
-	at91_set_A_periph(AT91_PIN_PE23, 0);	/* LCDD16 */
-	at91_set_A_periph(AT91_PIN_PE24, 0);	/* LCDD17 */
-	at91_set_A_periph(AT91_PIN_PE25, 0);	/* LCDD18 */
-	at91_set_A_periph(AT91_PIN_PE26, 0);	/* LCDD19 */
-	at91_set_A_periph(AT91_PIN_PE27, 0);	/* LCDD20 */
-	at91_set_B_periph(AT91_PIN_PE28, 0);	/* LCDD21 */
-	at91_set_A_periph(AT91_PIN_PE29, 0);	/* LCDD22 */
-	at91_set_A_periph(AT91_PIN_PE30, 0);	/* LCDD23 */
+	at91_set_a_periph(AT91_PIO_PORTA,  0, 0);	/* LCDD0 */
+	at91_set_a_periph(AT91_PIO_PORTA,  1, 0);	/* LCDD1 */
+	at91_set_a_periph(AT91_PIO_PORTA,  2, 0);	/* LCDD2 */
+	at91_set_a_periph(AT91_PIO_PORTA,  3, 0);	/* LCDD3 */
+	at91_set_a_periph(AT91_PIO_PORTA,  4, 0);	/* LCDD4 */
+	at91_set_a_periph(AT91_PIO_PORTA,  5, 0);	/* LCDD5 */
+	at91_set_a_periph(AT91_PIO_PORTA,  6, 0);	/* LCDD6 */
+	at91_set_a_periph(AT91_PIO_PORTA,  7, 0);	/* LCDD7 */
+	at91_set_a_periph(AT91_PIO_PORTA,  8, 0);	/* LCDD8 */
+	at91_set_a_periph(AT91_PIO_PORTA,  9, 0);	/* LCDD9 */
+	at91_set_a_periph(AT91_PIO_PORTA, 10, 0);	/* LCDD10 */
+	at91_set_a_periph(AT91_PIO_PORTA, 11, 0);	/* LCDD11 */
+	at91_set_a_periph(AT91_PIO_PORTA, 12, 0);	/* LCDD12 */
+	at91_set_a_periph(AT91_PIO_PORTA, 13, 0);	/* LCDD13 */
+	at91_set_a_periph(AT91_PIO_PORTA, 14, 0);	/* LCDD14 */
+	at91_set_a_periph(AT91_PIO_PORTA, 15, 0);	/* LCDD15 */
+	at91_set_c_periph(AT91_PIO_PORTC, 14, 0);	/* LCDD16 */
+	at91_set_c_periph(AT91_PIO_PORTC, 13, 0);	/* LCDD17 */
+	at91_set_c_periph(AT91_PIO_PORTC, 12, 0);	/* LCDD18 */
+	at91_set_c_periph(AT91_PIO_PORTC, 11, 0);	/* LCDD19 */
+	at91_set_c_periph(AT91_PIO_PORTC, 10, 0);	/* LCDD20 */
+	at91_set_c_periph(AT91_PIO_PORTC, 15, 0);	/* LCDD21 */
+	at91_set_c_periph(AT91_PIO_PORTE, 27, 0);	/* LCDD22 */
+	at91_set_c_periph(AT91_PIO_PORTE, 28, 0);	/* LCDD23 */
 
-	writel(1 << ATMEL_ID_LCDC, &pmc->pcer);
+	writel(1 << (ATMEL_ID_LCDC - 32), &pmc->pcer1);
 
 	gd->fb_base = CONFIG_AT91SAMA5_LCD_BASE;
 }
