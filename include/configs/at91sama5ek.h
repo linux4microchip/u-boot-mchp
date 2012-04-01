@@ -119,7 +119,13 @@
 #undef CONFIG_CMD_AUTOSCRIPT
 #undef CONFIG_CMD_LOADS
 
+
+#ifdef CONFIG_SYS_USE_NANDFLASH
 #define CONFIG_CMD_NAND
+#elif CONFIG_SYS_USE_SERIALFLASH
+#define CONFIG_CMD_SF
+#endif
+
 #define CONFIG_CMD_USB
 
 /* SDRAM */
@@ -129,6 +135,13 @@
 
 #define CONFIG_SYS_INIT_SP_ADDR \
 	(CONFIG_SYS_SDRAM_BASE + 4 * 1024 - GENERATED_GBL_DATA_SIZE)
+
+/* SerialFlash */
+#ifdef CONFIG_CMD_SF
+#define CONFIG_ATMEL_SPI
+#define CONFIG_SPI_FLASH                1
+#define CONFIG_SPI_FLASH_ATMEL          1
+#endif
 
 /* No NOR flash */
 #define CONFIG_SYS_NO_FLASH
@@ -175,15 +188,27 @@
 #define CONFIG_SYS_MEMTEST_START	CONFIG_SYS_SDRAM_BASE
 #define CONFIG_SYS_MEMTEST_END		0x23e00000
 
+#ifdef CONFIG_SYS_USE_SERIALFLASH
+/* bootstrap + u-boot + env + linux in serial flash */
+#define CONFIG_ENV_IS_IN_SPI_FLASH      1
+#define CONFIG_SYS_MONITOR_BASE (0x10000000 + 0x8400)
+#define CONFIG_ENV_OFFSET       0x5000
+#define CONFIG_ENV_ADDR         (0x10000000 + CONFIG_ENV_OFFSET)
+#define CONFIG_ENV_SIZE         0x3000
+#define CONFIG_ENV_SECT_SIZE    0x1000
+#define CONFIG_BOOTCOMMAND      "sf probe 0; " \
+                                "sf read 0x22000000 0x42000 0x250000; " \
+                                "bootm 0x22000000"
+#else
 /* bootstrap + u-boot + env in nandflash */
 #define CONFIG_ENV_IS_IN_NAND
 #define CONFIG_ENV_OFFSET		0x60000
 #define CONFIG_ENV_OFFSET_REDUND	0x80000
 #define CONFIG_ENV_SIZE			0x20000
-
-/* Default boot parameters */
 #define CONFIG_BOOTCOMMAND	"nand read 0x22000000 0x100000 0x300000;" \
-	"bootm 0x22000000"
+				"bootm 0x22000000"
+#endif
+
 #define CONFIG_BOOTARGS							\
 	"console=ttyS0,115200 earlyprintk "				\
 	"root=/dev/mtdblock5 "						\
