@@ -212,7 +212,7 @@
 
 #define CONFIG_BOOTARGS							\
 	"console=ttyS0,115200 earlyprintk "				\
-	"root=/dev/mtdblock5 "						\
+	"root=/dev/mtdblock2 "						\
 	"mtdparts=atmel_nand:1M(boot)ro,"				\
 	"3M@1M(linux),-(root) "						\
 	"rw rootfstype=jffs2"
