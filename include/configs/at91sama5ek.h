@@ -125,6 +125,8 @@
 #define CONFIG_CMD_NAND
 #elif CONFIG_SYS_USE_SERIALFLASH
 #define CONFIG_CMD_SF
+#elif CONFIG_SYS_USE_MMC
+#define CONFIG_CMD_MMC
 #endif
 
 #define CONFIG_CMD_USB
@@ -176,13 +178,14 @@
 
 
 /* MMC */
+#ifdef CONFIG_CMD_MMC
 #define CONFIG_MMC
-#define CONFIG_CMD_MMC
 #define CONFIG_GENERIC_MMC
 #define CONFIG_GENERIC_ATMEL_MCI
 #undef  CONFIG_ATMEL_MCI_8BIT
 #define ATMEL_BASE_MMCI			ATMEL_BASE_MCI0
 #define CONFIG_CMD_FAT
+#endif
 
 /* USB */
 #define CONFIG_USB_ATMEL
@@ -210,7 +213,7 @@
 #define CONFIG_BOOTCOMMAND      "sf probe 0; " \
                                 "sf read 0x22000000 0x42000 0x250000; " \
                                 "bootm 0x22000000"
-#else
+#elif CONFIG_SYS_USE_NANDFLASH
 /* bootstrap + u-boot + env in nandflash */
 #define CONFIG_ENV_IS_IN_NAND
 #define CONFIG_ENV_OFFSET		0x60000
@@ -218,14 +221,31 @@
 #define CONFIG_ENV_SIZE			0x20000
 #define CONFIG_BOOTCOMMAND	"nand read 0x22000000 0x100000 0x300000;" \
 				"bootm 0x22000000"
+#elif CONFIG_SYS_USE_MMC
+#define CONFIG_ENV_IS_IN_MMC
+#define CONFIG_ENV_OFFSET		0x2000
+#define CONFIG_ENV_OFFSET_REDUND	0x4000
+#define CONFIG_ENV_SIZE			0x2000
+#define CONFIG_BOOTCOMMAND	"mmcinfo;fatload mmc 0:1 0x22000000 uImage;" \
+				"bootm 0x22000000"
+#define CONFIG_SYS_MMC_ENV_DEV 0
+#else
+#define CONIG_ENV_IS_NOWHERE
 #endif
 
+#ifdef CONFIG_SYS_USE_MMC
+#define CONFIG_BOOTARGS							\
+	"console=ttyS0,115200 earlyprintk "				\
+	"root=/dev/mmcblk0p2 "						\
+	"rw rootfstype=ext2 rootdelay=2"
+#else
 #define CONFIG_BOOTARGS							\
 	"console=ttyS0,115200 earlyprintk "				\
 	"root=/dev/mtdblock2 "						\
 	"mtdparts=atmel_nand:1M(boot)ro,"				\
 	"3M@1M(linux),-(root) "						\
 	"rw rootfstype=jffs2"
+#endif
 
 #define CONFIG_BAUDRATE			115200
 #define CONFIG_SYS_BAUDRATE_TABLE	{115200 , 19200, 38400, 57600, 9600 }
