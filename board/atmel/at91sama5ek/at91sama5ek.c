@@ -23,6 +23,7 @@
  */
 
 #include <common.h>
+#include <mmc.h>
 #include <asm/io.h>
 #include <asm/arch/at91sama5_smc.h>
 #include <asm/arch/at91_common.h>
@@ -80,6 +81,17 @@ static void at91sama5ek_usb_hw_init(void)
 {
 	at91_set_pio_output(AT91_PIO_PORTD, 26, 0);
 	at91_set_pio_output(AT91_PIO_PORTD, 27, 0);
+}
+#endif
+
+#ifdef CONFIG_GENERIC_ATMEL_MCI
+static void at91sama5ek_mci_hw_init(void)
+{
+	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
+
+	writel(1 << ATMEL_ID_MCI0, &pmc->pcer);
+
+	at91_mci_hw_init();
 }
 #endif
 
@@ -240,6 +252,9 @@ int board_init(void)
 #ifdef CONFIG_CMD_USB
 	at91sama5ek_usb_hw_init();
 #endif
+#ifdef CONFIG_GENERIC_ATMEL_MCI
+	at91sama5ek_mci_hw_init();
+#endif
 #ifdef CONFIG_SYS_USE_DATAFLASH
 	at91_spi0_hw_init(1 << 0);
 #endif
@@ -287,6 +302,17 @@ int board_eth_init(bd_t *bis)
 #endif
 	return rc;
 }
+
+#ifdef CONFIG_GENERIC_ATMEL_MCI
+int board_mmc_init(bd_t *bis)
+{
+	int rc = 0;
+
+	rc = atmel_mci_init((void *)ATMEL_BASE_MCI0);
+
+	return rc;
+}
+#endif
 
 /* SPI chip select control */
 #ifdef CONFIG_ATMEL_SPI
