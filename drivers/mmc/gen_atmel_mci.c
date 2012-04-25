@@ -83,10 +83,17 @@ static void mci_set_mode(struct mmc *mmc, u32 hz, u32 blklen)
 
 	blklen &= 0xfffc;
 	/* On some platforms RDPROOF and WRPROOF are ignored */
+#ifdef CONFIG_AT91SAMA5
+	writel((MMCI_BF(CLKDIV, clkdiv)
+		 | MMCI_BIT(RDPROOF)
+		 | MMCI_BIT(WRPROOF)), &mci->mr);
+	writel((blklen << 16), &mci->blkr);
+#else
 	writel((MMCI_BF(CLKDIV, clkdiv)
 		 | MMCI_BF(BLKLEN, blklen)
 		 | MMCI_BIT(RDPROOF)
 		 | MMCI_BIT(WRPROOF)), &mci->mr);
+#endif
 	initialized = 1;
 }
 
@@ -182,6 +189,10 @@ mci_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 
 	/* Figure out the transfer arguments */
 	cmdr = mci_encode_cmd(cmd, data, &error_flags);
+
+	if ((cmd->cmdidx == MMC_CMD_READ_MULTIPLE_BLOCK)
+			|| (cmd->cmdidx == MMC_CMD_WRITE_MULTIPLE_BLOCK))
+		writel(data->blocks | mmc->read_bl_len << 16, &mci->blkr);
 
 	/* Send the command */
 	writel(cmd->cmdarg, &mci->argr);

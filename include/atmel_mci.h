@@ -38,7 +38,7 @@ typedef struct atmel_mci {
 	u32	sdcr;	/* 0x0c */
 	u32	argr;	/* 0x10 */
 	u32	cmdr;	/* 0x14 */
-	u32	_18;	/* 0x18 */
+	u32	blkr;	/* 0x18 */
 	u32	_1c;	/* 0x1c */
 	u32	rspr;	/* 0x20 */
 	u32	rspr1;	/* 0x24 */
