@@ -214,8 +214,10 @@ void lcd_show_board_info(void)
 	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++)
 		dram_size += gd->bd->bi_dram[i].size;
 	nand_size = 0;
+#ifdef CONFIG_SYS_USE_NANDFLASH
 	for (i = 0; i < CONFIG_SYS_MAX_NAND_DEVICE; i++)
 		nand_size += nand_info[i].size;
+#endif
 	lcd_printf ("  %ld MB SDRAM, %ld MB NAND\n",
 		dram_size >> 20,
 		nand_size >> 20 );
