@@ -94,16 +94,14 @@ char *get_cpu_name()
 		return CONFIG_SYS_AT91_UNKNOWN_CPU;
 }
 
-#if 0
 void at91_serial0_hw_init(void)
 {
-	at91_set_a_periph(AT91_PIO_PORTB, 19, 1);	/* TXD0 */
-	at91_set_a_periph(AT91_PIO_PORTB, 18, PUP);	/* RXD0 */
+	at91_set_a_periph(AT91_PIO_PORTD, 18, 1);	/* TXD0 */
+	at91_set_a_periph(AT91_PIO_PORTD, 17, PUP);	/* RXD0 */
 
 	/* Enable clock */
 	at91_periph_clk_enable(ATMEL_ID_USART0);
 }
-#endif
 
 void at91_serial1_hw_init(void)
 {
@@ -114,16 +112,14 @@ void at91_serial1_hw_init(void)
 	at91_periph_clk_enable(ATMEL_ID_USART1);
 }
 
-#if 0
 void at91_serial2_hw_init(void)
 {
-	at91_set_a_periph(AT91_PIO_PORTD, 6, 1);		/* TXD2 */
-	at91_set_a_periph(AT91_PIO_PORTD, 7, PUP);		/* RXD2 */
+	at91_set_b_periph(AT91_PIO_PORTE, 26, 1);		/* TXD2 */
+	at91_set_b_periph(AT91_PIO_PORTE, 25, PUP);		/* RXD2 */
 
 	/* Enable clock */
 	at91_periph_clk_enable(ATMEL_ID_USART2);
 }
-#endif
 
 void at91_seriald_hw_init(void)
 {
