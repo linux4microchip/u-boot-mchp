@@ -174,3 +174,15 @@ int at91_clock_init(unsigned long main_clock)
 
 	return 0;
 }
+
+void at91_periph_clk_enable(int id)
+{
+	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
+
+	/* do we need sanity check for id ? */
+
+	if (id > 32)
+		writel(1 << (id - 32), &pmc->pcer1);
+	else
+		writel(1 << id, &pmc->pcer);
+}

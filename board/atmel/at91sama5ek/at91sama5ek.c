@@ -49,9 +49,8 @@ DECLARE_GLOBAL_DATA_PTR;
 void at91sama5ek_nand_hw_init(void)
 {
 	struct at91_smc *smc = (struct at91_smc *)ATMEL_BASE_SMC;
-	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
 
-	writel(1 << ATMEL_ID_SMC, &pmc->pcer);
+	at91_periph_clk_enable(ATMEL_ID_SMC);
 
 	/* Configure SMC CS3 for NAND/SmartMedia */
 	writel(AT91_SMC_SETUP_NWE(2) | AT91_SMC_SETUP_NCS_WR(1) |
@@ -71,8 +70,6 @@ void at91sama5ek_nand_hw_init(void)
 #endif
 	       AT91_SMC_MODE_TDF_CYCLE(3),
 	       &smc->cs[3].mode);
-
-	writel(1 << ATMEL_ID_PIOE, &pmc->pcer);
 }
 #endif
 
@@ -87,10 +84,6 @@ static void at91sama5ek_usb_hw_init(void)
 #ifdef CONFIG_GENERIC_ATMEL_MCI
 static void at91sama5ek_mci_hw_init(void)
 {
-	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
-
-	writel(1 << ATMEL_ID_MCI0, &pmc->pcer);
-
 	at91_mci_hw_init();
 }
 #endif
@@ -98,12 +91,6 @@ static void at91sama5ek_mci_hw_init(void)
 #ifdef CONFIG_MACB
 static void at91sama5ek_macb_hw_init(void)
 {
-	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
-
-	/* Enable clock */
-	writel(1 << (ATMEL_ID_EMAC-32), &pmc->pcer1);
-
-	/* And the pins. */
 	at91_macb_hw_init();
 }
 #endif
@@ -111,13 +98,6 @@ static void at91sama5ek_macb_hw_init(void)
 #ifdef CONFIG_GMACB
 static void at91sama5ek_gmacb_hw_init(void)
 {
-	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
-
-	/* Enable clock */
-	writel(1 << (ATMEL_ID_GMAC-32), &pmc->pcer1);
-	writel(1 << ATMEL_ID_PIOB, &pmc->pcer);
-
-	/* And the pins. */
 	at91_gmacb_hw_init();
 }
 #endif
@@ -154,8 +134,6 @@ void lcd_disable(void)
 
 static void at91sama5ek_lcd_hw_init(void)
 {
-	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
-
 	at91_set_a_periph(AT91_PIO_PORTA, 24, 0);	/* LCDPWM */
 	at91_set_a_periph(AT91_PIO_PORTA, 25, 0);	/* LCDDISP */
 	at91_set_a_periph(AT91_PIO_PORTA, 26, 0);	/* LCDVSYNC */
@@ -188,9 +166,10 @@ static void at91sama5ek_lcd_hw_init(void)
 	at91_set_c_periph(AT91_PIO_PORTE, 27, 0);	/* LCDD22 */
 	at91_set_c_periph(AT91_PIO_PORTE, 28, 0);	/* LCDD23 */
 
-	writel(1 << (ATMEL_ID_LCDC - 32), &pmc->pcer1);
-
 	gd->fb_base = CONFIG_AT91SAMA5_LCD_BASE;
+
+	/* Enable clock */
+	at91_periph_clk_enable(ATMEL_ID_LCDC);
 }
 
 #ifdef CONFIG_LCD_INFO
