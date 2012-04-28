@@ -39,64 +39,6 @@ static unsigned long at91_css_to_rate(unsigned long css)
 	return 0;
 }
 
-#ifdef CONFIG_USB_ATMEL
-static unsigned at91_pll_calc(unsigned main_freq, unsigned out_freq)
-{
-	unsigned i, div = 0, mul = 0, diff = 1 << 30;
-	unsigned ret = (out_freq > 155000000) ? 0xbe00 : 0x3e00;
-
-	/* PLL output max 240 MHz (or 180 MHz per errata) */
-	if (out_freq > 240000000)
-		goto fail;
-
-	for (i = 1; i < 256; i++) {
-		int diff1;
-		unsigned input, mul1;
-
-		/*
-		 * PLL input between 1MHz and 32MHz per spec, but lower
-		 * frequences seem necessary in some cases so allow 100K.
-		 * Warning: some newer products need 2MHz min.
-		 */
-		input = main_freq / i;
-#if defined(CONFIG_AT91SAM9G20)
-		if (input < 2000000)
-			continue;
-#endif
-		if (input < 100000)
-			continue;
-		if (input > 32000000)
-			continue;
-
-		mul1 = out_freq / input;
-#if defined(CONFIG_AT91SAM9G20)
-		if (mul > 63)
-			continue;
-#endif
-		if (mul1 > 2048)
-			continue;
-		if (mul1 < 2)
-			goto fail;
-
-		diff1 = out_freq - input * mul1;
-		if (diff1 < 0)
-			diff1 = -diff1;
-		if (diff > diff1) {
-			diff = diff1;
-			div = i;
-			mul = mul1;
-			if (diff == 0)
-				break;
-		}
-	}
-	if (i == 256 && diff > (out_freq >> 5))
-		goto fail;
-	return ret | ((mul - 1) << 16) | div;
-fail:
-	return 0;
-}
-#endif
-
 static u32 at91_pll_rate(u32 freq, u32 reg)
 {
 	unsigned mul, div;
@@ -137,39 +79,25 @@ int at91_clock_init(unsigned long main_clock)
 	/* report if PLLA is more than mildly overclocked */
 	gd->plla_rate_hz = at91_pll_rate(main_clock, readl(&pmc->pllar));
 
-#ifdef CONFIG_USB_ATMEL
-	/*
-	 * USB clock init:  choose 48 MHz PLLB value,
-	 * disable 48MHz clock during usb peripheral suspend.
-	 *
-	 * REVISIT:  assumes MCK doesn't derive from PLLB!
-	 */
-	gd->at91_pllb_usb_init = at91_pll_calc(main_clock, 48000000 * 2) |
-			     AT91_PMC_PLLBR_USBDIV_2;
-	gd->pllb_rate_hz = at91_pll_rate(main_clock, gd->at91_pllb_usb_init);
-#endif
-
 	/*
 	 * MCK and CPU derive from one of those primary clocks.
 	 * For now, assume this parentage won't change.
 	 */
 	mckr = readl(&pmc->mckr);
-#if defined(CONFIG_AT91SAMA5)
+
 	/* plla divisor by 2 */
 	gd->plla_rate_hz /= (1 << ((mckr & 1 << 12) >> 12));
-#endif
+
 	gd->mck_rate_hz = at91_css_to_rate(mckr & AT91_PMC_MCKR_CSS_MASK);
 	freq = gd->mck_rate_hz;
 
-	freq /= (1 << ((mckr & AT91_PMC_MCKR_PRES_MASK) >> 2));	/* prescale */
-#if defined(CONFIG_AT91SAMA5)
+	freq /= (1 << ((mckr & (AT91_PMC_MCKR_PRES_MASK << 2)) >> 4));	/* prescale */
+
 	gd->mck_rate_hz = (mckr & AT91_PMC_MCKR_MDIV_MASK) ==
 		(AT91_PMC_MCKR_MDIV_2 | AT91_PMC_MCKR_MDIV_4)
 		? freq / 3
 		: freq / (1 << ((mckr & AT91_PMC_MCKR_MDIV_MASK) >> 8));
-#else
-	gd->mck_rate_hz = freq / (1 << ((mckr & AT91_PMC_MCKR_MDIV_MASK) >> 8));
-#endif
+
 	gd->cpu_clk_rate_hz = freq;
 
 	return 0;
