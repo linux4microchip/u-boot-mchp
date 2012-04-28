@@ -109,7 +109,7 @@ void at91_periph_clk_enable(int id)
 
 	/* do we need sanity check for id ? */
 
-	if (id > 32)
+	if (id > 31)
 		writel(1 << (id - 32), &pmc->pcer1);
 	else
 		writel(1 << id, &pmc->pcer);
