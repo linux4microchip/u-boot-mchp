@@ -76,6 +76,7 @@ void at91sama5ek_nand_hw_init(void)
 #ifdef CONFIG_CMD_USB
 static void at91sama5ek_usb_hw_init(void)
 {
+	at91_set_pio_output(AT91_PIO_PORTD, 25, 0);
 	at91_set_pio_output(AT91_PIO_PORTD, 26, 0);
 	at91_set_pio_output(AT91_PIO_PORTD, 27, 0);
 }
