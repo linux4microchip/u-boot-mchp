@@ -3,7 +3,7 @@
  * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
  *
- * Configuation settings for the AT91SAM9M10G45EK board(and AT91SAM9G45EKES).
+ * Configuation settings for the AT91SAMA5EK board.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -42,11 +42,13 @@
 #undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff	*/
 
 #define CONFIG_CMDLINE_TAG		/* enable passing of ATAGs	*/
+/* TODO: whether it should be remove for DT support*/
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_INITRD_TAG
 #define CONFIG_SKIP_LOWLEVEL_INIT
 #define CONFIG_BOARD_EARLY_INIT_F
 #define CONFIG_DISPLAY_CPUINFO
+
 #define CONFIG_OF_LIBFDT		/* Device Tree support */
 
 /* general purpose I/O */
@@ -120,16 +122,8 @@
 #undef CONFIG_CMD_AUTOSCRIPT
 #undef CONFIG_CMD_LOADS
 
-
-#ifdef CONFIG_SYS_USE_NANDFLASH
-#define CONFIG_CMD_NAND
-#elif CONFIG_SYS_USE_SERIALFLASH
-#define CONFIG_CMD_SF
-#elif CONFIG_SYS_USE_MMC
-#define CONFIG_CMD_MMC
-#endif
-
-#define CONFIG_CMD_USB
+#define CONFIG_CMD_PING
+#define CONFIG_CMD_DHCP
 
 /* SDRAM */
 #define CONFIG_NR_DRAM_BANKS		1
@@ -140,6 +134,8 @@
 	(CONFIG_SYS_SDRAM_BASE + 4 * 1024 - GENERATED_GBL_DATA_SIZE)
 
 /* SerialFlash */
+#define CONFIG_CMD_SF
+
 #ifdef CONFIG_CMD_SF
 #define CONFIG_ATMEL_SPI
 #define CONFIG_SPI_FLASH                1
@@ -150,6 +146,8 @@
 #define CONFIG_SYS_NO_FLASH
 
 /* NAND flash */
+#define CONFIG_CMD_NAND
+
 #ifdef CONFIG_CMD_NAND
 #define CONFIG_NAND_MAX_CHIPS			1
 #define CONFIG_NAND_ATMEL
@@ -163,9 +161,6 @@
 #define CONFIG_SYS_NAND_ONFI_DETECTION		1
 #endif
 
-/* Ethernet u-boot */
-#define CONFIG_CMD_PING
-#define CONFIG_CMD_DHCP
 /* Ethernet Hardware */
 #define CONFIG_MACB
 #define CONFIG_RMII
@@ -176,18 +171,21 @@
 #define CONFIG_RESET_PHY_R
 #define CONFIG_MACB_SEARCH_PHY
 
-
 /* MMC */
+#define CONFIG_CMD_MMC
+
 #ifdef CONFIG_CMD_MMC
 #define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
 #define CONFIG_GENERIC_ATMEL_MCI
 #undef  CONFIG_ATMEL_MCI_8BIT
 #define ATMEL_BASE_MMCI			ATMEL_BASE_MCI0
-#define CONFIG_CMD_FAT
 #endif
 
 /* USB */
+#define CONFIG_CMD_USB
+
+#ifdef CONFIG_CMD_USB
 #define CONFIG_USB_ATMEL
 #define CONFIG_USB_OHCI_NEW
 #define CONFIG_DOS_PARTITION
@@ -196,6 +194,11 @@
 #define CONFIG_SYS_USB_OHCI_SLOT_NAME	"at91sama5"
 #define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	3
 #define CONFIG_USB_STORAGE
+#endif
+
+#if defined(CONFIG_CMD_USB) || defined (CONFIG_CMD_MMC)
+#define CONFIG_CMD_FAT
+#endif
 
 #define CONFIG_SYS_LOAD_ADDR		0x22000000	/* load address */
 
@@ -222,6 +225,7 @@
 #define CONFIG_BOOTCOMMAND	"nand read 0x22000000 0x100000 0x300000;" \
 				"bootm 0x22000000"
 #elif CONFIG_SYS_USE_MMC
+/* bootstrap + u-boot + env in sd card */
 #define CONFIG_ENV_IS_IN_MMC
 #define CONFIG_ENV_OFFSET		0x2000
 #define CONFIG_ENV_OFFSET_REDUND	0x4000
@@ -263,9 +267,9 @@
 /*
  * Size of malloc() pool
  */
-#define CONFIG_SYS_MALLOC_LEN		ROUND(3 * 128 * 1024 + 128*1024, 0x1000)
+#define CONFIG_SYS_MALLOC_LEN		(1024 * 1024)
 
-#define CONFIG_STACKSIZE	(32*1024)	/* regular stack */
+#define CONFIG_STACKSIZE		(32 * 1024)	/* regular stack */
 
 #ifdef CONFIG_USE_IRQ
 #error CONFIG_USE_IRQ not supported
