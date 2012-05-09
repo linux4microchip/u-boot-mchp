@@ -149,7 +149,6 @@
 #define ATMEL_BASE_PMC		0xfffffc00
 #define ATMEL_BASE_RSTC		0xfffffe00
 #define ATMEL_BASE_SHDWN	0xfffffe10
-//#define ATMEL_BASE_RTT		0xfffffd20
 #define ATMEL_BASE_PIT		0xfffffe30
 #define ATMEL_BASE_WDT		0xfffffe40
 #define ATMEL_BASE_SCKCR	0xfffffe50
@@ -194,5 +193,16 @@
 #define CONFIG_SYS_AT91_D35_CPU_NAME	"AT91SAMA5D35"
 #define CONFIG_SYS_AT91_UNKNOWN_CPU	"Unknown CPU type"
 
+/*
+ * AT91SAMA5 specific prototypes
+ */
+#ifndef __ASSEMBLY__
+unsigned int get_chip_id(void);
+unsigned int get_extension_chip_id(void);
+unsigned int has_emac(void);
+unsigned int has_gmac(void);
+unsigned int has_lcdc(void);
+char *get_cpu_name(void);
+#endif
 
 #endif
