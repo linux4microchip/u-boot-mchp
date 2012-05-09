@@ -50,6 +50,15 @@ typedef struct	at91_smc {
 #define AT91_SMC_CYCLE_NWE(x)		(x & 0x1ff)
 #define AT91_SMC_CYCLE_NRD(x)		((x & 0x1ff) << 16)
 
+#define AT91_SMC_TIMINGS_TCLR(x)	(x & 0xf)
+#define AT91_SMC_TIMINGS_TADL(x)	((x & 0xf) << 4)
+#define AT91_SMC_TIMINGS_TAR(x)		((x & 0xf) << 8)
+#define AT91_SMC_TIMINGS_OCMS(x)	((x & 0x1) << 12)
+#define AT91_SMC_TIMINGS_TRR(x)		((x & 0xf) << 16)
+#define AT91_SMC_TIMINGS_TWB(x)		((x & 0xf) << 24)
+#define AT91_SMC_TIMINGS_RBNSEL(x)	((x & 0xf) << 28)
+#define AT91_SMC_TIMINGS_NFSEL(x)	((x & 0x1) << 31)
+
 #define AT91_SMC_MODE_RM_NCS		0x00000000
 #define AT91_SMC_MODE_RM_NRD		0x00000001
 #define AT91_SMC_MODE_WM_NCS		0x00000000
