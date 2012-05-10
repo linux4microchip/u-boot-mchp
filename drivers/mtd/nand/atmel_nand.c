@@ -45,34 +45,34 @@
 
 /* Register access macros for PMECC */
 #define pmecc_readl(addr, reg) \
-	readl(AT91_BASE_SYS + (addr) + ATMEL_PMECC_##reg)
+	readl((addr) + ATMEL_PMECC_##reg)
 
 #define pmecc_writel(addr, reg, value) \
-	writel((value), AT91_BASE_SYS + (addr) + ATMEL_PMECC_##reg)
+	writel((value), (addr) + ATMEL_PMECC_##reg)
 
 #define pmecc_readb_ecc(addr, sector, n) \
-	readb(AT91_BASE_SYS + (addr) + ATMEL_PMECC_ECCx + \
+	readb((addr) + ATMEL_PMECC_ECCx + \
 			((sector) * 0x40) + (n))
 
 #define pmecc_readl_rem(addr, sector, n) \
-	readl(AT91_BASE_SYS + (addr) + ATMEL_PMECC_REMx + \
+	readl((addr) + ATMEL_PMECC_REMx + \
 			((sector) * 0x40) + (n))
 
 #define pmerrloc_readl(addr, reg) \
-	readl(AT91_BASE_SYS + (addr) + ATMEL_PMERRLOC_##reg)
+	readl((addr) + ATMEL_PMERRLOC_##reg)
 
 #define pmerrloc_writel(addr, reg, value) \
-	writel((value), AT91_BASE_SYS + (addr) + ATMEL_PMERRLOC_##reg)
+	writel((value), (addr) + ATMEL_PMERRLOC_##reg)
 
 #define pmerrloc_writel_sigma(addr, n, value) \
-	writel((value), AT91_BASE_SYS + (addr) + ATMEL_PMERRLOC_SIGMAx + \
+	writel((value), (addr) + ATMEL_PMERRLOC_SIGMAx + \
 			((n) * 4))
 
 #define pmerrloc_readl_sigma(addr, n) \
-	readl(AT91_BASE_SYS + (addr) + ATMEL_PMERRLOC_SIGMAx + ((n) * 4))
+	readl((addr) + ATMEL_PMERRLOC_SIGMAx + ((n) * 4))
 
 #define pmerrloc_readl_el(addr, n) \
-	readl(AT91_BASE_SYS + (addr) + ATMEL_PMERRLOC_ELx + ((n) * 4))
+	readl((addr) + ATMEL_PMERRLOC_ELx + ((n) * 4))
 
 #endif
 
@@ -297,7 +297,7 @@ static void atmel_nand_hwecc_init(struct nand_chip *nand)
 	mtd->priv = nand;
 
 	/* Detect NAND chips */
-	if (nand_scan_ident(mtd, 1)) {
+	if (nand_scan_ident(mtd, 1, NULL)) {
 		printk(KERN_WARNING "NAND Flash not found !\n");
 		return -ENXIO;
 	}
@@ -821,10 +821,12 @@ static short *pmecc_get_alpha_to(struct atmel_nand_host *host)
 {
 	short *p;
 	if (host->sector_size == 512) {
-		p = (short *)((u32)host->rom_base + 0x8000);
+		p = (short *)((u32)host->rom_base
+				+ ATMEL_PMECC_ALPHA_OFFSET_512);
 		return p + 0x2000;
 	} else {
-		p = (short *)((u32)host->rom_base + 0x10000);
+		p = (short *)((u32)host->rom_base
+				+ ATMEL_PMECC_ALPHA_OFFSET_1024);
 		return p + 0x4000;
 	}
 }
@@ -833,9 +835,11 @@ static short *pmecc_get_index_of(struct atmel_nand_host *host)
 {
 	short *p = (short *)host->rom_base;
 	if (host->sector_size == 512)
-		p = (short *)((u32)host->rom_base + 0x8000);
+		p = (short *)((u32)host->rom_base
+				+ ATMEL_PMECC_INDEX_OFFSET_512);
 	else
-		p = (short *)((u32)host->rom_base + 0x10000);
+		p = (short *)((u32)host->rom_base
+				+ ATMEL_PMECC_INDEX_OFFSET_1024);
 
 	return p;
 }
@@ -899,7 +903,9 @@ static int initialize_pmecc_core(struct mtd_info *mtd)
 	pmecc_writel(host->ecc, SADDR, ecc_layout->eccpos[0]);
 	pmecc_writel(host->ecc, EADDR,
 			ecc_layout->eccpos[ecc_layout->eccbytes - 1]);
+#if !defined(CONFIG_AT91SAMA5)
 	pmecc_writel(host->ecc, CLK, PMECC_CLK_133MHZ);
+#endif
 	pmecc_writel(host->ecc, IDR, 0xff);
 
 	val = pmecc_readl(host->ecc, CTRL);
@@ -928,7 +934,7 @@ static void atmel_nand_pmecc_init(struct nand_chip *nand)
 	host = nand->priv;
 
 	/* Detect NAND chips */
-	if (nand_scan_ident(mtd, 1)) {
+	if (nand_scan_ident(mtd, 1, NULL)) {
 		printk(KERN_WARNING "NAND Flash not found !\n");
 		return;
 	}
@@ -953,7 +959,7 @@ static void atmel_nand_pmecc_init(struct nand_chip *nand)
 			nand->ecc.layout = &atmel_oobinfo_2048;
 			host->ecc = (void *)CONFIG_SYS_NAND_PMECC_BASE;
 			host->pmerrloc_base = (void *)CONFIG_SYS_NAND_PMERRLOC_BASE;
-			host->rom_base = (void *)AT91SAM9X5_ROM_BASE;
+			host->rom_base = (void *)ATMEL_BASE_ROM;
 			host->mm = 13;
 			host->nn = (1 << host->mm) - 1;
 			host->tt = 2;
@@ -1006,9 +1012,10 @@ static void at91_nand_hwcontrol(struct mtd_info *mtd,
 			IO_ADDR_W |= CONFIG_SYS_NAND_MASK_CLE;
 		if (ctrl & NAND_ALE)
 			IO_ADDR_W |= CONFIG_SYS_NAND_MASK_ALE;
-
+#if !defined(CONFIG_AT91SAMA5)
 		at91_set_gpio_value(CONFIG_SYS_NAND_ENABLE_PIN,
 				    !(ctrl & NAND_NCE));
+#endif
 		this->IO_ADDR_W = (void *) IO_ADDR_W;
 	}
 
