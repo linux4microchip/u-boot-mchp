@@ -20,20 +20,20 @@
 
 #define AT91_ASM_PIO_RANGE	0x200
 #define AT91_ASM_PIOC_ASR	\
-	(AT91_PIO_BASE + AT91_PIO_PORTC * AT91_ASM_PIO_RANGE + 0x70)
+	(ATMEL_BASE_PIO + AT91_PIO_PORTC * AT91_ASM_PIO_RANGE + 0x70)
 #define AT91_ASM_PIOC_BSR	\
-	(AT91_PIO_BASE + AT91_PIO_PORTC * AT91_ASM_PIO_RANGE + 0x74)
+	(ATMEL_BASE_PIO + AT91_PIO_PORTC * AT91_ASM_PIO_RANGE + 0x74)
 #define AT91_ASM_PIOC_PDR	\
-	(AT91_PIO_BASE + AT91_PIO_PORTC * AT91_ASM_PIO_RANGE + 0x04)
+	(ATMEL_BASE_PIO + AT91_PIO_PORTC * AT91_ASM_PIO_RANGE + 0x04)
 #define AT91_ASM_PIOC_PUDR	\
-	(AT91_PIO_BASE + AT91_PIO_PORTC * AT91_ASM_PIO_RANGE + 0x60)
+	(ATMEL_BASE_PIO + AT91_PIO_PORTC * AT91_ASM_PIO_RANGE + 0x60)
 
 #define AT91_ASM_PIOD_PDR	\
-	(AT91_PIO_BASE + AT91_PIO_PORTD * AT91_ASM_PIO_RANGE + 0x04)
+	(ATMEL_BASE_PIO + AT91_PIO_PORTD * AT91_ASM_PIO_RANGE + 0x04)
 #define AT91_ASM_PIOD_PUDR	\
-	(AT91_PIO_BASE + AT91_PIO_PORTD * AT91_ASM_PIO_RANGE + 0x60)
+	(ATMEL_BASE_PIO + AT91_PIO_PORTD * AT91_ASM_PIO_RANGE + 0x60)
 #define AT91_ASM_PIOD_ASR	\
-	(AT91_PIO_BASE + AT91_PIO_PORTD * AT91_ASM_PIO_RANGE + 0x70)
+	(ATMEL_BASE_PIO + AT91_PIO_PORTD * AT91_ASM_PIO_RANGE + 0x70)
 
 #ifndef __ASSEMBLY__
 
@@ -66,7 +66,7 @@ typedef struct at91_port {
 	u32	puer;		/* 0x64 Pull-up Enable Register */
 	u32	pusr;		/* 0x68 Pad Pull-up Status Register */
 	u32	reserved4;
-#if defined(CONFIG_AT91SAM9X5) || defined(CONFIG_AT91SAMA5)
+#if defined(CPU_HAS_PIO3)
 	u32 abcdsr1;	/* 0x70 Peripheral ABCD Select Register 1 */
 	u32 abcdsr2;	/* 0x74 Peripheral ABCD Select Register 2 */
 #else
@@ -74,7 +74,7 @@ typedef struct at91_port {
 	u32	bsr;		/* 0x74 Select B Register */
 #endif
 	u32	absr;		/* 0x78 AB Select Status Register */
-#if defined(CONFIG_AT91SAM9X5) || defined(CONFIG_AT91SAMA5)
+#if defined(CPU_HAS_PIO3)
 	u32 reserved5;
 	u32 ifscdr;	/* 0x80 Input Filter Slow Clock Disable Register */
 	u32 ifscer;	/* 0x84 Input Filter Slow Clock Enable Register */
@@ -90,7 +90,7 @@ typedef struct at91_port {
 	u32	ower;		/* 0xA0 Output Write Enable Register */
 	u32	owdr;		/* 0xA4 Output Write Disable Register */
 	u32	owsr;		/* OxA8 Output Write Status Register */
-#if defined(CONFIG_AT91SAM9X5) || defined(CONFIG_AT91SAMA5)
+#if defined(CPU_HAS_PIO3)
 	u32 reserved7;	/*  */
 	u32 aimer;	/* 0xB0 Additional Interrupt Modes Enable Register */
 	u32 aimdr;	/* 0xB4 Additional Interrupt Modes Disable Register */
@@ -111,40 +111,19 @@ typedef struct at91_port {
 #endif
 } at91_port_t;
 
-#define		PIO_SCDR_DIV	(0x3fff <<  0)	/* Slow Clock Divider Mask */
-
-#if defined(CONFIG_AT91SAM9260) || defined(CONFIG_AT91SAM9261) || \
-	defined(CONFIG_AT91SAM9G10) || defined(CONFIG_AT91SAM9G20)
-#define AT91_PIO_PORTS	3
-#elif defined(CONFIG_AT91SAM9263) || defined(CONFIG_AT91SAM9G45) || \
-	defined(CONFIG_AT91SAM9M10G45)
-#define AT91_PIO_PORTS	5
-#elif defined(CONFIG_AT91RM9200) || defined(CONFIG_AT91CAP9) || \
-	defined(CONFIG_AT91SAM9RL)
-#define AT91_PIO_PORTS	4
-#elif defined(CONFIG_AT91SAM9X5)
-#define AT91_PIO_PORTS	4
-#define CPU_HAS_PIO3	1
-#elif defined(CONFIG_AT91SAMA5)
-#define AT91_PIO_PORTS	5
-#define CPU_HAS_PIO3	1
-#else
-#error "Unsupported cpu. Please update at91_pio.h"
-#endif
-
 typedef union at91_pio {
 	struct {
 		at91_port_t	pioa;
 		at91_port_t	piob;
 		at91_port_t	pioc;
-	#if (AT91_PIO_PORTS > 3)
+	#if (ATMEL_PIO_PORTS > 3)
 		at91_port_t	piod;
 	#endif
-	#if (AT91_PIO_PORTS > 4)
+	#if (ATMEL_PIO_PORTS > 4)
 		at91_port_t	pioe;
 	#endif
 	} ;
-	at91_port_t port[AT91_PIO_PORTS];
+	at91_port_t port[ATMEL_PIO_PORTS];
 } at91_pio_t;
 
 #ifdef CONFIG_AT91_GPIO
@@ -200,9 +179,9 @@ int at91_get_pio_value(unsigned port, unsigned pin);
 #define PIO_PUER	0x64	/* Pull-up Enable Register */
 #define PIO_PUSR	0x68	/* Pull-up Status Register */
 #define PIO_ASR		0x70	/* Peripheral A Select Register */
-#define PIO_ABCDSR1	0x70	/* Peripheral ABCD Select Register 1[sam9x5] */
+#define PIO_ABCDSR1	0x70	/* Peripheral ABCD Select Register 1 */
 #define PIO_BSR		0x74	/* Peripheral B Select Register */
-#define PIO_ABCDSR2	0x74	/* Peripheral ABCD Select Register 2[sam9x5] */
+#define PIO_ABCDSR2	0x74	/* Peripheral ABCD Select Register 2 */
 #define PIO_ABSR	0x78	/* AB Status Register */
 #define PIO_IFSCDR	0x80	/* Input Filter Slow Clock Disable Register */
 #define PIO_IFSCER	0x84	/* Input Filter Slow Clock Enable Register */
