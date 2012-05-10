@@ -180,7 +180,9 @@ int at91_get_pio_value(unsigned port, unsigned pin);
 #define PIO_PUER	0x64	/* Pull-up Enable Register */
 #define PIO_PUSR	0x68	/* Pull-up Status Register */
 #define PIO_ASR		0x70	/* Peripheral A Select Register */
+#define PIO_ABCDSR1	0x70	/* Peripheral ABCD Select Register 1 */
 #define PIO_BSR		0x74	/* Peripheral B Select Register */
+#define PIO_ABCDSR2	0x74	/* Peripheral ABCD Select Register 2 */
 #define PIO_ABSR	0x78	/* AB Status Register */
 #define PIO_OWER	0xa0	/* Output Write Enable Register */
 #define PIO_OWDR	0xa4	/* Output Write Disable Register */

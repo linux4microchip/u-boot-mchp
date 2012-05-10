@@ -184,7 +184,8 @@
 /*
  * Other misc defines
  */
-#define AT91_PIO_BASE		ATMEL_BASE_PIOA
+#define ATMEL_PIO_PORTS		5
+#define CPU_HAS_PIO3
 
 /*
  * PMECC table in ROM
