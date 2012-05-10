@@ -33,10 +33,10 @@
 
 int at91_set_pio_pullup(unsigned port, unsigned pin, int use_pullup)
 {
-	at91_pio_t	*pio 	= (at91_pio_t *) AT91_PIO_BASE;
+	at91_pio_t	*pio 	= (at91_pio_t *) ATMEL_BASE_PIO;
 	u32		mask;
 
-	if ((port < AT91_PIO_PORTS) && (pin < 32)) {
+	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
 		mask = 1 << pin;
 		if (use_pullup)
 			writel(1 << pin, &pio->port[port].puer);
@@ -52,10 +52,10 @@ int at91_set_pio_pullup(unsigned port, unsigned pin, int use_pullup)
  */
 int at91_set_pio_periph(unsigned port, unsigned pin, int use_pullup)
 {
-	at91_pio_t	*pio 	= (at91_pio_t *) AT91_PIO_BASE;
+	at91_pio_t	*pio 	= (at91_pio_t *) ATMEL_BASE_PIO;
 	u32		mask;
 
-	if ((port < AT91_PIO_PORTS) && (pin < 32)) {
+	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
 		mask = 1 << pin;
 		writel(mask, &pio->port[port].idr);
 		at91_set_pio_pullup(port, pin, use_pullup);
@@ -69,10 +69,10 @@ int at91_set_pio_periph(unsigned port, unsigned pin, int use_pullup)
  */
 int at91_set_a_periph(unsigned port, unsigned pin, int use_pullup)
 {
-	at91_pio_t	*pio 	= (at91_pio_t *) AT91_PIO_BASE;
+	at91_pio_t	*pio 	= (at91_pio_t *) ATMEL_BASE_PIO;
 	u32		mask;
 
-	if ((port < AT91_PIO_PORTS) && (pin < 32)) {
+	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
 		mask = 1 << pin;
 		writel(mask, &pio->port[port].idr);
 		at91_set_pio_pullup(port, pin, use_pullup);
@@ -94,10 +94,10 @@ int at91_set_a_periph(unsigned port, unsigned pin, int use_pullup)
  */
 int at91_set_b_periph(unsigned port, unsigned pin, int use_pullup)
 {
-	at91_pio_t	*pio 	= (at91_pio_t *) AT91_PIO_BASE;
+	at91_pio_t	*pio 	= (at91_pio_t *) ATMEL_BASE_PIO;
 	u32		mask;
 
-	if ((port < AT91_PIO_PORTS) && (pin < 32)) {
+	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
 		mask = 1 << pin;
 		writel(mask, &pio->port[port].idr);
 		at91_set_pio_pullup(port, pin, use_pullup);
@@ -120,10 +120,10 @@ int at91_set_b_periph(unsigned port, unsigned pin, int use_pullup)
  */
 int at91_set_c_periph(unsigned port, unsigned pin, int use_pullup)
 {
-	at91_pio_t	*pio	= (at91_pio_t *) AT91_PIO_BASE;
+	at91_pio_t	*pio	= (at91_pio_t *) ATMEL_BASE_PIO;
 	u32		mask;
 
-	if ((port < AT91_PIO_PORTS) && (pin < 32)) {
+	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
 		mask = 1 << pin;
 		writel(mask, &pio->port[port].idr);
 		at91_set_pio_pullup(port, pin, use_pullup);
@@ -141,10 +141,10 @@ int at91_set_c_periph(unsigned port, unsigned pin, int use_pullup)
  */
 int at91_set_d_periph(unsigned port, unsigned pin, int use_pullup)
 {
-	at91_pio_t	*pio	= (at91_pio_t *) AT91_PIO_BASE;
+	at91_pio_t	*pio	= (at91_pio_t *) ATMEL_BASE_PIO;
 	u32		mask;
 
-	if ((port < AT91_PIO_PORTS) && (pin < 32)) {
+	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
 		mask = 1 << pin;
 		writel(mask, &pio->port[port].idr);
 		at91_set_pio_pullup(port, pin, use_pullup);
@@ -164,10 +164,10 @@ int at91_set_d_periph(unsigned port, unsigned pin, int use_pullup)
  */
 int at91_set_pio_input(unsigned port, u32 pin, int use_pullup)
 {
-	at91_pio_t	*pio 	= (at91_pio_t *) AT91_PIO_BASE;
+	at91_pio_t	*pio 	= (at91_pio_t *) ATMEL_BASE_PIO;
 	u32		mask;
 
-	if ((port < AT91_PIO_PORTS) && (pin < 32)) {
+	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
 		mask = 1 << pin;
 		writel(mask, &pio->port[port].idr);
 		at91_set_pio_pullup(port, pin, use_pullup);
@@ -183,10 +183,10 @@ int at91_set_pio_input(unsigned port, u32 pin, int use_pullup)
  */
 int at91_set_pio_output(unsigned port, u32 pin, int value)
 {
-	at91_pio_t	*pio 	= (at91_pio_t *) AT91_PIO_BASE;
+	at91_pio_t	*pio 	= (at91_pio_t *) ATMEL_BASE_PIO;
 	u32		mask;
 
-	if ((port < AT91_PIO_PORTS) && (pin < 32)) {
+	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
 		mask = 1 << pin;
 		writel(mask, &pio->port[port].idr);
 		writel(mask, &pio->port[port].pudr);
@@ -205,10 +205,10 @@ int at91_set_pio_output(unsigned port, u32 pin, int value)
  */
 int at91_set_pio_deglitch(unsigned port, unsigned pin, int is_on)
 {
-	at91_pio_t	*pio 	= (at91_pio_t *) AT91_PIO_BASE;
+	at91_pio_t	*pio 	= (at91_pio_t *) ATMEL_BASE_PIO;
 	u32		mask;
 
-	if ((port < AT91_PIO_PORTS) && (pin < 32)) {
+	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
 		mask = 1 << pin;
 		if (is_on) {
 #if defined(CPU_HAS_PIO3)
@@ -227,10 +227,10 @@ int at91_set_pio_deglitch(unsigned port, unsigned pin, int is_on)
  */
 int at91_set_pio_debounce(unsigned port, unsigned pin, int is_on, int div)
 {
-	at91_pio_t	*pio	= (at91_pio_t *) AT91_PIO_BASE;
+	at91_pio_t	*pio	= (at91_pio_t *) ATMEL_BASE_PIO;
 	u32		mask;
 
-	if ((port < AT91_PIO_PORTS) && (pin < 32)) {
+	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
 		mask = 1 << pin;
 		if (is_on) {
 			writel(mask, &pio->port[port].ifscer);
@@ -248,10 +248,10 @@ int at91_set_pio_debounce(unsigned port, unsigned pin, int is_on, int div)
  */
 int at91_set_pio_pulldown(unsigned port, unsigned pin, int is_on)
 {
-	at91_pio_t	*pio	= (at91_pio_t *) AT91_PIO_BASE;
+	at91_pio_t	*pio	= (at91_pio_t *) ATMEL_BASE_PIO;
 	u32		mask;
 
-	if ((port < AT91_PIO_PORTS) && (pin < 32)) {
+	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
 		mask = 1 << pin;
 		writel(mask, &pio->port[port].pudr);
 		if (is_on)
@@ -267,10 +267,10 @@ int at91_set_pio_pulldown(unsigned port, unsigned pin, int is_on)
  */
 int at91_set_pio_disable_schmitt_trig(unsigned port, unsigned pin)
 {
-	at91_pio_t	*pio	= (at91_pio_t *) AT91_PIO_BASE;
+	at91_pio_t	*pio	= (at91_pio_t *) ATMEL_BASE_PIO;
 	u32		mask;
 
-	if ((port < AT91_PIO_PORTS) && (pin < 32)) {
+	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
 		mask = 1 << pin;
 		writel(readl(&pio->port[port].schmitt) | mask,
 			&pio->port[port].schmitt);
@@ -285,10 +285,10 @@ int at91_set_pio_disable_schmitt_trig(unsigned port, unsigned pin)
  */
 int at91_set_pio_multi_drive(unsigned port, unsigned pin, int is_on)
 {
-	at91_pio_t	*pio	= (at91_pio_t *) AT91_PIO_BASE;
+	at91_pio_t	*pio	= (at91_pio_t *) ATMEL_BASE_PIO;
 	u32		mask;
 
-	if ((port < AT91_PIO_PORTS) && (pin < 32)) {
+	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
 		mask = 1 << pin;
 		if (is_on)
 			writel(mask, &pio->port[port].mder);
@@ -303,10 +303,10 @@ int at91_set_pio_multi_drive(unsigned port, unsigned pin, int is_on)
  */
 int at91_set_pio_value(unsigned port, unsigned pin, int value)
 {
-	at91_pio_t	*pio	= (at91_pio_t *) AT91_PIO_BASE;
+	at91_pio_t	*pio	= (at91_pio_t *) ATMEL_BASE_PIO;
 	u32		mask;
 
-	if ((port < AT91_PIO_PORTS) && (pin < 32)) {
+	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
 		mask = 1 << pin;
 		if (value)
 			writel(mask, &pio->port[port].sodr);
@@ -322,10 +322,10 @@ int at91_set_pio_value(unsigned port, unsigned pin, int value)
 int at91_get_pio_value(unsigned port, unsigned pin)
 {
 	u32		pdsr	= 0;
-	at91_pio_t	*pio 	= (at91_pio_t *) AT91_PIO_BASE;
+	at91_pio_t	*pio 	= (at91_pio_t *) ATMEL_BASE_PIO;
 	u32		mask;
 
-	if ((port < AT91_PIO_PORTS) && (pin < 32)) {
+	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
 		mask = 1 << pin;
 		pdsr = readl(&pio->port[port].pdsr) & mask;
 	}
