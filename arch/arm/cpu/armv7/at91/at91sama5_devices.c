@@ -223,7 +223,7 @@ void at91_gmacb_hw_init(void)
 	at91_set_a_periph(AT91_PIO_PORTB, 18, 0);	/* G125CK */
 
 	/* Enable clock */
-	at91_periph_clk_enable(ATMEL_ID_EMAC);
+	at91_periph_clk_enable(ATMEL_ID_GMAC);
 }
 #endif
 
