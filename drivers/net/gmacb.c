@@ -405,7 +405,6 @@ static int macb_phy_init(struct macb_device *macb)
 	if (!(status & BMSR_LSTATUS)) {
 		/* Try to re-negotiate if we don't have link already. */
 		macb_phy_reset(macb);
-		printf(">>>>reset phy\n");
 		for (i = 0; i < CONFIG_SYS_MACB_AUTONEG_TIMEOUT / 100; i++) {
 			status = macb_mdio_read(macb, MII_BMSR);
 			if (status & BMSR_LSTATUS)
@@ -419,7 +418,7 @@ static int macb_phy_init(struct macb_device *macb)
 		       netdev->name, status);
 		return 0;
 	} else {
-		// Judge whether work in 1000Base-T mode
+		/* Judge whether work in 1000Base-T mode */
 		adv = macb_mdio_read(macb, MII_STAT1000);
 		lpa = macb_mdio_read(macb, MII_CTRL1000);
 		if (adv & (1 << 11)) {
@@ -445,7 +444,7 @@ static int macb_phy_init(struct macb_device *macb)
 				ncfgr |= MACB_BIT(FD);
 			macb_writel(macb, NCFGR, ncfgr);
 		} else {
-			// Judge whether work in 100Base-T mode
+			/* Judge whether work in 100Base-T mode */
 			adv = macb_mdio_read(macb, MII_ADVERTISE);
 			lpa = macb_mdio_read(macb, MII_LPA);
 			media = mii_nway_result(lpa & adv);
