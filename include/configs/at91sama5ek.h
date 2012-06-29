@@ -267,14 +267,11 @@
 #define CONFIG_CMDLINE_EDITING
 #define CONFIG_AUTO_COMPLETE
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 /*
  * Size of malloc() pool
  */
 #define CONFIG_SYS_MALLOC_LEN		(1024 * 1024)
-
-#define CONFIG_STACKSIZE		(32 * 1024)	/* regular stack */
 
 #ifdef CONFIG_USE_IRQ
 #error CONFIG_USE_IRQ not supported
