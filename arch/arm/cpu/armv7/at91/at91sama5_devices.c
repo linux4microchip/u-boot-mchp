@@ -212,12 +212,10 @@ void at91_gmacb_hw_init(void)
 	at91_set_a_periph(AT91_PIO_PORTB, 7, 0);	/* GRX3 */
 	at91_set_a_periph(AT91_PIO_PORTB, 8, 0);	/* GTXCK */
 	at91_set_a_periph(AT91_PIO_PORTB, 9, 0);	/* GTXEN */
-	at91_set_a_periph(AT91_PIO_PORTB, 10, 0);	/* GTXER */
+
 	at91_set_a_periph(AT91_PIO_PORTB, 11, 0);	/* GRXCK */
-	at91_set_a_periph(AT91_PIO_PORTB, 12, 0);	/* GRXDV */
 	at91_set_a_periph(AT91_PIO_PORTB, 13, 0);	/* GRXER */
-	at91_set_a_periph(AT91_PIO_PORTB, 14, 0);	/* GCRS */
-	at91_set_a_periph(AT91_PIO_PORTB, 15, 0);	/* GCOL */
+
 	at91_set_a_periph(AT91_PIO_PORTB, 16, 0);	/* GMDC */
 	at91_set_a_periph(AT91_PIO_PORTB, 17, 0);	/* GMDIO */
 	at91_set_a_periph(AT91_PIO_PORTB, 18, 0);	/* G125CK */
