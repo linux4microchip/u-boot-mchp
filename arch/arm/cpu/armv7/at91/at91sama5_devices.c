@@ -162,16 +162,18 @@ void at91_spi0_hw_init(unsigned long cs_mask)
 #ifdef CONFIG_GENERIC_ATMEL_MCI
 void at91_mci_hw_init(void)
 {
-	at91_set_a_periph(AT91_PIO_PORTD, 0, 1);	/* MCI0 CMD */
-	at91_set_a_periph(AT91_PIO_PORTD, 1, 1);	/* MCI0 DA0 */
-	at91_set_a_periph(AT91_PIO_PORTD, 2, 1);	/* MCI0 DA1 */
-	at91_set_a_periph(AT91_PIO_PORTD, 3, 1);        /* MCI0 DA2 */
-	at91_set_a_periph(AT91_PIO_PORTD, 4, 1);        /* MCI0 DA3 */
+	at91_set_pio_output(AT91_PIO_PORTB, 10, 0);	/* MCI0 Power */
+
+	at91_set_a_periph(AT91_PIO_PORTD, 0, 0);	/* MCI0 CMD */
+	at91_set_a_periph(AT91_PIO_PORTD, 1, 0);	/* MCI0 DA0 */
+	at91_set_a_periph(AT91_PIO_PORTD, 2, 0);	/* MCI0 DA1 */
+	at91_set_a_periph(AT91_PIO_PORTD, 3, 0);        /* MCI0 DA2 */
+	at91_set_a_periph(AT91_PIO_PORTD, 4, 0);        /* MCI0 DA3 */
 #ifdef CONFIG_ATMEL_MCI_8BIT
-	at91_set_a_periph(AT91_PIO_PORTD, 5, 1);        /* MCI0 DA4 */
-	at91_set_a_periph(AT91_PIO_PORTD, 6, 1);        /* MCI0 DA5 */
-	at91_set_a_periph(AT91_PIO_PORTD, 7, 1);        /* MCI0 DA6 */
-	at91_set_a_periph(AT91_PIO_PORTD, 8, 1);        /* MCI0 DA7 */
+	at91_set_a_periph(AT91_PIO_PORTD, 5, 0);        /* MCI0 DA4 */
+	at91_set_a_periph(AT91_PIO_PORTD, 6, 0);        /* MCI0 DA5 */
+	at91_set_a_periph(AT91_PIO_PORTD, 7, 0);        /* MCI0 DA6 */
+	at91_set_a_periph(AT91_PIO_PORTD, 8, 0);        /* MCI0 DA7 */
 #endif
 	at91_set_a_periph(AT91_PIO_PORTD, 9, 0);        /* MCI0 CLK */
 
