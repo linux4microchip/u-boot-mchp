@@ -155,7 +155,7 @@ void lcd_show_board_info(void)
 	char temp[32];
 
 	lcd_printf ("%s\n", U_BOOT_VERSION);
-	lcd_printf ("(C) 2008 ATMEL Corp\n");
+	lcd_printf ("(C) 2012 ATMEL Corp\n");
 	lcd_printf ("at91support@atmel.com\n");
 	lcd_printf ("%s CPU at %s MHz\n",
 		get_cpu_name(),
