@@ -249,10 +249,8 @@
 #else
 #define CONFIG_BOOTARGS							\
 	"console=ttyS0,115200 earlyprintk "				\
-	"root=/dev/mtdblock2 "						\
-	"mtdparts=atmel_nand:1M(boot)ro,"				\
-	"3M@1M(linux),-(root) "						\
-	"rw rootfstype=jffs2"
+	"mtdparts=atmel_nand:8M(bootstrap/uboot/kernel)ro,-(rootfs)"	\
+	"rw rootfstype=ubifs ubi.mtd=1 root=ubi0:rootfs"
 #endif
 
 #define CONFIG_BAUDRATE			115200
