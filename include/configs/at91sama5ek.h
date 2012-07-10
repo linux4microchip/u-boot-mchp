@@ -41,10 +41,9 @@
 #define CONFIG_ARCH_CPU_INIT
 #undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff	*/
 
-#define CONFIG_CMDLINE_TAG		/* enable passing of ATAGs	*/
-/* TODO: whether it should be remove for DT support*/
-#define CONFIG_SETUP_MEMORY_TAGS
-#define CONFIG_INITRD_TAG
+#undef CONFIG_CMDLINE_TAG		/* enable passing of ATAGs	*/
+#undef CONFIG_SETUP_MEMORY_TAGS
+#undef CONFIG_INITRD_TAG
 #define CONFIG_SKIP_LOWLEVEL_INIT
 #define CONFIG_BOARD_EARLY_INIT_F
 #define CONFIG_DISPLAY_CPUINFO
