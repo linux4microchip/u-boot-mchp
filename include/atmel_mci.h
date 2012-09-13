@@ -118,6 +118,11 @@ typedef struct atmel_mci {
 #define MMCI_TRTYP_OFFSET			19
 #define MMCI_TRTYP_SIZE				2
 
+/* Bitfields in BLKR */
+/* MMCI_BLKLEN_OFFSET/SIZE already defined in MR */
+#define MMCI_BCNT_OFFSET			0
+#define MMCI_BCNT_SIZE			16
+
 /* Bitfields in RSPRx */
 #define MMCI_RSP_OFFSET				0
 #define MMCI_RSP_SIZE				32
