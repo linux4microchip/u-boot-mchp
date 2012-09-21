@@ -165,7 +165,7 @@ void lcd_show_board_info(void)
 	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++)
 		dram_size += gd->bd->bi_dram[i].size;
 	nand_size = 0;
-#ifdef CONFIG_SYS_USE_NANDFLASH
+#ifdef CONFIG_CMD_NAND
 	for (i = 0; i < CONFIG_SYS_MAX_NAND_DEVICE; i++)
 		nand_size += nand_info[i].size;
 #endif
