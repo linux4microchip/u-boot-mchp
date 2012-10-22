@@ -987,6 +987,7 @@ extern unsigned int __machine_arch_type;
 #define MACH_TYPE_VIT_IBOX             3371
 #define MACH_TYPE_DM6441_ESP           3372
 #define MACH_TYPE_AT91SAM9X5EK         3373
+#define MACH_TYPE_AT91SAMA5EK          3373
 #define MACH_TYPE_LIBRA                3374
 #define MACH_TYPE_EASYCRRH             3375
 #define MACH_TYPE_TRIPEL               3376

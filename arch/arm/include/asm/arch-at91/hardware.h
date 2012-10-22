@@ -39,6 +39,8 @@
 # include <asm/arch/at91sam9g45.h>
 #elif defined(CONFIG_AT91SAM9X5)
 # include <asm/arch/at91sam9x5.h>
+#elif defined(CONFIG_AT91SAMA5)
+# include <asm/arch/at91sama5.h>
 #elif defined(CONFIG_AT91CAP9)
 # include <asm/arch/at91cap9.h>
 #elif defined(CONFIG_AT91X40)
