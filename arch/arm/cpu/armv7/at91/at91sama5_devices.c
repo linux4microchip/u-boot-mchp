@@ -45,19 +45,6 @@
 # define PUP 0
 #endif
 
-#define CIDR	0x40
-#define EXID	0x44
-
-unsigned int get_chip_id(void)
-{
-	return readl(ATMEL_BASE_DBGU + CIDR) & ~ARCH_ID_VERSION_MASK;
-}
-
-unsigned int get_extension_chip_id(void)
-{
-	return readl(ATMEL_BASE_DBGU + EXID);
-}
-
 unsigned int has_emac()
 {
 	return cpu_is_at91sama5d31() || cpu_is_at91sama5d35();

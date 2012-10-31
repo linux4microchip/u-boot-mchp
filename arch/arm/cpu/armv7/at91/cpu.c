@@ -26,6 +26,7 @@
 #include <common.h>
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
+#include <asm/arch/at91_dbu.h>
 #include <asm/arch/at91_pmc.h>
 #include <asm/arch/at91_pit.h>
 #include <asm/arch/at91_gpbr.h>
@@ -97,3 +98,13 @@ ulong bootcount_load (void)
 }
 
 #endif /* CONFIG_BOOTCOUNT_LIMIT */
+
+unsigned int get_chip_id(void)
+{
+	return readl(ATMEL_BASE_DBGU + AT91_DBU_CIDR) & ~AT91_DBU_CIDR_VERSION;
+}
+
+unsigned int get_extension_chip_id(void)
+{
+	return readl(ATMEL_BASE_DBGU + AT91_DBU_EXID);
+}
