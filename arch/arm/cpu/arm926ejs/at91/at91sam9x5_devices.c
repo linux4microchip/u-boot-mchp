@@ -26,18 +26,6 @@
 #include <asm/arch/gpio.h>
 #include <asm/io.h>
 
-unsigned int get_chip_id(void)
-{
-	/* The 0x40 is the offset of cidr in DBGU */
-	return readl(ATMEL_BASE_DBGU + 0x40) & ~ARCH_ID_VERSION_MASK;
-}
-
-unsigned int get_extension_chip_id(void)
-{
-	/* The 0x44 is the offset of exid in DBGU */
-	return readl(ATMEL_BASE_DBGU + 0x44);
-}
-
 unsigned int has_emac1()
 {
 	return cpu_is_at91sam9x25();
