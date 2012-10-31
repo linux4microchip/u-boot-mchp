@@ -50,7 +50,7 @@
 
 unsigned int get_chip_id(void)
 {
-	return readl(ATMEL_BASE_DBGU + CIDR);
+	return readl(ATMEL_BASE_DBGU + CIDR) & ~ARCH_ID_VERSION_MASK;
 }
 
 unsigned int get_extension_chip_id(void)
