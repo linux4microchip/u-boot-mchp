@@ -168,8 +168,7 @@
 #define CONFIG_BOOTCOMMAND	"nand read " \
 				"0x22000000 0x200000 0x300000; " \
 				"bootm 0x22000000"
-#else
-#ifdef CONFIG_SYS_USE_SPIFLASH
+#elif defined(CONFIG_SYS_USE_SPIFLASH)
 /* bootstrap + u-boot + env + linux in spi flash */
 #define CONFIG_ENV_IS_IN_SPI_FLASH
 #define CONFIG_ENV_OFFSET	0x5000
@@ -179,15 +178,31 @@
 #define CONFIG_BOOTCOMMAND	"sf probe 0; " \
 				"sf read 0x22000000 0x100000 0x300000; " \
 				"bootm 0x22000000"
-#endif
+#else /* CONFIG_SYS_USE_MMC */
+/* bootstrap + u-boot + env + linux in mmc */
+#define CONFIG_ENV_IS_IN_MMC
+/* For FAT system, most cases it should be in the reserved sector */
+#define CONFIG_ENV_OFFSET	0x2000
+#define CONFIG_ENV_SIZE		0x1000
+#define CONFIG_SYS_MMC_ENV_DEV	0
 #endif
 
+#ifdef CONFIG_SYS_USE_MMC
+#define CONFIG_BOOTARGS							\
+	"console=ttyS0,115200 earlyprintk "				\
+	"mtdparts=atmel_nand:256k(bootstrap)ro,512k(uboot)ro,"		\
+	"256k(env),256k(env_redundant),256k(spare),"			\
+	"512k(dtb),6M(kernel)ro,-(rootfs) "				\
+	"root=/dev/mmcblk0p2 "						\
+	"rw rootfstype=ext4 rootwait"
+#else
 #define CONFIG_BOOTARGS							\
 	"console=ttyS0,115200 earlyprintk "				\
 	"mtdparts=atmel_nand:256k(bootstrap)ro,512k(uboot)ro,"		\
 	"256k(env),256k(env_redundant),256k(spare),"			\
 	"512k(dtb),6M(kernel)ro,-(rootfs) "				\
 	"rootfstype=ubifs ubi.mtd=7 root=ubi0:rootfs rw"
+#endif
 
 #define CONFIG_BAUDRATE		115200
 
