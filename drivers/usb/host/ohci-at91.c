@@ -41,8 +41,8 @@ int usb_cpu_init(void)
 	writel(get_pllb_init(), &pmc->pllbr);
 	while ((readl(&pmc->sr) & AT91_PMC_LOCKB) != AT91_PMC_LOCKB)
 		;
-#elif defined(CONFIG_AT91SAM9G45) || defined(CONFIG_AT91SAM9M10G45) \
-	|| defined(CONFIG_SAMA5D3)
+#elif defined(CONFIG_AT91SAM9G45) || defined(CONFIG_AT91SAM9M10G45) || \
+	defined(CONFIG_AT91SAM9X5) || defined(CONFIG_SAMA5D3)
 	/* Enable UPLL */
 	writel(readl(&pmc->uckr) | AT91_PMC_UPLLEN | AT91_PMC_BIASEN,
 		&pmc->uckr);
@@ -91,7 +91,8 @@ int usb_cpu_stop(void)
 	writel(0, &pmc->pllbr);
 	while ((readl(&pmc->sr) & AT91_PMC_LOCKB) != 0)
 		;
-#elif defined(CONFIG_AT91SAM9G45) || defined(CONFIG_AT91SAM9M10G45)
+#elif defined(CONFIG_AT91SAM9G45) || defined(CONFIG_AT91SAM9M10G45) || \
+	defined(CONFIG_AT91SAM9X5)
 	/* Disable UPLL */
 	writel(readl(&pmc->uckr) & (~AT91_PMC_UPLLEN), &pmc->uckr);
 	while ((readl(&pmc->sr) & AT91_PMC_LOCKU) == AT91_PMC_LOCKU)
