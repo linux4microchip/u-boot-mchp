@@ -675,6 +675,44 @@ static void atmel_pmecc_core_init(struct mtd_info *mtd)
 	pmecc_writel(host->pmecc, ctrl, PMECC_CTRL_ENABLE);
 }
 
+static int pmecc_choose_ecc_bits(int pre_ecc_bits, struct nand_chip *nand_chip)
+{
+	int ecc_bits = pre_ecc_bits;
+
+	if (nand_chip->onfi_version) {
+		printk(KERN_WARNING "ONFI params, minimum required ECC: %d\n",
+				nand_chip->onfi_params.ecc_bits);
+		if (nand_chip->onfi_params.ecc_bits < ecc_bits)
+			ecc_bits = nand_chip->onfi_params.ecc_bits;
+	} else {
+		/* For non-ONFI support nand flash, we assume the software
+		 * ecc can work. That means the ecc_bits = 1.
+		 */
+		ecc_bits = 1;
+		printk(KERN_WARNING "non-ONFI supported nand flash, assume minimum required ECC: 1\n");
+	}
+
+	if ((ecc_bits != 2) && (ecc_bits != 4) && (ecc_bits != 8) && (ecc_bits != 12) &&
+	    (ecc_bits != 24)) {
+		/* use the most fitable ecc bits (the near bigger one ) */
+		if (ecc_bits < 2)
+			return 2;
+		else if (ecc_bits < 4)
+			return 4;
+		else if (ecc_bits < 8)
+			return 8;
+		else if (ecc_bits < 12)
+			return 12;
+		else if (ecc_bits < 24)
+			return 24;
+		else
+			/* not support by our pmecc hw */
+			return pre_ecc_bits;
+	} else {
+		return ecc_bits;
+	}
+}
+
 static int atmel_pmecc_nand_init_params(struct nand_chip *nand,
 		struct mtd_info *mtd)
 {
@@ -688,7 +726,10 @@ static int atmel_pmecc_nand_init_params(struct nand_chip *nand,
 	nand->ecc.correct = NULL;
 	nand->ecc.hwctl = NULL;
 
-	cap = host->pmecc_corr_cap = CONFIG_PMECC_CAP;
+	/* Choose PMECC ecc bits according to ONFI parameters */
+	host->pmecc_corr_cap = pmecc_choose_ecc_bits(CONFIG_PMECC_CAP, nand);
+	cap = host->pmecc_corr_cap;
+
 	sector_size = host->pmecc_sector_size = CONFIG_PMECC_SECTOR_SIZE;
 	host->pmecc_index_table_offset = CONFIG_PMECC_INDEX_TABLE_OFFSET;
 
