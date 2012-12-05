@@ -675,6 +675,7 @@ static void atmel_pmecc_core_init(struct mtd_info *mtd)
 	pmecc_writel(host->pmecc, ctrl, PMECC_CTRL_ENABLE);
 }
 
+#ifdef CONFIG_SYS_NAND_ONFI_DETECTION
 static int pmecc_choose_ecc_bits(int pre_ecc_bits, struct nand_chip *nand_chip)
 {
 	int ecc_bits = pre_ecc_bits;
@@ -712,6 +713,7 @@ static int pmecc_choose_ecc_bits(int pre_ecc_bits, struct nand_chip *nand_chip)
 		return ecc_bits;
 	}
 }
+#endif
 
 static int atmel_pmecc_nand_init_params(struct nand_chip *nand,
 		struct mtd_info *mtd)
@@ -726,9 +728,13 @@ static int atmel_pmecc_nand_init_params(struct nand_chip *nand,
 	nand->ecc.correct = NULL;
 	nand->ecc.hwctl = NULL;
 
+#ifdef CONFIG_SYS_NAND_ONFI_DETECTION
 	/* Choose PMECC ecc bits according to ONFI parameters */
 	host->pmecc_corr_cap = pmecc_choose_ecc_bits(CONFIG_PMECC_CAP, nand);
 	cap = host->pmecc_corr_cap;
+#else
+	cap = host->pmecc_corr_cap = CONFIG_PMECC_CAP;
+#endif
 
 	sector_size = host->pmecc_sector_size = CONFIG_PMECC_SECTOR_SIZE;
 	host->pmecc_index_table_offset = CONFIG_PMECC_INDEX_TABLE_OFFSET;
