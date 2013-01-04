@@ -49,6 +49,7 @@
 #define CONFIG_DISPLAY_CPUINFO
 
 #define CONFIG_OF_LIBFDT		/* Device Tree support */
+#define CONFIG_OF_BOARD_SETUP
 
 /* general purpose I/O */
 #define CONFIG_ATMEL_LEGACY		/* required until (g)pio is fixed */
