@@ -328,10 +328,10 @@ char get_mb_rev_code(int gpbr_reg)
 
 void ft_board_setup(void *blob, bd_t *bd)
 {
-	int off, off_isi, err;
+	int off, off_pinctrl, err;
 	char mb_rev_code[2];
 	char pinctrl_isi_pck_as_mck[PINCTRL_CELL_SIZE];
-	char pinctrl_isi_camera[2 * PINCTRL_CELL_SIZE];
+	char pinctrl_isi_reset[PINCTRL_CELL_SIZE];
 
 	printf("Device tree update:\n");
 
@@ -340,27 +340,27 @@ void ft_board_setup(void *blob, bd_t *bd)
 	mb_rev_code[1] = '\0';
 	err = fdt_setprop(blob, 0, "atmel,mb-rev", mb_rev_code, 2);
 	if (err < 0) {
-		printf("error %d while setting atmel,mb-rev property\n", err);
+		printf("  error %d while setting atmel,mb-rev property\n", err);
 		return;
 	}
 	printf("  mb-rev property set to %s\n", mb_rev_code);
 
 	/* update ISI pinctrl */
 	if (mb_rev_code[0] == 'B') {
-		off = fdt_node_offset_by_compatible(blob, -1, "atmel,at91sam9x5-pinctrl");
-		if (off < 0) {
-			printf("error %d while looking for pinctrl node\n", off);
+		off_pinctrl = fdt_node_offset_by_compatible(blob, -1, "atmel,at91sam9x5-pinctrl");
+		if (off_pinctrl < 0) {
+			printf("  error %d while looking for pinctrl node\n", off_pinctrl);
 			return;
 		}
-		off_isi = fdt_subnode_offset(blob, off, "isi");
+		off = fdt_subnode_offset(blob, off_pinctrl, "isi");
 		if (off < 0) {
-			printf("error %d while looking for pinctrl isi subnode\n", off);
+			printf("  error %d while looking for pinctrl isi subnode\n", off);
 			return;
 		}
 		/* ISI_MCK */
-		off = fdt_subnode_offset(blob, off_isi, "isi_pck_as_mck-0");
+		off = fdt_subnode_offset(blob, off, "isi_pck_as_mck-0");
 		if (off < 0) {
-			printf("error %d while looking for pinctrl isi_pck_as_mck-0 node\n", off);
+			printf("  error %d while looking for pinctrl isi_pck_as_mck-0 node\n", off);
 			return;
 		}
 		memset(pinctrl_isi_pck_as_mck, 0, sizeof(pinctrl_isi_pck_as_mck));
@@ -369,25 +369,27 @@ void ft_board_setup(void *blob, bd_t *bd)
 		pinctrl_isi_pck_as_mck[PINCTRL_PIO_PERIPH] = 2;	/* periph B */
 		err = fdt_setprop_inplace(blob, off, "atmel,pins", pinctrl_isi_pck_as_mck, sizeof(pinctrl_isi_pck_as_mck));
 		if (err < 0) {
-			printf("error %d while updating isi_pck_as_mck-0 node\n", err);
+			printf("  error %d while updating isi_pck_as_mck-0 node\n", err);
 			return;
 		}
 		/* ZB_SLPTR and ZB_RSTN */
-		off = fdt_subnode_offset(blob, off_isi, "isi_camera-0");
+		off = fdt_subnode_offset(blob, off_pinctrl, "board");
 		if (off < 0) {
-			printf("error %d while looking for pinctrl isi_camera-0 node\n", off);
+			printf("  error %d while looking for pinctrl board subnode\n", off);
 			return;
 		}
-		memset(pinctrl_isi_camera, 0, sizeof(pinctrl_isi_camera));
-		pinctrl_isi_camera[PINCTRL_PIO_CTRL] = 4;	/* pio E */
-		pinctrl_isi_camera[PINCTRL_PIO_NUM] = 28;	/* 28 */
-		pinctrl_isi_camera[PINCTRL_PIO_PERIPH] = 0;	/* gpio */
-		pinctrl_isi_camera[PINCTRL_CELL_SIZE + PINCTRL_PIO_CTRL] = 4;	/* pio E */
-		pinctrl_isi_camera[PINCTRL_CELL_SIZE + PINCTRL_PIO_NUM] = 29;	/* 29 */
-		pinctrl_isi_camera[PINCTRL_CELL_SIZE + PINCTRL_PIO_PERIPH] = 0;	/* gpio */
-		err = fdt_setprop_inplace(blob, off, "atmel,pins", pinctrl_isi_camera, sizeof(pinctrl_isi_camera));
+		off = fdt_subnode_offset(blob, off, "isi_reset-0");
+		if (off < 0) {
+			printf("  error %d while looking for pinctrl isi_reset-0 node\n", off);
+			return;
+		}
+		memset(pinctrl_isi_reset, 0, sizeof(pinctrl_isi_reset));
+		pinctrl_isi_reset[PINCTRL_PIO_CTRL] = 4;	/* pio E */
+		pinctrl_isi_reset[PINCTRL_PIO_NUM] = 28;	/* 28 */
+		pinctrl_isi_reset[PINCTRL_PIO_PERIPH] = 0;	/* gpio */
+		err = fdt_setprop_inplace(blob, off, "atmel,pins", pinctrl_isi_reset, sizeof(pinctrl_isi_reset));
 		if (err < 0) {
-			printf("error %d while updating isi_camera-0 node\n", err);
+			printf("  error %d while updating isi_reset-0 node\n", err);
 			return;
 		}
 		printf("  pinctrl for isi on mb rev B successfully updated\n");
