@@ -191,11 +191,6 @@ int board_init(void)
 	/* Enable Ctrlc */
 	console_init_f();
 
-	/* arch number of AT91SAMA5EK-Board */
-#if defined CONFIG_AT91SAMA5EK
-	gd->bd->bi_arch_number = MACH_TYPE_AT91SAMA5EK;
-#endif
-
 	/* adress of boot parameters */
 	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
 
