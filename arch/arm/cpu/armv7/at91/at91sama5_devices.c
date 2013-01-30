@@ -1,7 +1,5 @@
 /*
- * (C) Copyright 2007-2008
- * Stelian Pop <stelian@popies.net>
- * Lead Tech Design <www.leadtechdesign.com>
+ * Copyright (C) 2012-2013 Atmel Corporation
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -92,8 +90,8 @@ void at91_serial0_hw_init(void)
 
 void at91_serial1_hw_init(void)
 {
-	at91_set_a_periph(AT91_PIO_PORTB, 28, 0);		/* TXD1 */
-	at91_set_a_periph(AT91_PIO_PORTB, 29, PUP);		/* RXD1 */
+	at91_set_a_periph(AT91_PIO_PORTB, 28, 0);	/* TXD1 */
+	at91_set_a_periph(AT91_PIO_PORTB, 29, PUP);	/* RXD1 */
 
 	/* Enable clock */
 	at91_periph_clk_enable(ATMEL_ID_USART1);
@@ -101,8 +99,8 @@ void at91_serial1_hw_init(void)
 
 void at91_serial2_hw_init(void)
 {
-	at91_set_b_periph(AT91_PIO_PORTE, 26, 1);		/* TXD2 */
-	at91_set_b_periph(AT91_PIO_PORTE, 25, PUP);		/* RXD2 */
+	at91_set_b_periph(AT91_PIO_PORTE, 26, 1);	/* TXD2 */
+	at91_set_b_periph(AT91_PIO_PORTE, 25, PUP);	/* RXD2 */
 
 	/* Enable clock */
 	at91_periph_clk_enable(ATMEL_ID_USART2);

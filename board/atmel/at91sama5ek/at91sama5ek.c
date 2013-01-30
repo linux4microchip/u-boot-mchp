@@ -1,7 +1,5 @@
 /*
- * (C) Copyright 2007-2008
- * Stelian Pop <stelian@popies.net>
- * Lead Tech Design <www.leadtechdesign.com>
+ * Copyright (C) 2012 - 2013 Atmel Corporation
  *
  * See file CREDITS for list of people who contributed to this
  * project.

@@ -1,9 +1,11 @@
 /*
- * (C) Copyright 2007-2008
+ * Configuation settings for the AT91SAMA5EK board.
+ *
+ * Copyright (C) 2012 - 2013 Atmel
+ *
+ * based on at91sam9m10g45ek.h by:
  * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
- *
- * Configuation settings for the AT91SAMA5EK board.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -71,12 +73,12 @@
  * This needs to be defined for the OHCI code to work but it is defined as
  * ATMEL_ID_UHPHS in the CPU specific header files.
  */
-#define ATMEL_ID_UHP		ATMEL_ID_UHPHS
+#define ATMEL_ID_UHP			ATMEL_ID_UHPHS
 
 /*
  * Specify the clock enable bit in the PMC_SCER register.
  */
- #define ATMEL_PMC_UHP		AT91SAM926x_PMC_UHP
+#define ATMEL_PMC_UHP			AT91SAM926x_PMC_UHP
 
 /* LCD */
 #define CONFIG_LCD
@@ -92,16 +94,9 @@
 #define CONFIG_SYS_CONSOLE_IS_IN_ENV
 
 /* board specific(not enough SRAM) */
-#define CONFIG_AT91SAMA5_LCD_BASE		0x23E00000
+#define CONFIG_AT91SAMA5_LCD_BASE	0x23E00000
 
-/* LED */
-#if 0
-#define CONFIG_AT91_LED
-#define	CONFIG_RED_LED		AT91_PIN_PE24	/* this is the user1 led */
-#define	CONFIG_GREEN_LED	AT91_PIN_PE25	/* this is the user2 led */
-#endif
-
-#define CONFIG_BOOTDELAY	3
+#define CONFIG_BOOTDELAY		3
 
 /*
  * BOOTP options
@@ -138,8 +133,8 @@
 
 #ifdef CONFIG_CMD_SF
 #define CONFIG_ATMEL_SPI
-#define CONFIG_SPI_FLASH                1
-#define CONFIG_SPI_FLASH_ATMEL          1
+#define CONFIG_SPI_FLASH
+#define CONFIG_SPI_FLASH_ATMEL
 #endif
 
 /* No NOR flash */
@@ -149,23 +144,22 @@
 #define CONFIG_CMD_NAND
 
 #ifdef CONFIG_CMD_NAND
-#define CONFIG_NAND_MAX_CHIPS			1
+#define CONFIG_NAND_MAX_CHIPS		1
 #define CONFIG_NAND_ATMEL
-#define CONFIG_SYS_MAX_NAND_DEVICE		1
-#define CONFIG_SYS_NAND_BASE			ATMEL_BASE_CS3
+#define CONFIG_SYS_MAX_NAND_DEVICE	1
+#define CONFIG_SYS_NAND_BASE		ATMEL_BASE_CS3
 #define CONFIG_SYS_NAND_DBW_8
 /* our ALE is AD21 */
-#define CONFIG_SYS_NAND_MASK_ALE		(1 << 21)
+#define CONFIG_SYS_NAND_MASK_ALE	(1 << 21)
 /* our CLE is AD22 */
-#define CONFIG_SYS_NAND_MASK_CLE		(1 << 22)
-#define CONFIG_SYS_NAND_ONFI_DETECTION		1
+#define CONFIG_SYS_NAND_MASK_CLE	(1 << 22)
+#define CONFIG_SYS_NAND_ONFI_DETECTION
 /* PMECC & PMERRLOC */
 #define CONFIG_ATMEL_NAND_HWECC
 #define CONFIG_ATMEL_NAND_HW_PMECC
-#define CONFIG_PMECC_CAP			4
-#define CONFIG_PMECC_SECTOR_SIZE		512
-#define CONFIG_PMECC_INDEX_TABLE_OFFSET		ATMEL_PMECC_INDEX_OFFSET_512
-
+#define CONFIG_PMECC_CAP		4
+#define CONFIG_PMECC_SECTOR_SIZE	512
+#define CONFIG_PMECC_INDEX_TABLE_OFFSET	ATMEL_PMECC_INDEX_OFFSET_512
 #define CONFIG_CMD_NAND_TRIMFFS
 #endif
 
@@ -186,7 +180,6 @@
 #define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
 #define CONFIG_GENERIC_ATMEL_MCI
-#undef  CONFIG_ATMEL_MCI_8BIT
 #define ATMEL_BASE_MMCI			ATMEL_BASE_MCI0
 #endif
 
@@ -198,8 +191,8 @@
 #define CONFIG_USB_OHCI_NEW
 #define CONFIG_DOS_PARTITION
 #define CONFIG_SYS_USB_OHCI_CPU_INIT
-#define CONFIG_SYS_USB_OHCI_REGS_BASE	ATMEL_BASE_OHCI
-#define CONFIG_SYS_USB_OHCI_SLOT_NAME	"at91sama5"
+#define CONFIG_SYS_USB_OHCI_REGS_BASE		ATMEL_BASE_OHCI
+#define CONFIG_SYS_USB_OHCI_SLOT_NAME		"at91sama5"
 #define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	3
 #define CONFIG_USB_STORAGE
 #endif
@@ -208,10 +201,10 @@
 #define CONFIG_CMD_FAT
 #endif
 
-#define CONFIG_SYS_LOAD_ADDR		0x22000000	/* load address */
+#define CONFIG_SYS_LOAD_ADDR			0x22000000	/* load address */
 
-#define CONFIG_SYS_MEMTEST_START	CONFIG_SYS_SDRAM_BASE
-#define CONFIG_SYS_MEMTEST_END		0x23e00000
+#define CONFIG_SYS_MEMTEST_START		CONFIG_SYS_SDRAM_BASE
+#define CONFIG_SYS_MEMTEST_END			0x23e00000
 
 #ifdef CONFIG_SYS_USE_SERIALFLASH
 /* bootstrap + u-boot + env + linux in serial flash */
