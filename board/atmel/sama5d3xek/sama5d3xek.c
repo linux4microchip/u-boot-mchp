@@ -137,7 +137,7 @@ void lcd_disable(void)
 
 static void at91sama5ek_lcd_hw_init(void)
 {
-	gd->fb_base = CONFIG_AT91SAMA5_LCD_BASE;
+	gd->fb_base = CONFIG_SAMA5D3_LCD_BASE;
 
 	at91_lcd_hw_init();
 }
@@ -302,7 +302,7 @@ void spi_cs_deactivate(struct spi_slave *slave)
 #define PINCTRL_PIO_CONF	15
 
 /*
- * SAMA5 GPBR3 content:
+ * SAMA5D3 GPBR3 content:
  * bit 0-4: cpu module revision code
  * bit 5-9: display module revision code
  * bit 10-14: motherboard revision code
