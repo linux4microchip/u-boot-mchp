@@ -505,7 +505,7 @@ static int macb_init(struct eth_device *netdev, bd_t *bd)
 
 	/* choose RMII or MII mode. This depends on the board */
 #ifdef CONFIG_RGMII
-#if defined(CONFIG_AT91SAMA5)
+#if defined(CONFIG_SAMA5D3)
 	macb_writel(macb, UR, MACB_BIT(RGMII));
 #else
 	macb_writel(macb, UR, 0);

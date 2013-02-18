@@ -2,7 +2,7 @@
  * Copyright (C) 2012 Atmel Corporation.
  *
  * Static Memory Controllers (SMC) - System peripherals registers.
- * Based on AT91SAMA5 datasheet.
+ * Based on SAMA5D3 datasheet.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -10,8 +10,8 @@
  * (at your option) any later version.
  */
 
-#ifndef AT91SAMA5_SMC_H
-#define AT91SAMA5_SMC_H
+#ifndef SAMA5D3_SMC_H
+#define SAMA5D3_SMC_H
 
 #ifdef __ASSEMBLY__
 

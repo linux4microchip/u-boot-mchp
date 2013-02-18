@@ -83,7 +83,7 @@ static void mci_set_mode(struct mmc *mmc, u32 hz, u32 blklen)
 
 	blklen &= 0xfffc;
 	/* On some platforms RDPROOF and WRPROOF are ignored */
-#ifdef CONFIG_AT91SAMA5
+#ifdef CONFIG_SAMA5D3
 	writel((MMCI_BF(CLKDIV, clkdiv)
 		 | MMCI_BIT(RDPROOF)
 		 | MMCI_BIT(WRPROOF)), &mci->mr);

@@ -1,10 +1,10 @@
 /*
- * Chip-specific header file for the AT91SAMA5 family
+ * Chip-specific header file for the SAMA5D3 family
  *
  * (C) 2012 Atmel Corporation.
  *
  * Definitions for the SoC:
- * AT91SAMA5
+ * SAMA5D3
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -12,8 +12,8 @@
  * (at your option) any later version.
  */
 
-#ifndef AT91SAMA5_H
-#define AT91SAMA5_H
+#ifndef SAMA5D3_H
+#define SAMA5D3_H
 
 /*
  * defines to be used in other places
@@ -205,7 +205,7 @@
 #define CONFIG_SYS_AT91_UNKNOWN_CPU	"Unknown CPU type"
 
 /*
- * AT91SAMA5 specific prototypes
+ * SAMA5D3 specific prototypes
  */
 #ifndef __ASSEMBLY__
 unsigned int get_chip_id(void);

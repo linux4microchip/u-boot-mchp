@@ -25,7 +25,7 @@ include $(TOPDIR)/config.mk
 
 LIB	= $(obj)lib$(SOC).o
 
-COBJS-$(CONFIG_AT91SAMA5)	+= at91sama5_devices.o
+COBJS-$(CONFIG_SAMA5D3)	+= sama5d3_devices.o
 COBJS-y += clock.o
 COBJS-y += cpu.o
 COBJS-y	+= reset.o

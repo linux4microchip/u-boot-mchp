@@ -21,7 +21,7 @@
  */
 
 #include <common.h>
-#include <asm/arch/at91sama5.h>
+#include <asm/arch/sama5d3.h>
 #include <asm/arch/at91_common.h>
 #include <asm/arch/at91_pmc.h>
 #include <asm/arch/clk.h>

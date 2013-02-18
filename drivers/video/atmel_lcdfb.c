@@ -28,7 +28,7 @@
 #include <asm/arch/clk.h>
 #include <lcd.h>
 #include <atmel_lcdc.h>
-#if defined(CONFIG_AT91SAM9X5) || defined(CONFIG_AT91SAMA5)
+#if defined(CONFIG_AT91SAM9X5) || defined(CONFIG_SAMA5D3)
 #include <atmel_9x5_lcdc.h>
 #endif
 
@@ -69,7 +69,7 @@ void lcd_setcolreg(ushort regno, ushort red, ushort green, ushort blue)
 #endif
 }
 
-#if defined(CONFIG_AT91SAM9X5) || defined(CONFIG_AT91SAMA5)
+#if defined(CONFIG_AT91SAM9X5) || defined(CONFIG_SAMA5D3)
 void lcd_9x5_ctrl_init(void *lcdbase)
 {
 	unsigned long value;
@@ -246,7 +246,7 @@ void lcd_ctrl_init(void *lcdbase)
 {
 	unsigned long value;
 
-#if defined(CONFIG_AT91SAM9X5) || defined(CONFIG_AT91SAMA5)
+#if defined(CONFIG_AT91SAM9X5) || defined(CONFIG_SAMA5D3)
 	return lcd_9x5_ctrl_init(lcdbase);
 #endif
 
