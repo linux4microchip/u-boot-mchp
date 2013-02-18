@@ -45,32 +45,32 @@
 
 unsigned int has_emac()
 {
-	return cpu_is_at91sama5d31() || cpu_is_at91sama5d35();
+	return cpu_is_sama5d31() || cpu_is_sama5d35();
 }
 
 unsigned int has_gmac()
 {
-	return !cpu_is_at91sama5d31();
+	return !cpu_is_sama5d31();
 }
 
 unsigned int has_lcdc()
 {
-	return !cpu_is_at91sama5d35();
+	return !cpu_is_sama5d35();
 }
 
 char *get_cpu_name()
 {
 	unsigned int extension_id = get_extension_chip_id();
 
-	if (cpu_is_at91sama5())
+	if (cpu_is_sama5d3())
 		switch (extension_id) {
-		case ARCH_EXID_AT91SAMA5D31:
+		case ARCH_EXID_SAMA5D31:
 			return CONFIG_SYS_AT91_D31_CPU_NAME;
-		case ARCH_EXID_AT91SAMA5D33:
+		case ARCH_EXID_SAMA5D33:
 			return CONFIG_SYS_AT91_D33_CPU_NAME;
-		case ARCH_EXID_AT91SAMA5D34:
+		case ARCH_EXID_SAMA5D34:
 			return CONFIG_SYS_AT91_D34_CPU_NAME;
-		case ARCH_EXID_AT91SAMA5D35:
+		case ARCH_EXID_SAMA5D35:
 			return CONFIG_SYS_AT91_D35_CPU_NAME;
 		default:
 			return CONFIG_SYS_AT91_UNKNOWN_CPU;
