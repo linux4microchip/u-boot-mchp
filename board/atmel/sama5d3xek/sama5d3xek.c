@@ -44,7 +44,7 @@ DECLARE_GLOBAL_DATA_PTR;
  */
 
 #ifdef CONFIG_CMD_NAND
-void at91sama5ek_nand_hw_init(void)
+void sama5d3xek_nand_hw_init(void)
 {
 	struct at91_smc *smc = (struct at91_smc *)ATMEL_BASE_SMC;
 
@@ -76,7 +76,7 @@ void at91sama5ek_nand_hw_init(void)
 #endif
 
 #ifdef CONFIG_CMD_USB
-static void at91sama5ek_usb_hw_init(void)
+static void sama5d3xek_usb_hw_init(void)
 {
 	at91_set_pio_output(AT91_PIO_PORTD, 25, 0);
 	at91_set_pio_output(AT91_PIO_PORTD, 26, 0);
@@ -85,21 +85,21 @@ static void at91sama5ek_usb_hw_init(void)
 #endif
 
 #ifdef CONFIG_GENERIC_ATMEL_MCI
-static void at91sama5ek_mci_hw_init(void)
+static void sama5d3xek_mci_hw_init(void)
 {
 	at91_mci_hw_init();
 }
 #endif
 
 #ifdef CONFIG_MACB
-static void at91sama5ek_macb_hw_init(void)
+static void sama5d3xek_macb_hw_init(void)
 {
 	at91_macb_hw_init();
 }
 #endif
 
 #ifdef CONFIG_GMACB
-static void at91sama5ek_gmacb_hw_init(void)
+static void sama5d3xek_gmacb_hw_init(void)
 {
 	at91_gmacb_hw_init();
 }
@@ -135,7 +135,7 @@ void lcd_disable(void)
 	at91_set_a_periph(AT91_PIO_PORTA, 29, 0);	/* power down */
 }
 
-static void at91sama5ek_lcd_hw_init(void)
+static void sama5d3xek_lcd_hw_init(void)
 {
 	gd->fb_base = CONFIG_SAMA5D3_LCD_BASE;
 
@@ -193,13 +193,13 @@ int board_init(void)
 	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
 
 #ifdef CONFIG_CMD_NAND
-	at91sama5ek_nand_hw_init();
+	sama5d3xek_nand_hw_init();
 #endif
 #ifdef CONFIG_CMD_USB
-	at91sama5ek_usb_hw_init();
+	sama5d3xek_usb_hw_init();
 #endif
 #ifdef CONFIG_GENERIC_ATMEL_MCI
-	at91sama5ek_mci_hw_init();
+	sama5d3xek_mci_hw_init();
 #endif
 #ifdef CONFIG_SYS_USE_DATAFLASH
 	at91_spi0_hw_init(1 << 0);
@@ -209,15 +209,15 @@ int board_init(void)
 #endif
 #ifdef CONFIG_MACB
 	if(has_emac())
-		at91sama5ek_macb_hw_init();
+		sama5d3xek_macb_hw_init();
 #endif
 #ifdef CONFIG_GMACB
 	if (has_gmac())
-		at91sama5ek_gmacb_hw_init();
+		sama5d3xek_gmacb_hw_init();
 #endif
 #ifdef CONFIG_LCD
 	if (has_lcdc())
-		at91sama5ek_lcd_hw_init();
+		sama5d3xek_lcd_hw_init();
 #endif
 	return 0;
 }
