@@ -38,7 +38,6 @@
 #define CONFIG_SYS_AT91_MAIN_CLOCK      12000000 /* from 12 MHz crystal */
 #define CONFIG_SYS_HZ		        1000
 
-#define CONFIG_SAMA5D3XEK
 #define CONFIG_AT91FAMILY
 #define CONFIG_ARCH_CPU_INIT
 #undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff	*/
