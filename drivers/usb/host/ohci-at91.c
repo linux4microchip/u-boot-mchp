@@ -74,7 +74,11 @@ int usb_cpu_stop(void)
 	at91_pmc_t *pmc	= (at91_pmc_t *)ATMEL_BASE_PMC;
 
 	/* Disable USB host clock. */
+#if defined(CONFIG_SAMA5D3)
+	writel(1 << (ATMEL_ID_UHP - 32), &pmc->pcdr1);
+#else
 	writel(1 << ATMEL_ID_UHP, &pmc->pcdr);
+#endif
 #ifdef CONFIG_AT91SAM9261
 	writel(ATMEL_PMC_UHP | AT91_PMC_HCK0, &pmc->scdr);
 #else
