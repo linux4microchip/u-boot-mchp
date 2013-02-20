@@ -31,6 +31,7 @@
 #include <asm/arch/clk.h>
 #include <lcd.h>
 #include <atmel_lcdc.h>
+#include <atmel_mci.h>
 #if defined(CONFIG_RESET_PHY_R) && defined(CONFIG_MACB)
 #include <net.h>
 #endif
