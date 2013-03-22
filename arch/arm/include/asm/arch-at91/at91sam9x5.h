@@ -155,6 +155,12 @@
 #define PIO_SCDR_DIV            (0x3fff <<  0)  /* Slow Clock Divider Mask */
 
 /*
+ * PMECC table in ROM
+ */
+#define ATMEL_PMECC_INDEX_OFFSET_512	0x8000
+#define ATMEL_PMECC_INDEX_OFFSET_1024	0x10000
+
+/*
  * at91sam9x5 specific prototypes
  */
 #ifndef __ASSEMBLY__
