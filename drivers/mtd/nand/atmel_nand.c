@@ -676,42 +676,84 @@ static void atmel_pmecc_core_init(struct mtd_info *mtd)
 }
 
 #ifdef CONFIG_SYS_NAND_ONFI_DETECTION
-static int pmecc_choose_ecc_bits(int pre_ecc_bits, struct nand_chip *nand_chip)
+/*
+ * Get ECC requirement in ONFI parameters, returns -1 if ONFI
+ * parameters is not supported.
+ * return 0 if success to get the ECC requirement.
+ */
+static int get_onfi_ecc_param(struct nand_chip *chip,
+		int *ecc_bits, int *sector_size)
 {
-	int ecc_bits = pre_ecc_bits;
+	*ecc_bits = *sector_size = 0;
 
-	if (nand_chip->onfi_version) {
-		printk(KERN_WARNING "ONFI params, minimum required ECC: %d\n",
-				nand_chip->onfi_params.ecc_bits);
-		if (nand_chip->onfi_params.ecc_bits < ecc_bits)
-			ecc_bits = nand_chip->onfi_params.ecc_bits;
-	} else {
-		/* For non-ONFI support nand flash, we assume the software
-		 * ecc can work. That means the ecc_bits = 1.
+	if (chip->onfi_params.ecc_bits == 0xff)
+		/* TODO: the sector_size and ecc_bits need to be find in
+		 * extended ecc parameter, currently we don't support it.
 		 */
-		ecc_bits = 1;
-		printk(KERN_WARNING "non-ONFI supported nand flash, assume minimum required ECC: 1\n");
+		return -1;
+
+	*ecc_bits = chip->onfi_params.ecc_bits;
+
+	/* The default sector size (ecc codeword size) is 512 */
+	*sector_size = 512;
+
+	return 0;
+}
+
+/*
+ * Get ecc requirement from ONFI parameters ecc requirement.
+ * If pmecc-cap, pmecc-sector-size are not specified in board head file, this
+ * function will set them according to ONFI ecc requirement. Otherwise, use the
+ * value defined in head file.
+ * return 0 if success. otherwise return error code.
+ */
+static int pmecc_choose_ecc(struct atmel_nand_host *host,
+		struct nand_chip *chip,
+		int *cap, int *sector_size)
+{
+	/* Get ECC requirement from ONFI parameters */
+	*cap = *sector_size = 0;
+	if (chip->onfi_version) {
+		if (!get_onfi_ecc_param(chip, cap, sector_size))
+			MTDDEBUG(MTD_DEBUG_LEVEL1, "ONFI params, minimum required ECC: %d bits in %d bytes\n",
+				*cap, *sector_size);
+		else
+			printk(KERN_WARNING "NAND chip ECC reqirement is in Extended ONFI parameter, we don't support yet.\n");
+	} else {
+		printk(KERN_WARNING "NAND chip is not ONFI compliant, assume ecc_bits is 2 in 512 bytes");
+	}
+	if (*cap == 0 && *sector_size == 0) {
+		/* Non-ONFI compliant or use extended ONFI parameters */
+		*cap = 2;
+		*sector_size = 512;
 	}
 
-	if ((ecc_bits != 2) && (ecc_bits != 4) && (ecc_bits != 8) && (ecc_bits != 12) &&
-	    (ecc_bits != 24)) {
+	/* If head file doesn't specify then use the one in ONFI parameters */
+	if (host->pmecc_corr_cap == 0) {
 		/* use the most fitable ecc bits (the near bigger one ) */
-		if (ecc_bits < 2)
-			return 2;
-		else if (ecc_bits < 4)
-			return 4;
-		else if (ecc_bits < 8)
-			return 8;
-		else if (ecc_bits < 12)
-			return 12;
-		else if (ecc_bits < 24)
-			return 24;
+		if (*cap <= 2)
+			host->pmecc_corr_cap = 2;
+		else if (*cap <= 4)
+			host->pmecc_corr_cap = 4;
+		else if (*cap < 8)
+			host->pmecc_corr_cap = 8;
+		else if (*cap < 12)
+			host->pmecc_corr_cap = 12;
+		else if (*cap < 24)
+			host->pmecc_corr_cap = 24;
 		else
-			/* not support by our pmecc hw */
-			return pre_ecc_bits;
-	} else {
-		return ecc_bits;
+			return -EINVAL;
 	}
+	if (host->pmecc_sector_size == 0) {
+		/* use the most fitable sector size (the near smaller one ) */
+		if (*sector_size >= 1024)
+			host->pmecc_sector_size = 1024;
+		else if (*sector_size >= 512)
+			host->pmecc_sector_size = 512;
+		else
+			return -EINVAL;
+	}
+	return 0;
 }
 #endif
 
@@ -729,14 +771,35 @@ static int atmel_pmecc_nand_init_params(struct nand_chip *nand,
 	nand->ecc.hwctl = NULL;
 
 #ifdef CONFIG_SYS_NAND_ONFI_DETECTION
-	/* Choose PMECC ecc bits according to ONFI parameters */
-	host->pmecc_corr_cap = pmecc_choose_ecc_bits(CONFIG_PMECC_CAP, nand);
-	cap = host->pmecc_corr_cap;
-#else
-	cap = host->pmecc_corr_cap = CONFIG_PMECC_CAP;
+	host->pmecc_corr_cap = host->pmecc_sector_size = 0;
+
+#ifdef CONFIG_PMECC_CAP
+	host->pmecc_corr_cap = CONFIG_PMECC_CAP;
+#endif
+#ifdef CONFIG_PMECC_SECTOR_SIZE
+	host->pmecc_sector_size = CONFIG_PMECC_SECTOR_SIZE;
+#endif
+	/* Display the ONFI parameters. And if not define CONFIG_PMECC_CAP or
+	 * CONFIG_PMECC_SECTOR_SIZE, then use if from ONFI.
+	 */
+	if (pmecc_choose_ecc(host, nand, &cap, &sector_size)) {
+		printk(KERN_WARNING "The NAND flash's ECC requirement are not support!");
+		return -EINVAL;
+	}
+
+	if (cap != host->pmecc_corr_cap ||
+			sector_size != host->pmecc_sector_size)
+		printk(KERN_WARNING "WARNING: Be Caution! Using different PMECC parameters from Nand ONFI ECC reqirement.\n");
+#else	/* CONFIG_SYS_NAND_ONFI_DETECTION */
+	host->pmecc_corr_cap = CONFIG_PMECC_CAP;
+	host->pmecc_sector_size = CONFIG_PMECC_SECTOR_SIZE;
 #endif
 
-	sector_size = host->pmecc_sector_size = CONFIG_PMECC_SECTOR_SIZE;
+	cap = host->pmecc_corr_cap;
+	sector_size = host->pmecc_sector_size;
+
+	/* TODO: need check whether cap & sector_size is validate */
+
 	if (host->pmecc_sector_size == 512)
 		host->pmecc_index_table_offset = ATMEL_PMECC_INDEX_OFFSET_512;
 	else
