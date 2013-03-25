@@ -154,11 +154,12 @@ int at91_clock_init(unsigned long main_clock)
 	 * For now, assume this parentage won't change.
 	 */
 	mckr = readl(&pmc->mckr);
-#if defined(CONFIG_AT91SAM9G45) || defined(CONFIG_AT91SAM9M10G45) \
-		|| defined(CONFIG_AT91SAM9X5)
-	/* plla divisor by 2 */
-	gd->plla_rate_hz /= (1 << ((mckr & 1 << 12) >> 12));
-#endif
+
+	/* plla divisor by 2, Only for AT91SAM9G45, 9M10G45, 9X5, 9N12 */
+	/* For other AT91 chip, the bit 12 of MCKR is reserved, default is 0 */
+	if (mckr & (1 << 12))
+		gd->plla_rate_hz >>= 1;
+
 	gd->mck_rate_hz = at91_css_to_rate(mckr & AT91_PMC_MCKR_CSS_MASK);
 	freq = gd->mck_rate_hz;
 
