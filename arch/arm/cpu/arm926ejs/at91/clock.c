@@ -155,7 +155,7 @@ int at91_clock_init(unsigned long main_clock)
 	 */
 	mckr = readl(&pmc->mckr);
 #if defined(CONFIG_AT91SAM9G45) || defined(CONFIG_AT91SAM9M10G45) \
-		|| defined(CONFIG_AT91SAM9X5)
+	|| defined(CONFIG_AT91SAM9N12) || defined(CONFIG_AT91SAM9X5)
 	/* plla divisor by 2 */
 	gd->plla_rate_hz /= (1 << ((mckr & 1 << 12) >> 12));
 #endif
