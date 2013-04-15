@@ -39,6 +39,9 @@ int usb_cpu_init(void)
 	writel(get_pllb_init(), &pmc->pllbr);
 	while ((readl(&pmc->sr) & AT91_PMC_LOCKB) != AT91_PMC_LOCKB)
 		;
+#ifdef CONFIG_AT91SAM9N12
+	writel(AT91_PMC_USBS_USB_PLLB | AT91_PMC_USBDIV_(2), &pmc->usb);
+#endif
 #elif defined(CONFIG_USB_ATMEL_CLK_SEL_UPLL)
 	/* Enable UPLL */
 	writel(readl(&pmc->uckr) | AT91_PMC_UPLLEN | AT91_PMC_BIASEN,
@@ -83,6 +86,9 @@ int usb_cpu_stop(void)
 #endif
 
 #ifdef CONFIG_USB_ATMEL_CLK_SEL_PLLB
+#ifdef CONFIG_AT91SAM9N12
+	writel(0, &pmc->usb);
+#endif
 	/* Disable PLLB */
 	writel(0, &pmc->pllbr);
 	while ((readl(&pmc->sr) & AT91_PMC_LOCKB) != 0)
