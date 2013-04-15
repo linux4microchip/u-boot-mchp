@@ -190,6 +190,13 @@ int board_mmc_init(bd_t *bd)
 }
 #endif
 
+#ifdef CONFIG_USB_ATMEL
+void at91_ohci_hw_init(void)
+{
+	at91_set_pio_output(AT91_PIO_PORTB, 7, 0);
+}
+#endif
+
 int board_early_init_f(void)
 {
 	/* Enable clocks for all PIOs */
@@ -211,6 +218,10 @@ int board_init(void)
 
 #ifdef CONFIG_ATMEL_SPI
 	at91_spi0_hw_init(1 << 0);
+#endif
+
+#ifdef CONFIG_USB_ATMEL
+	at91_ohci_hw_init();
 #endif
 
 #ifdef CONFIG_LCD
