@@ -47,7 +47,7 @@ int usb_cpu_init(void)
 		;
 
 	/* Select PLLA as input clock of OHCI */
-	writel(AT91_PMC_USBS_USB_UPLL | AT91_PMC_USBDIV_10, &pmc->usb);
+	writel(AT91_PMC_USBS_USB_UPLL | AT91_PMC_USBDIV_(10), &pmc->usb);
 #endif
 
 #if defined(CONFIG_SAMA5D3)
