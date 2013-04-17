@@ -124,7 +124,7 @@
 #define ATMEL_BASE_ROM		0x00400000	/* Internal ROM base address */
 #define ATMEL_BASE_LCDC		0x00500000	/* LCD Controller */
 #define ATMEL_BASE_UDPHS_FIFO	0x00600000	/* USB Device HS controller */
-#define ATMEL_BASE_HCI		0x00700000	/* USB Host controller (OHCI) */
+#define ATMEL_BASE_OHCI		0x00700000	/* USB Host controller (OHCI) */
 #define ATMEL_BASE_EHCI		0x00800000	/* USB Host controller (EHCI) */
 #define ATMEL_BASE_VDEC		0x00900000	/* Video Decoder Controller */
 
