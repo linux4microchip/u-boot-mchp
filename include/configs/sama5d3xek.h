@@ -252,9 +252,13 @@
 				"bootm 0x22000000 - 0x21000000"
 #elif CONFIG_SYS_USE_MMC
 /* bootstrap + u-boot + env in sd card */
-#define CONFIG_ENV_IS_IN_MMC
-#define CONFIG_ENV_OFFSET	0x2000
-#define CONFIG_ENV_SIZE		0x1000
+#define CONFIG_ENV_IS_IN_FAT
+#define CONFIG_FAT_WRITE
+#define FAT_ENV_INTERFACE	"mmc"
+#define FAT_ENV_FILE		"uboot.env"
+#define FAT_ENV_DEVICE		0
+#define FAT_ENV_PART		1
+#define CONFIG_ENV_SIZE		0x4000
 #define CONFIG_BOOTCOMMAND	"fatload mmc 0:1 0x21000000 dtb; " \
 				"fatload mmc 0:1 0x22000000 uImage; " \
 				"bootm 0x22000000 - 0x21000000"
