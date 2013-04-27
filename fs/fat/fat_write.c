@@ -561,7 +561,7 @@ set_cluster(fsdata *mydata, __u32 clustnum, __u8 *buffer,
 	     unsigned long size)
 {
 	int idx = 0;
-	__u32 startsect;
+	__u32 startsect, nr_sectors;
 
 	if (clustnum > 0)
 		startsect = mydata->data_begin +
@@ -571,7 +571,11 @@ set_cluster(fsdata *mydata, __u32 clustnum, __u8 *buffer,
 
 	debug("clustnum: %d, startsect: %d\n", clustnum, startsect);
 
-	if (disk_write(startsect, size / mydata->sect_size, buffer) < 0) {
+	nr_sectors = size / mydata->sect_size;
+	if (nr_sectors == 0)
+		nr_sectors = 1;
+
+	if (disk_write(startsect, nr_sectors, buffer) < 0) {
 		debug("Error writing data\n");
 		return -1;
 	}
