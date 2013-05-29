@@ -45,7 +45,7 @@
 
 unsigned int has_emac()
 {
-	return cpu_is_sama5d31() || cpu_is_sama5d35();
+	return cpu_is_sama5d31() || cpu_is_sama5d35() || cpu_is_sama5d36();
 }
 
 unsigned int has_gmac()
@@ -72,6 +72,8 @@ char *get_cpu_name()
 			return CONFIG_SYS_AT91_D34_CPU_NAME;
 		case ARCH_EXID_SAMA5D35:
 			return CONFIG_SYS_AT91_D35_CPU_NAME;
+		case ARCH_EXID_SAMA5D36:
+			return CONFIG_SYS_AT91_D36_CPU_NAME;
 		default:
 			return CONFIG_SYS_AT91_UNKNOWN_CPU;
 		}
