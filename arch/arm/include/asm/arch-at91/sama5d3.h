@@ -81,6 +81,7 @@
 #define ARCH_EXID_SAMA5D33	0x00414300
 #define ARCH_EXID_SAMA5D34	0x00414301
 #define ARCH_EXID_SAMA5D35	0x00584300
+#define ARCH_EXID_SAMA5D36	0x00004301
 
 #define cpu_is_sama5d3()	(get_chip_id() == ARCH_ID_SAMA5D3)
 #define cpu_is_sama5d31()	(cpu_is_sama5d3() && \
@@ -91,6 +92,8 @@
 		(get_extension_chip_id() == ARCH_EXID_SAMA5D34))
 #define cpu_is_sama5d35()	(cpu_is_sama5d3() && \
 		(get_extension_chip_id() == ARCH_EXID_SAMA5D35))
+#define cpu_is_sama5d36()	(cpu_is_sama5d3() && \
+		(get_extension_chip_id() == ARCH_EXID_SAMA5D36))
 
 /*
  * User Peripherals physical base addresses.
@@ -202,6 +205,7 @@
 #define CONFIG_SYS_AT91_D33_CPU_NAME	"SAMA5D33"
 #define CONFIG_SYS_AT91_D34_CPU_NAME	"SAMA5D34"
 #define CONFIG_SYS_AT91_D35_CPU_NAME	"SAMA5D35"
+#define CONFIG_SYS_AT91_D36_CPU_NAME	"SAMA5D36"
 #define CONFIG_SYS_AT91_UNKNOWN_CPU	"Unknown CPU type"
 
 /*
