@@ -22,6 +22,7 @@
  */
 
 #include <common.h>
+#include <asm/unaligned.h>
 #include <asm/errno.h>
 #include <linux/list.h>
 #include <linux/string.h>
@@ -98,7 +99,8 @@ int usb_gadget_config_buf(
 	/* config descriptor first */
 	if (length < USB_DT_CONFIG_SIZE || !desc)
 		return -EINVAL;
-	*cp = *config;
+	/* config need not be aligned */
+	memcpy(cp, config, sizeof(*cp));
 
 	/* then interface/endpoint/class/vendor/... */
 	len = usb_descriptor_fillbuf(USB_DT_CONFIG_SIZE + (u8 *)buf,
@@ -112,7 +114,7 @@ int usb_gadget_config_buf(
 	/* patch up the config descriptor */
 	cp->bLength = USB_DT_CONFIG_SIZE;
 	cp->bDescriptorType = USB_DT_CONFIG;
-	cp->wTotalLength = cpu_to_le16(len);
+	put_unaligned_le16(len, &cp->wTotalLength);
 	cp->bmAttributes |= USB_CONFIG_ATT_ONE;
 	return len;
 }
