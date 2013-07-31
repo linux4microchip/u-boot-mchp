@@ -22,6 +22,8 @@
 # error You need to define CONFIG_AT91FAMILY in your board config!
 #endif
 
+extern unsigned atmel_smc(u32 cmd, u32 arg1, u32 arg2, u32 arg3);
+
 DECLARE_GLOBAL_DATA_PTR;
 
 static unsigned long at91_css_to_rate(unsigned long css)
@@ -42,10 +44,10 @@ static u32 at91_pll_rate(u32 freq, u32 reg)
 {
 	unsigned mul, div;
 
-	div = reg & 0xff;
+	//div = reg & 0xff;
 	mul = (reg >> 18) & 0x7f;
-	if (div && mul) {
-		freq /= div;
+	if (mul) {
+		//freq /= div;
 		freq *= mul + 1;
 	} else {
 		freq = 0;
@@ -58,6 +60,7 @@ int at91_clock_init(unsigned long main_clock)
 {
 	unsigned freq, mckr;
 	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
+	unsigned plla;
 #ifndef CONFIG_SYS_AT91_MAIN_CLOCK
 	unsigned tmp;
 	/*
@@ -77,13 +80,15 @@ int at91_clock_init(unsigned long main_clock)
 	gd->arch.main_clk_rate_hz = main_clock;
 
 	/* report if PLLA is more than mildly overclocked */
-	gd->arch.plla_rate_hz = at91_pll_rate(main_clock, readl(&pmc->pllar));
+	plla = atmel_smc(0x24, 0x28, 0, 0);
+	gd->arch.plla_rate_hz = at91_pll_rate(main_clock, plla);
 
 	/*
 	 * MCK and CPU derive from one of those primary clocks.
 	 * For now, assume this parentage won't change.
 	 */
-	mckr = readl(&pmc->mckr);
+
+	mckr = atmel_smc(0x24, 0x30, 0, 0);
 
 	/* plla divisor by 2 */
 	if (mckr & (1 << 12))
@@ -118,8 +123,12 @@ void at91_periph_clk_enable(int id)
 {
 	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
 
+#if defined(CONFIG_SAMA5D4)
+	atmel_smc(0x25, id, 1, 0);
+#else
 	if (id > 31)
 		writel(1 << (id - 32), &pmc->pcer1);
 	else
 		writel(1 << id, &pmc->pcer);
+#endif
 }

@@ -1,6 +1,10 @@
 #
-# (C) Copyright 2000-2008
+# (C) Copyright 2003-2008
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
+#
+# (C) Copyright 2008
+# Stelian Pop <stelian@popies.net>
+# Lead Tech Design <www.leadtechdesign.com>
 #
 # (C) Copyright 2013
 # Bo Shen <voice.shen@atmel.com>
@@ -26,24 +30,16 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)lib$(SOC).o
+LIB	= $(obj)lib$(BOARD).o
 
-SOBJS-$(CONFIG_SAMA5D4) += atmel_smc.o
+COBJS-y += sama5d4xek.o
 
-COBJS-$(CONFIG_SAMA5D3)	+= sama5d3_devices.o
-COBJS-$(CONFIG_SAMA5D4)	+= sama5d4_devices.o
-COBJS-y += clock.o
-COBJS-y += cpu.o
-COBJS-y += reset.o
-COBJS-y += timer.o
+SRCS	:= $(SOBJS:.o=.S) $(COBJS-y:.o=.c)
+OBJS	:= $(addprefix $(obj),$(COBJS-y))
+SOBJS	:= $(addprefix $(obj),$(SOBJS))
 
-SRCS    := $(SOBJS-y:.o=.S) $(COBJS-y:.o=.c)
-OBJS    := $(addprefix $(obj),$(SOBJS-y) $(COBJS-y))
-
-all:	$(obj).depend $(LIB)
-
-$(LIB):	$(OBJS)
-	$(call cmd_link_o_target, $(OBJS))
+$(LIB):	$(obj).depend $(OBJS) $(SOBJS)
+	$(call cmd_link_o_target, $(OBJS) $(SOBJS))
 
 #########################################################################
 

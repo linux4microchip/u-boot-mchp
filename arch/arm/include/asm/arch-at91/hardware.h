@@ -45,6 +45,8 @@
 # include <asm/arch/at91x40.h>
 #elif defined(CONFIG_SAMA5D3)
 # include <asm/arch/sama5d3.h>
+#elif defined(CONFIG_SAMA5D4)
+# include <asm/arch/sama5d4.h>
 #else
 # error "Unsupported AT91 processor"
 #endif

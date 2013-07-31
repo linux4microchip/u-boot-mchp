@@ -37,6 +37,8 @@
 # error You need to define CONFIG_AT91FAMILY in your board config!
 #endif
 
+extern unsigned atmel_smc(u32 cmd, u32 arg1, u32 arg2, u32 arg3);
+
 DECLARE_GLOBAL_DATA_PTR;
 
 /*
@@ -108,11 +110,16 @@ void __udelay(unsigned long usec)
 {
 	unsigned long long start;
 	ulong tmo;
+	int i;
 
+#if 0
 	start = get_ticks();		/* get current timestamp */
 	tmo = usec_to_tick(usec);	/* convert usecs to ticks */
 	while ((get_ticks() - start) < tmo)
 		;			/* loop till time has passed */
+#endif
+	for (i=0; i < 0xffffff; i++)
+		;
 }
 
 /*
