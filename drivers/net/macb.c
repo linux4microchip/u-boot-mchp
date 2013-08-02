@@ -415,6 +415,8 @@ static int macb_phy_init(struct macb_device *macb)
 	phy_config(phydev);
 #endif
 
+	macb_phy_reset(macb);
+
 	status = macb_mdio_read(macb, MII_BMSR);
 	if (!(status & BMSR_LSTATUS)) {
 		/* Try to re-negotiate if we don't have link already. */
@@ -433,7 +435,7 @@ static int macb_phy_init(struct macb_device *macb)
 		       netdev->name, status);
 		return 0;
 	}
-
+#if 0
 	/* First check for GMAC */
 	if (macb_is_gem(macb)) {
 		lpa = macb_mdio_read(macb, MII_STAT1000);
@@ -467,7 +469,7 @@ static int macb_phy_init(struct macb_device *macb)
 			return 1;
 		}
 	}
-
+#endif
 	/* fall back for EMAC checking */
 	adv = macb_mdio_read(macb, MII_ADVERTISE);
 	lpa = macb_mdio_read(macb, MII_LPA);
@@ -523,9 +525,8 @@ static int macb_init(struct eth_device *netdev, bd_t *bd)
 
 	macb_writel(macb, RBQP, macb->rx_ring_dma);
 	macb_writel(macb, TBQP, macb->tx_ring_dma);
-
 	if (macb_is_gem(macb)) {
-#ifdef CONFIG_RGMII
+#if defined(CONFIG_RGMII) || defined(CONFIG_RMII)
 		gem_writel(macb, UR, GEM_BIT(RGMII));
 #else
 		gem_writel(macb, UR, 0);
@@ -671,7 +672,7 @@ int macb_eth_initialize(int id, void *regs, unsigned int phy_addr)
 	 */
 	if (macb_is_gem(macb)) {
 		ncfgr = gem_mdc_clk_div(id, macb);
-		ncfgr |= GEM_BF(DBW, 1);
+	//	ncfgr |= GEM_BF(DBW, 1);
 	} else {
 		ncfgr = macb_mdc_clk_div(id, macb);
 	}
