@@ -191,8 +191,8 @@ int board_init(void)
 #ifdef CONFIG_GENERIC_ATMEL_MCI
 	sama5d3xek_mci_hw_init();
 #endif
-#ifdef CONFIG_ATMEL_SPI
-	at91_spi0_hw_init(1 << 0);
+#ifdef CONFIG_ATMEL_SPI1
+	at91_spi1_hw_init(1 << 0);
 #endif
 #ifdef CONFIG_MACB
 	at91_macb_hw_init();
@@ -244,14 +244,14 @@ int board_mmc_init(bd_t *bis)
 
 int spi_cs_is_valid(unsigned int bus, unsigned int cs)
 {
-	return bus == 0 && cs < 4;
+	return bus == 1 && cs < 4;
 }
 
 void spi_cs_activate(struct spi_slave *slave)
 {
 	switch (slave->cs) {
 	case 0:
-		at91_set_pio_output(AT91_PIO_PORTD, 13, 0);
+		at91_set_pio_output(AT91_PIO_PORTB, 21, 0);
 	case 1:
 		at91_set_pio_output(AT91_PIO_PORTD, 14, 0);
 	case 2:
@@ -267,7 +267,7 @@ void spi_cs_deactivate(struct spi_slave *slave)
 {
 	switch (slave->cs) {
 	case 0:
-		at91_set_pio_output(AT91_PIO_PORTD, 13, 1);
+		at91_set_pio_output(AT91_PIO_PORTB, 21, 1);
 	case 1:
 		at91_set_pio_output(AT91_PIO_PORTD, 14, 1);
 	case 2:

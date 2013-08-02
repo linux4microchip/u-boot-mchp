@@ -85,14 +85,14 @@ void at91_seriald_hw_init(void)
 }
 
 #if defined(CONFIG_ATMEL_SPI)
-void at91_spi0_hw_init(unsigned long cs_mask)
+void at91_spi1_hw_init(unsigned long cs_mask)
 {
-	at91_set_a_periph(AT91_PIO_PORTD, 10, 0);       /* SPI0_MISO */
-	at91_set_a_periph(AT91_PIO_PORTD, 11, 0);       /* SPI0_MOSI */
-	at91_set_a_periph(AT91_PIO_PORTD, 12, 0);       /* SPI0_SPCK */
+	at91_set_a_periph(AT91_PIO_PORTB, 18, 0);       /* SPI0_MISO */
+	at91_set_a_periph(AT91_PIO_PORTB, 19, 0);       /* SPI0_MOSI */
+	at91_set_a_periph(AT91_PIO_PORTB, 20, 0);       /* SPI0_SPCK */
 
 	if (cs_mask & (1 << 0))
-		at91_set_pio_output(AT91_PIO_PORTD, 13, 1);
+		at91_set_pio_output(AT91_PIO_PORTB, 21, 1);
 	if (cs_mask & (1 << 1))
 		at91_set_pio_output(AT91_PIO_PORTD, 14, 1);
 	if (cs_mask & (1 << 2))
@@ -101,7 +101,7 @@ void at91_spi0_hw_init(unsigned long cs_mask)
 		at91_set_pio_output(AT91_PIO_PORTD, 16, 1);
 
 	/* Enable clock */
-	at91_periph_clk_enable(ATMEL_ID_SPI0);
+	at91_periph_clk_enable(ATMEL_ID_SPI1);
 }
 #endif
 
