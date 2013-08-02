@@ -82,6 +82,28 @@ int at91_set_a_periph(unsigned port, unsigned pin, int use_pullup)
 	at91_pio_t	*pio = (at91_pio_t *) ATMEL_BASE_PIOA;
 	u32		mask;
 
+#if defined(CONFIG_SAMA5D4)
+	switch (port) {
+	case AT91_PIO_PORTA:
+		pio = (at91_pio_t *)ATMEL_BASE_PIOA;
+		break;
+	case AT91_PIO_PORTB:
+		pio = (at91_pio_t *)ATMEL_BASE_PIOB;
+		break;
+	case AT91_PIO_PORTC:
+		pio = (at91_pio_t *)ATMEL_BASE_PIOC;
+		break;
+	case AT91_PIO_PORTD:
+		pio = (at91_pio_t *)ATMEL_BASE_PIOD;
+		break;
+	case AT91_PIO_PORTE:
+		pio = (at91_pio_t *)ATMEL_BASE_PIOE;
+		break;
+	}
+
+	port = AT91_PIO_PORTA;
+#endif
+
 	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
 		mask = 1 << pin;
 		writel(mask, &pio->port[port].idr);
@@ -106,6 +128,27 @@ int at91_set_b_periph(unsigned port, unsigned pin, int use_pullup)
 {
 	at91_pio_t	*pio = (at91_pio_t *) ATMEL_BASE_PIOA;
 	u32		mask;
+#if defined(CONFIG_SAMA5D4)
+	switch (port) {
+	case AT91_PIO_PORTA:
+		pio = (at91_pio_t *)ATMEL_BASE_PIOA;
+		break;
+	case AT91_PIO_PORTB:
+		pio = (at91_pio_t *)ATMEL_BASE_PIOB;
+		break;
+	case AT91_PIO_PORTC:
+		pio = (at91_pio_t *)ATMEL_BASE_PIOC;
+		break;
+	case AT91_PIO_PORTD:
+		pio = (at91_pio_t *)ATMEL_BASE_PIOD;
+		break;
+	case AT91_PIO_PORTE:
+		pio = (at91_pio_t *)ATMEL_BASE_PIOE;
+		break;
+	}
+
+	port = AT91_PIO_PORTA;
+#endif
 
 	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
 		mask = 1 << pin;
@@ -177,6 +220,28 @@ int at91_set_pio_input(unsigned port, u32 pin, int use_pullup)
 	at91_pio_t	*pio = (at91_pio_t *) ATMEL_BASE_PIOA;
 	u32		mask;
 
+#if defined(CONFIG_SAMA5D4)
+	switch (port) {
+	case AT91_PIO_PORTA:
+		pio = (at91_pio_t *)ATMEL_BASE_PIOA;
+		break;
+	case AT91_PIO_PORTB:
+		pio = (at91_pio_t *)ATMEL_BASE_PIOB;
+		break;
+	case AT91_PIO_PORTC:
+		pio = (at91_pio_t *)ATMEL_BASE_PIOC;
+		break;
+	case AT91_PIO_PORTD:
+		pio = (at91_pio_t *)ATMEL_BASE_PIOD;
+		break;
+	case AT91_PIO_PORTE:
+		pio = (at91_pio_t *)ATMEL_BASE_PIOE;
+		break;
+	}
+
+	port = AT91_PIO_PORTA;
+#endif
+
 	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
 		mask = 1 << pin;
 		writel(mask, &pio->port[port].idr);
@@ -195,6 +260,28 @@ int at91_set_pio_output(unsigned port, u32 pin, int value)
 {
 	at91_pio_t	*pio = (at91_pio_t *) ATMEL_BASE_PIOA;
 	u32		mask;
+
+#if defined(CONFIG_SAMA5D4)
+	switch (port) {
+	case AT91_PIO_PORTA:
+		pio = (at91_pio_t *)ATMEL_BASE_PIOA;
+		break;
+	case AT91_PIO_PORTB:
+		pio = (at91_pio_t *)ATMEL_BASE_PIOB;
+		break;
+	case AT91_PIO_PORTC:
+		pio = (at91_pio_t *)ATMEL_BASE_PIOC;
+		break;
+	case AT91_PIO_PORTD:
+		pio = (at91_pio_t *)ATMEL_BASE_PIOD;
+		break;
+	case AT91_PIO_PORTE:
+		pio = (at91_pio_t *)ATMEL_BASE_PIOE;
+		break;
+	}
+
+	port = AT91_PIO_PORTA;
+#endif
 
 	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
 		mask = 1 << pin;
