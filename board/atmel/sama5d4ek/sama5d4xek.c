@@ -85,15 +85,6 @@ static void sama5d3xek_usb_hw_init(void)
 }
 #endif
 
-#ifdef CONFIG_GENERIC_ATMEL_MCI
-static void sama5d3xek_mci_hw_init(void)
-{
-	at91_mci_hw_init();
-
-	at91_set_pio_output(AT91_PIO_PORTB, 10, 0);	/* MCI0 Power */
-}
-#endif
-
 #ifdef CONFIG_LCD
 vidinfo_t panel_info = {
 	.vl_col = 800,
@@ -177,6 +168,21 @@ int board_early_init_f(void)
 	return 0;
 }
 
+#ifdef CONFIG_GENERIC_ATMEL_MCI
+void sama5d4_mci_hw_init(void)
+{
+	at91_set_b_periph(AT91_PIO_PORTE, 0, 0);	/* MCI0 CDB */
+	at91_set_b_periph(AT91_PIO_PORTE, 1, 0);	/* MCI0 DB0 */
+	at91_set_b_periph(AT91_PIO_PORTE, 2, 0);	/* MCI0 DB1 */
+	at91_set_b_periph(AT91_PIO_PORTE, 3, 0);        /* MCI0 DB2 */
+	at91_set_b_periph(AT91_PIO_PORTE, 4, 0);        /* MCI0 DB3 */
+	at91_set_b_periph(AT91_PIO_PORTC, 4, 0);        /* MCI0 CLK */
+
+	/* Enable clock */
+	at91_periph_clk_enable(ATMEL_ID_MCI0);
+}
+#endif
+
 int board_init(void)
 {
 	/* adress of boot parameters */
@@ -189,7 +195,7 @@ int board_init(void)
 	sama5d3xek_usb_hw_init();
 #endif
 #ifdef CONFIG_GENERIC_ATMEL_MCI
-	sama5d3xek_mci_hw_init();
+	sama5d4_mci_hw_init();
 #endif
 #ifdef CONFIG_ATMEL_SPI1
 	at91_spi1_hw_init(1 << 0);
