@@ -31,7 +31,7 @@
 
 unsigned int has_lcdc()
 {
-	return 0;
+	return 1;
 }
 
 char *get_cpu_name()
@@ -151,6 +151,14 @@ void at91_lcd_hw_init(void)
 	at91_set_a_periph(AT91_PIO_PORTA, 13, 0);	/* LCDD13 */
 	at91_set_a_periph(AT91_PIO_PORTA, 14, 0);	/* LCDD14 */
 	at91_set_a_periph(AT91_PIO_PORTA, 15, 0);	/* LCDD15 */
+	at91_set_a_periph(AT91_PIO_PORTA, 16, 0);	/* LCDD16 */
+	at91_set_a_periph(AT91_PIO_PORTA, 17, 0);	/* LCDD17 */
+	at91_set_a_periph(AT91_PIO_PORTA, 18, 0);	/* LCDD18 */
+	at91_set_a_periph(AT91_PIO_PORTA, 19, 0);	/* LCDD19 */
+	at91_set_a_periph(AT91_PIO_PORTA, 20, 0);	/* LCDD20 */
+	at91_set_a_periph(AT91_PIO_PORTA, 21, 0);	/* LCDD21 */
+	at91_set_a_periph(AT91_PIO_PORTA, 22, 0);	/* LCDD22 */
+	at91_set_a_periph(AT91_PIO_PORTA, 23, 0);	/* LCDD23 */
 
 	/* Enable clock */
 	at91_periph_clk_enable(ATMEL_ID_LCDC);

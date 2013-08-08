@@ -110,24 +110,6 @@ void lcd_disable(void)
 {
 }
 
-static void sama5d3xek_lcd_hw_init(void)
-{
-	gd->fb_base = CONFIG_SAMA5D3_LCD_BASE;
-
-	/* The higher 8 bit of LCD is board related */
-	at91_set_c_periph(AT91_PIO_PORTC, 14, 0);	/* LCDD16 */
-	at91_set_c_periph(AT91_PIO_PORTC, 13, 0);	/* LCDD17 */
-	at91_set_c_periph(AT91_PIO_PORTC, 12, 0);	/* LCDD18 */
-	at91_set_c_periph(AT91_PIO_PORTC, 11, 0);	/* LCDD19 */
-	at91_set_c_periph(AT91_PIO_PORTC, 10, 0);	/* LCDD20 */
-	at91_set_c_periph(AT91_PIO_PORTC, 15, 0);	/* LCDD21 */
-	at91_set_c_periph(AT91_PIO_PORTE, 27, 0);	/* LCDD22 */
-	at91_set_c_periph(AT91_PIO_PORTE, 28, 0);	/* LCDD23 */
-
-	/* Configure lower 16 bit of LCD and enable clock */
-	at91_lcd_hw_init();
-}
-
 #ifdef CONFIG_LCD_INFO
 #include <nand.h>
 #include <version.h>
@@ -204,8 +186,7 @@ int board_init(void)
 	at91_macb_hw_init();
 #endif
 #ifdef CONFIG_LCD
-	if (has_lcdc())
-		sama5d3xek_lcd_hw_init();
+	at91_lcd_hw_init();
 #endif
 	return 0;
 }
