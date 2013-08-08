@@ -35,7 +35,8 @@ COBJS-$(CONFIG_SAMA5D4)	+= sama5d4_devices.o
 COBJS-y += clock.o
 COBJS-y += cpu.o
 COBJS-y += reset.o
-COBJS-y += timer.o
+COBJS-$(CONFIG_SAMA5D3) += timer.o
+COBJS-$(CONFIG_SAMA5D4) += tc_timer.o
 
 SRCS    := $(SOBJS-y:.o=.S) $(COBJS-y:.o=.c)
 OBJS    := $(addprefix $(obj),$(SOBJS-y) $(COBJS-y))
