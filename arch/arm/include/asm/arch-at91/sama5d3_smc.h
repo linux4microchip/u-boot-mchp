@@ -23,7 +23,6 @@
 #else
 
 typedef struct	at91_cs {
-	u32	reserved[96];
 	u32	setup;		/* 0x600 SMC Setup Register */
 	u32	pulse;		/* 0x604 SMC Pulse Register */
 	u32	cycle;		/* 0x608 SMC Cycle Register */
@@ -32,6 +31,7 @@ typedef struct	at91_cs {
 } at91_cs_t;
 
 typedef struct	at91_smc {
+	u32	reserved[384];
 	at91_cs_t	cs[4];
 } at91_smc_t;
 
