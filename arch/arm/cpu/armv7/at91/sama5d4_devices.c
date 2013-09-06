@@ -135,7 +135,7 @@ void at91_lcd_hw_init(void)
 	at91_set_a_periph(AT91_PIO_PORTA, 29, 0);	/* LCDDEN */
 
 	/* The lower 16-bit of LCD only available on Port A */
-	at91_set_a_periph(AT91_PIO_PORTA,  0, 0);	/* LCDD0 */
+	/*at91_set_a_periph(AT91_PIO_PORTA,  0, 0);*/	/* LCDD0 */
 	at91_set_a_periph(AT91_PIO_PORTA,  1, 0);	/* LCDD1 */
 	at91_set_a_periph(AT91_PIO_PORTA,  2, 0);	/* LCDD2 */
 	at91_set_a_periph(AT91_PIO_PORTA,  3, 0);	/* LCDD3 */
@@ -143,7 +143,7 @@ void at91_lcd_hw_init(void)
 	at91_set_a_periph(AT91_PIO_PORTA,  5, 0);	/* LCDD5 */
 	at91_set_a_periph(AT91_PIO_PORTA,  6, 0);	/* LCDD6 */
 	at91_set_a_periph(AT91_PIO_PORTA,  7, 0);	/* LCDD7 */
-	at91_set_a_periph(AT91_PIO_PORTA,  8, 0);	/* LCDD8 */
+	/*at91_set_a_periph(AT91_PIO_PORTA,  8, 0);*/	/* LCDD8 */
 	at91_set_a_periph(AT91_PIO_PORTA,  9, 0);	/* LCDD9 */
 	at91_set_a_periph(AT91_PIO_PORTA, 10, 0);	/* LCDD10 */
 	at91_set_a_periph(AT91_PIO_PORTA, 11, 0);	/* LCDD11 */
@@ -151,7 +151,7 @@ void at91_lcd_hw_init(void)
 	at91_set_a_periph(AT91_PIO_PORTA, 13, 0);	/* LCDD13 */
 	at91_set_a_periph(AT91_PIO_PORTA, 14, 0);	/* LCDD14 */
 	at91_set_a_periph(AT91_PIO_PORTA, 15, 0);	/* LCDD15 */
-	at91_set_a_periph(AT91_PIO_PORTA, 16, 0);	/* LCDD16 */
+	/*at91_set_a_periph(AT91_PIO_PORTA, 16, 0);*/	/* LCDD16 */
 	at91_set_a_periph(AT91_PIO_PORTA, 17, 0);	/* LCDD17 */
 	at91_set_a_periph(AT91_PIO_PORTA, 18, 0);	/* LCDD18 */
 	at91_set_a_periph(AT91_PIO_PORTA, 19, 0);	/* LCDD19 */
