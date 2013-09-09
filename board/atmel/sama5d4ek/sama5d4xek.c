@@ -73,6 +73,21 @@ void sama5d3xek_nand_hw_init(void)
 #endif
 	       AT91_SMC_MODE_TDF_CYCLE(3),
 	       &smc->cs[3].mode);
+
+	at91_set_a_periph(AT91_PIO_PORTC, 5, 0);	/* D0 */
+	at91_set_a_periph(AT91_PIO_PORTC, 6, 0);	/* D1 */
+	at91_set_a_periph(AT91_PIO_PORTC, 7, 0);	/* D2 */
+	at91_set_a_periph(AT91_PIO_PORTC, 8, 0);	/* D3 */
+	at91_set_a_periph(AT91_PIO_PORTC, 9, 0);	/* D4 */
+	at91_set_a_periph(AT91_PIO_PORTC, 10, 0);	/* D5 */
+	at91_set_a_periph(AT91_PIO_PORTC, 11, 0);	/* D6 */
+	at91_set_a_periph(AT91_PIO_PORTC, 12, 0);	/* D7 */
+	at91_set_a_periph(AT91_PIO_PORTC, 13, 0);	/* RE */
+	at91_set_a_periph(AT91_PIO_PORTC, 14, 0);	/* WE */
+	at91_set_a_periph(AT91_PIO_PORTC, 15, 1);	/* NCS */
+	at91_set_a_periph(AT91_PIO_PORTC, 16, 1);	/* RDY */
+	at91_set_a_periph(AT91_PIO_PORTC, 17, 1);	/* ALE */
+	at91_set_a_periph(AT91_PIO_PORTC, 18, 1);	/* CLE */
 }
 #endif
 
