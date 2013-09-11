@@ -45,7 +45,7 @@ DECLARE_GLOBAL_DATA_PTR;
  */
 
 #ifdef CONFIG_NAND_ATMEL
-void sama5d3xek_nand_hw_init(void)
+void sama5d4ek_nand_hw_init(void)
 {
 	struct at91_smc *smc = (struct at91_smc *)ATMEL_BASE_SMC;
 
@@ -186,7 +186,7 @@ int board_init(void)
 	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
 
 #ifdef CONFIG_NAND_ATMEL
-	sama5d3xek_nand_hw_init();
+	sama5d4ek_nand_hw_init();
 #endif
 #ifdef CONFIG_CMD_USB
 	sama5d3xek_usb_hw_init();
