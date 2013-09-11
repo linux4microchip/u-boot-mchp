@@ -44,6 +44,10 @@ int ehci_hcd_init(int index, struct ehci_hccr **hccr, struct ehci_hcor **hcor)
 
 	start_time = get_timer(0);
 	/* Enable UTMI PLL */
+#ifdef CONFIG_SAMA5D4
+	atmel_smc(0x27, 1, 0, 0);
+	atmel_smc(0x28, 0, 0, 0);
+#else
 	writel(AT91_PMC_UPLLEN | AT91_PMC_BIASEN, &pmc->uckr);
 	while ((readl(&pmc->sr) & AT91_PMC_LOCKU) != AT91_PMC_LOCKU) {
 		WATCHDOG_RESET();
@@ -54,8 +58,13 @@ int ehci_hcd_init(int index, struct ehci_hccr **hccr, struct ehci_hcor **hcor)
 		}
 	}
 
+#endif
 	/* Enable USB Host clock */
+#ifdef CONFIG_SAMA5D4
+	at91_periph_clk_enable(ATMEL_ID_UHPHS);
+#else
 	writel(1 << ATMEL_ID_UHPHS, &pmc->pcer);
+#endif
 
 	*hccr = (struct ehci_hccr *)ATMEL_BASE_EHCI;
 	*hcor = (struct ehci_hcor *)((uint32_t)*hccr +
@@ -70,10 +79,17 @@ int ehci_hcd_stop(int index)
 	ulong start_time, tmp_time;
 
 	/* Disable USB Host Clock */
+#ifdef CONFIG_SAMA5D4
+	atmel_smc(0x25, ATMEL_ID_UHPHS, 0, 0);
+#else
 	writel(1 << ATMEL_ID_UHPHS, &pmc->pcdr);
+#endif
 
 	start_time = get_timer(0);
 	/* Disable UTMI PLL */
+#ifdef CONFIG_SAMA5D4
+	atmel_smc(0x27, 0, 0, 0);
+#else
 	writel(readl(&pmc->uckr) & ~AT91_PMC_UPLLEN, &pmc->uckr);
 	while ((readl(&pmc->sr) & AT91_PMC_LOCKU) == AT91_PMC_LOCKU) {
 		WATCHDOG_RESET();
@@ -83,6 +99,7 @@ int ehci_hcd_stop(int index)
 			return -1;
 		}
 	}
+#endif
 
 	return 0;
 }
