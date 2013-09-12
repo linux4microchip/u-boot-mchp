@@ -189,11 +189,39 @@
 
 /* USB device */
 #define CONFIG_USB_GADGET
+
+#ifdef CONFIG_USB_GADGET
 #define CONFIG_USB_GADGET_DUALSPEED
 #define CONFIG_USB_GADGET_ATMEL_USBA
+
+/* DFU class support */
+#define CONFIG_CMD_DFU
+
+#ifdef CONFIG_CMD_DFU
+#define CONFIG_DFU_FUNCTION
+#define CONFIG_DFU_MMC
+#define CONFIG_DFU_NAND
+#define CONFIG_DFU_RAM
+#define CONFIG_USBDOWNLOAD_GADGET
+
+#define CONFIG_USB_GADGET_VBUS_DRAW		2
+
+/* USB Atmel's IDs */
+#define CONFIG_G_DNL_VENDOR_NUM			0x03EB
+#define CONFIG_G_DNL_PRODUCT_NUM		0x6156
+#define CONFIG_G_DNL_MANUFACTURER		"Atmel"
+
+#define CONFIG_SYS_CACHELINE_SIZE		16
+
+#else
+
+/* RNDIS class support */
 #define CONFIG_USB_ETHER
 #define CONFIG_USB_ETH_RNDIS
 #define CONFIG_USBNET_MANUFACTURER      "Atmel SAMA5D3xEK"
+
+#endif
+#endif
 
 #if defined(CONFIG_CMD_USB) || defined(CONFIG_CMD_MMC)
 #define CONFIG_CMD_FAT
