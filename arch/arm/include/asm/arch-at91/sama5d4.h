@@ -44,7 +44,7 @@
 #define ATMEL_ID_VDEC	19	/* Video Decoder */
 #define ATMEL_ID_SECUMOD	20	/* Security Module */
 #define ATMEL_ID_MSADCC	21	/* Magstripe ADC */
-#define ATMEL_ID_HSMC	22	/* Multi-bit ECC interrupt */
+#define ATMEL_ID_SMC	22	/* Multi-bit ECC interrupt */
 #define ATMEL_ID_PIOA	23	/* Parallel I/O Controller A */
 #define ATMEL_ID_PIOB	24	/* Parallel I/O Controller B */
 #define ATMEL_ID_PIOC	25	/* Parallel I/O Controller C */
@@ -137,6 +137,8 @@
 #define ATMEL_BASE_TRNG		0xfc030000
 #define ATMEL_BASE_ADC		0xfc034000
 #define ATMEL_BASE_TWI3		0xfc038000
+
+#define ATMEL_BASE_SMC		0xfc05c000
 
 #define ATMEL_BASE_PIOD		0xfc068000
 #define ATMEL_BASE_RSTC		0xfc068600

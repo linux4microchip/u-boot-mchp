@@ -40,8 +40,6 @@
 #define CONFIG_USART_BASE		ATMEL_BASE_USART3
 #define	CONFIG_USART_ID			ATMEL_ID_USART3
 
-#if 0
-
 /*
  * This needs to be defined for the OHCI code to work but it is defined as
  * ATMEL_ID_UHPHS in the CPU specific header files.
@@ -53,8 +51,7 @@
  */
 #define ATMEL_PMC_UHP			AT91SAM926x_PMC_UHP
 
-#endif
-
+#if 0
 /* LCD */
 #define CONFIG_LCD
 #define LCD_BPP				LCD_COLOR16
@@ -65,6 +62,7 @@
 #define CONFIG_SYS_WHITE_ON_BLACK
 #define CONFIG_ATMEL_HLCD
 #define CONFIG_ATMEL_LCD_RGB565
+#endif
 #define CONFIG_SYS_CONSOLE_IS_IN_ENV
 
 #define CONFIG_BOOTDELAY		3
@@ -112,10 +110,9 @@
 #endif
 
 /* NAND flash */
-//#define CONFIG_CMD_NAND
+#define CONFIG_CMD_NAND
 
 #ifdef CONFIG_CMD_NAND
-#define CONFIG_NAND_MAX_CHIPS		1
 #define CONFIG_NAND_ATMEL
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 #define CONFIG_SYS_NAND_BASE		ATMEL_BASE_CS3
@@ -124,12 +121,18 @@
 /* our CLE is AD22 */
 #define CONFIG_SYS_NAND_MASK_CLE	(1 << 22)
 #define CONFIG_SYS_NAND_ONFI_DETECTION
+
+#define CONFIG_BCH
+#define CONFIG_NAND_ECC_BCH
+
 /* PMECC & PMERRLOC */
+#if 0
 #define CONFIG_ATMEL_NAND_HWECC
 #define CONFIG_ATMEL_NAND_HW_PMECC
 #define CONFIG_PMECC_CAP		4
 #define CONFIG_PMECC_SECTOR_SIZE	512
 #define CONFIG_CMD_NAND_TRIMFFS
+#endif
 #endif
 
 
@@ -155,15 +158,19 @@
 #endif
 
 /* USB */
-//#define CONFIG_CMD_USB
+#define CONFIG_CMD_USB
 
 #ifdef CONFIG_CMD_USB
-#define CONFIG_USB_ATMEL
+#define CONFIG_USB_EHCI
+#define CONFIG_USB_EHCI_ATMEL
+#define CONFIG_SYS_USB_EHCI_MAX_ROOT_PORTS	3
+#if 0
 #define CONFIG_USB_OHCI_NEW
 #define CONFIG_SYS_USB_OHCI_CPU_INIT
 #define CONFIG_SYS_USB_OHCI_REGS_BASE		ATMEL_BASE_OHCI
 #define CONFIG_SYS_USB_OHCI_SLOT_NAME		"sama5d3"
 #define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	3
+#endif
 #define CONFIG_DOS_PARTITION
 #define CONFIG_USB_STORAGE
 #endif

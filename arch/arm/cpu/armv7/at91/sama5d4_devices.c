@@ -31,7 +31,7 @@
 
 unsigned int has_lcdc()
 {
-	return 1;
+	return 0;
 }
 
 char *get_cpu_name()

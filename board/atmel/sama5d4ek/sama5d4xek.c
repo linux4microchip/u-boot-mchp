@@ -45,7 +45,7 @@ DECLARE_GLOBAL_DATA_PTR;
  */
 
 #ifdef CONFIG_NAND_ATMEL
-void sama5d3xek_nand_hw_init(void)
+void sama5d4ek_nand_hw_init(void)
 {
 	struct at91_smc *smc = (struct at91_smc *)ATMEL_BASE_SMC;
 
@@ -73,15 +73,30 @@ void sama5d3xek_nand_hw_init(void)
 #endif
 	       AT91_SMC_MODE_TDF_CYCLE(3),
 	       &smc->cs[3].mode);
+
+	at91_set_a_periph(AT91_PIO_PORTC, 5, 0);	/* D0 */
+	at91_set_a_periph(AT91_PIO_PORTC, 6, 0);	/* D1 */
+	at91_set_a_periph(AT91_PIO_PORTC, 7, 0);	/* D2 */
+	at91_set_a_periph(AT91_PIO_PORTC, 8, 0);	/* D3 */
+	at91_set_a_periph(AT91_PIO_PORTC, 9, 0);	/* D4 */
+	at91_set_a_periph(AT91_PIO_PORTC, 10, 0);	/* D5 */
+	at91_set_a_periph(AT91_PIO_PORTC, 11, 0);	/* D6 */
+	at91_set_a_periph(AT91_PIO_PORTC, 12, 0);	/* D7 */
+	at91_set_a_periph(AT91_PIO_PORTC, 13, 0);	/* RE */
+	at91_set_a_periph(AT91_PIO_PORTC, 14, 0);	/* WE */
+	at91_set_a_periph(AT91_PIO_PORTC, 15, 1);	/* NCS */
+	at91_set_a_periph(AT91_PIO_PORTC, 16, 1);	/* RDY */
+	at91_set_a_periph(AT91_PIO_PORTC, 17, 1);	/* ALE */
+	at91_set_a_periph(AT91_PIO_PORTC, 18, 1);	/* CLE */
 }
 #endif
 
 #ifdef CONFIG_CMD_USB
 static void sama5d3xek_usb_hw_init(void)
 {
-	at91_set_pio_output(AT91_PIO_PORTD, 25, 0);
-	at91_set_pio_output(AT91_PIO_PORTD, 26, 0);
-	at91_set_pio_output(AT91_PIO_PORTD, 27, 0);
+	at91_set_pio_output(AT91_PIO_PORTE, 11, 0);
+	at91_set_pio_output(AT91_PIO_PORTE, 12, 0);
+	at91_set_pio_output(AT91_PIO_PORTE, 10, 0);
 }
 #endif
 
@@ -171,7 +186,7 @@ int board_init(void)
 	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
 
 #ifdef CONFIG_NAND_ATMEL
-	sama5d3xek_nand_hw_init();
+	sama5d4ek_nand_hw_init();
 #endif
 #ifdef CONFIG_CMD_USB
 	sama5d3xek_usb_hw_init();
@@ -186,7 +201,7 @@ int board_init(void)
 	at91_macb_hw_init();
 #endif
 #ifdef CONFIG_LCD
-	at91_lcd_hw_init();
+	//at91_lcd_hw_init();
 #endif
 	return 0;
 }
