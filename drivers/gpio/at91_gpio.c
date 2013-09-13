@@ -101,7 +101,7 @@ int at91_set_a_periph(unsigned port, unsigned pin, int use_pullup)
 		break;
 	}
 
-	port = AT91_PIO_PORTA;
+	//port = AT91_PIO_PORTA;
 #endif
 
 	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
@@ -147,7 +147,7 @@ int at91_set_b_periph(unsigned port, unsigned pin, int use_pullup)
 		break;
 	}
 
-	port = AT91_PIO_PORTA;
+	//port = AT91_PIO_PORTA;
 #endif
 
 	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
@@ -239,7 +239,7 @@ int at91_set_pio_input(unsigned port, u32 pin, int use_pullup)
 		break;
 	}
 
-	port = AT91_PIO_PORTA;
+	//port = AT91_PIO_PORTA;
 #endif
 
 	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
@@ -280,7 +280,7 @@ int at91_set_pio_output(unsigned port, u32 pin, int value)
 		break;
 	}
 
-	port = AT91_PIO_PORTA;
+	//port = AT91_PIO_PORTA;
 #endif
 
 	if ((port < ATMEL_PIO_PORTS) && (pin < 32)) {
