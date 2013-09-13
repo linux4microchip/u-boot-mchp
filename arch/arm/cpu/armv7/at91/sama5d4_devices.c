@@ -69,8 +69,8 @@ void at91_serial2_hw_init(void)
 
 void at91_serial3_hw_init(void)
 {
-	at91_set_b_periph(AT91_PIO_PORTE, 16, 1);	/* TXD2 */
-	at91_set_b_periph(AT91_PIO_PORTE, 17, 0);	/* RXD2 */
+	at91_set_b_periph(AT91_PIO_PORTE, 16, 1);	/* TXD3 */
+	at91_set_b_periph(AT91_PIO_PORTE, 17, 0);	/* RXD3 */
 
 	/* Enable clock */
 	at91_periph_clk_enable(ATMEL_ID_USART3);
