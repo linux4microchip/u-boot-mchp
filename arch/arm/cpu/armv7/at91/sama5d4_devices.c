@@ -87,9 +87,9 @@ void at91_seriald_hw_init(void)
 #if defined(CONFIG_ATMEL_SPI)
 void at91_spi1_hw_init(unsigned long cs_mask)
 {
-	at91_set_a_periph(AT91_PIO_PORTB, 18, 0);       /* SPI0_MISO */
-	at91_set_a_periph(AT91_PIO_PORTB, 19, 0);       /* SPI0_MOSI */
-	at91_set_a_periph(AT91_PIO_PORTB, 20, 0);       /* SPI0_SPCK */
+	at91_set_a_periph(AT91_PIO_PORTB, 18, 0);       /* SPI1_MISO */
+	at91_set_a_periph(AT91_PIO_PORTB, 19, 0);       /* SPI1_MOSI */
+	at91_set_a_periph(AT91_PIO_PORTB, 20, 0);       /* SPI1_SPCK */
 
 	if (cs_mask & (1 << 0))
 		at91_set_pio_output(AT91_PIO_PORTB, 21, 1);
