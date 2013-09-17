@@ -255,11 +255,9 @@ void spi_cs_activate(struct spi_slave *slave)
 	case 0:
 		at91_set_pio_output(AT91_PIO_PORTB, 21, 0);
 	case 1:
-		at91_set_pio_output(AT91_PIO_PORTD, 14, 0);
+		at91_set_pio_output(AT91_PIO_PORTB, 22, 0);
 	case 2:
-		at91_set_pio_output(AT91_PIO_PORTD, 15, 0);
-	case 3:
-		at91_set_pio_output(AT91_PIO_PORTD, 16, 0);
+		at91_set_pio_output(AT91_PIO_PORTB, 23, 0);
 	default:
 		break;
 	}
@@ -271,11 +269,9 @@ void spi_cs_deactivate(struct spi_slave *slave)
 	case 0:
 		at91_set_pio_output(AT91_PIO_PORTB, 21, 1);
 	case 1:
-		at91_set_pio_output(AT91_PIO_PORTD, 14, 1);
+		at91_set_pio_output(AT91_PIO_PORTB, 22, 1);
 	case 2:
-		at91_set_pio_output(AT91_PIO_PORTD, 15, 1);
-	case 3:
-		at91_set_pio_output(AT91_PIO_PORTD, 16, 1);
+		at91_set_pio_output(AT91_PIO_PORTB, 23, 1);
 	default:
 		break;
 	}

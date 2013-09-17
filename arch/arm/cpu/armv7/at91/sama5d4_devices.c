@@ -94,11 +94,9 @@ void at91_spi1_hw_init(unsigned long cs_mask)
 	if (cs_mask & (1 << 0))
 		at91_set_pio_output(AT91_PIO_PORTB, 21, 1);
 	if (cs_mask & (1 << 1))
-		at91_set_pio_output(AT91_PIO_PORTD, 14, 1);
+		at91_set_pio_output(AT91_PIO_PORTB, 22, 1);
 	if (cs_mask & (1 << 2))
-		at91_set_pio_output(AT91_PIO_PORTD, 15, 1);
-	if (cs_mask & (1 << 3))
-		at91_set_pio_output(AT91_PIO_PORTD, 16, 1);
+		at91_set_pio_output(AT91_PIO_PORTB, 23, 1);
 
 	/* Enable clock */
 	at91_periph_clk_enable(ATMEL_ID_SPI1);
