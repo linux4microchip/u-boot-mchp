@@ -107,6 +107,9 @@ typedef struct at91_port {
 	u32	reserved11[5];	/* */
 	u32	schmitt;	/* 0x100 Schmitt Trigger Register */
 	u32	reserved12[63];
+#if defined(CONFIG_SAMA5D4)
+	u32	reserved13[896];
+#endif
 #else
 	u32	reserved6[85];
 #endif
@@ -117,12 +120,16 @@ typedef union at91_pio {
 		at91_port_t	pioa;
 		at91_port_t	piob;
 		at91_port_t	pioc;
+#if defined(CONFIG_SAMA5D4)
+		at91_port_t	pioe;
+#else
 	#if (ATMEL_PIO_PORTS > 3)
 		at91_port_t	piod;
 	#endif
 	#if (ATMEL_PIO_PORTS > 4)
 		at91_port_t	pioe;
 	#endif
+#endif
 	} ;
 	at91_port_t port[ATMEL_PIO_PORTS];
 } at91_pio_t;
@@ -151,8 +158,16 @@ int at91_get_pio_value(unsigned port, unsigned pin);
 #define	AT91_PIO_PORTA		0x0
 #define	AT91_PIO_PORTB		0x1
 #define	AT91_PIO_PORTC		0x2
+#if defined(CONFIG_SAMA5D4)
+#define	AT91_PIO_PORTD		"THIS IS AN ERROR: DO NOT USE PORT D"
+#else
 #define	AT91_PIO_PORTD		0x3
+#endif
+#if defined(CONFIG_SAMA5D4)
+#define	AT91_PIO_PORTE		0x3
+#else
 #define	AT91_PIO_PORTE		0x4
+#endif
 
 #ifdef CONFIG_AT91_LEGACY
 

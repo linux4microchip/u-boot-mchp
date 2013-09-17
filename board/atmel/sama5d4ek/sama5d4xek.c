@@ -246,7 +246,7 @@ int board_mmc_init(bd_t *bis)
 
 int spi_cs_is_valid(unsigned int bus, unsigned int cs)
 {
-	return bus == 1 && cs < 4;
+	return bus == 1 && cs < 3;
 }
 
 void spi_cs_activate(struct spi_slave *slave)

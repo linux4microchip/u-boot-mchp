@@ -178,7 +178,7 @@
 /*
  * Other misc defines
  */
-#define ATMEL_PIO_PORTS		5
+#define ATMEL_PIO_PORTS		4
 #define CPU_HAS_PIO3
 #define PIO_SCDR_DIV		0x3fff
 
