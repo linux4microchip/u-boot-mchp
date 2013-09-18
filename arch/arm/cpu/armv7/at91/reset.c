@@ -33,6 +33,10 @@
 /* Reset the cpu by telling the reset controller to do so */
 void reset_cpu(ulong ignored)
 {
+#ifdef CONFIG_SAMA5D4
+	/* Need to add reset function in monitor code */
+	atmel_smc(0x29, 0, 0, 0);
+#else
 	at91_rstc_t *rstc = (at91_rstc_t *)ATMEL_BASE_RSTC;
 
 	writel(AT91_RSTC_KEY
@@ -42,6 +46,7 @@ void reset_cpu(ulong ignored)
 		| AT91_RSTC_CR_EXTRST	/* External Reset (assert nRST pin) */
 #endif
 		, &rstc->cr);
+#endif
 	/* never reached */
 	do { } while (1);
 }
