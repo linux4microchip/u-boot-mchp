@@ -24,7 +24,7 @@
 #include <common.h>
 #include <mmc.h>
 #include <asm/io.h>
-#include <asm/arch/sama5d3_smc.h>
+//#include <asm/arch/sama5d3_smc.h>
 #include <asm/arch/at91_common.h>
 #include <asm/arch/at91_pmc.h>
 #include <asm/arch/at91_rstc.h>
@@ -47,6 +47,11 @@ DECLARE_GLOBAL_DATA_PTR;
 #ifdef CONFIG_NAND_ATMEL
 void sama5d4ek_nand_hw_init(void)
 {
+	/*
+	 * As the SMC is always secure, so depends on the timing configuration
+	 * in At91bootstrap
+	 */
+#if 0
 	struct at91_smc *smc = (struct at91_smc *)ATMEL_BASE_SMC;
 
 	at91_periph_clk_enable(ATMEL_ID_SMC);
@@ -73,6 +78,7 @@ void sama5d4ek_nand_hw_init(void)
 #endif
 	       AT91_SMC_MODE_TDF_CYCLE(3),
 	       &smc->cs[3].mode);
+#endif
 
 	at91_set_a_periph(AT91_PIO_PORTC, 5, 0);	/* D0 */
 	at91_set_a_periph(AT91_PIO_PORTC, 6, 0);	/* D1 */
