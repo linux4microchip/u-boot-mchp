@@ -39,11 +39,6 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-/* ------------------------------------------------------------------------- */
-/*
- * Miscelaneous platform dependent initialisations
- */
-
 #ifdef CONFIG_NAND_ATMEL
 void sama5d4ek_nand_hw_init(void)
 {
