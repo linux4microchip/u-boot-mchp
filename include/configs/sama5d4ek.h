@@ -40,7 +40,6 @@
 #define CONFIG_USART_BASE		ATMEL_BASE_USART3
 #define	CONFIG_USART_ID			ATMEL_ID_USART3
 
-#if 0
 /*
  * This needs to be defined for the OHCI code to work but it is defined as
  * ATMEL_ID_UHPHS in the CPU specific header files.
@@ -51,7 +50,6 @@
  * Specify the clock enable bit in the PMC_SCER register.
  */
 #define ATMEL_PMC_UHP			AT91SAM926x_PMC_UHP
-#endif
 
 #if 0
 /* LCD */
@@ -111,7 +109,6 @@
 #define CONFIG_SF_DEFAULT_SPEED		30000000
 #endif
 
-#if 0
 /* NAND flash */
 #define CONFIG_CMD_NAND
 
@@ -138,7 +135,6 @@
 #endif
 #endif
 
-#endif
 
 /* Ethernet Hardware */
 #define CONFIG_MACB
@@ -147,7 +143,6 @@
 #define CONFIG_MACB_SEARCH_PHY
 
 /* MMC */
-#if 0
 #define CONFIG_CMD_MMC
 
 #ifdef CONFIG_CMD_MMC
@@ -157,9 +152,7 @@
 #define ATMEL_BASE_MMCI			ATMEL_BASE_MCI0
 #define CONFIG_ATMEL_MCI_PORTB
 #endif
-#endif
 
-#if 0
 /* USB */
 #define CONFIG_CMD_USB
 
@@ -176,8 +169,6 @@
 #endif
 #define CONFIG_DOS_PARTITION
 #define CONFIG_USB_STORAGE
-#endif
-
 #endif
 
 #if defined(CONFIG_CMD_USB) || defined(CONFIG_CMD_MMC)
