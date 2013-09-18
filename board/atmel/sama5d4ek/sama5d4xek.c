@@ -213,11 +213,6 @@ int dram_init(void)
 	return 0;
 }
 
-int board_phy_config(struct phy_device *phydev)
-{
-	return 0;
-}
-
 int board_eth_init(bd_t *bis)
 {
 	int rc = 0;
