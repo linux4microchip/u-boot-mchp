@@ -159,9 +159,11 @@ void lcd_show_board_info(void)
 
 int board_early_init_f(void)
 {
-	at91_set_pio_output(AT91_PIO_PORTE, 9, 0);
+	at91_set_b_periph(AT91_PIO_PORTE, 16, 1);	/* TXD3 */
+	at91_set_b_periph(AT91_PIO_PORTE, 17, 0);	/* RXD3 */
 
-	at91_serial3_hw_init();
+	/* Enable clock */
+	at91_periph_clk_enable(ATMEL_ID_USART3);
 
 	return 0;
 }

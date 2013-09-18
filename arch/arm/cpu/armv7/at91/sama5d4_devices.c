@@ -40,50 +40,6 @@ char *get_cpu_name()
 	return "SAMA5D4";
 }
 
-void at91_serial0_hw_init(void)
-{
-	at91_set_a_periph(AT91_PIO_PORTD, 18, 1);	/* TXD0 */
-	at91_set_a_periph(AT91_PIO_PORTD, 17, 0);	/* RXD0 */
-
-	/* Enable clock */
-	at91_periph_clk_enable(ATMEL_ID_USART0);
-}
-
-void at91_serial1_hw_init(void)
-{
-	at91_set_a_periph(AT91_PIO_PORTB, 29, 1);	/* TXD1 */
-	at91_set_a_periph(AT91_PIO_PORTB, 28, 0);	/* RXD1 */
-
-	/* Enable clock */
-	at91_periph_clk_enable(ATMEL_ID_USART1);
-}
-
-void at91_serial2_hw_init(void)
-{
-	at91_set_b_periph(AT91_PIO_PORTE, 26, 1);	/* TXD2 */
-	at91_set_b_periph(AT91_PIO_PORTE, 25, 0);	/* RXD2 */
-
-	/* Enable clock */
-	at91_periph_clk_enable(ATMEL_ID_USART2);
-}
-
-void at91_serial3_hw_init(void)
-{
-	at91_set_b_periph(AT91_PIO_PORTE, 16, 1);	/* TXD3 */
-	at91_set_b_periph(AT91_PIO_PORTE, 17, 0);	/* RXD3 */
-
-	/* Enable clock */
-	at91_periph_clk_enable(ATMEL_ID_USART3);
-}
-void at91_seriald_hw_init(void)
-{
-	at91_set_a_periph(AT91_PIO_PORTB, 31, 1);	/* DTXD */
-	at91_set_a_periph(AT91_PIO_PORTB, 30, 0);	/* DRXD */
-
-	/* Enable clock */
-	at91_periph_clk_enable(ATMEL_ID_SYS);
-}
-
 #if defined(CONFIG_ATMEL_SPI)
 void at91_spi1_hw_init(unsigned long cs_mask)
 {
