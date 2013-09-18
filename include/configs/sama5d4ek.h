@@ -143,12 +143,8 @@
 /* Ethernet Hardware */
 #define CONFIG_MACB
 #define CONFIG_RMII
-#define CONFIG_NET_MULTI
 #define CONFIG_NET_RETRY_COUNT		20
 #define CONFIG_MACB_SEARCH_PHY
-#define CONFIG_CMD_MII
-#define CONFIG_PHYLIB
-#define CONFIG_ETHADDR			3C:3F:35:18:44:66
 
 /* MMC */
 #if 0
