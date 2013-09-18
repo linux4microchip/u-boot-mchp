@@ -44,10 +44,11 @@ static u32 at91_pll_rate(u32 freq, u32 reg)
 {
 	unsigned mul, div;
 
-	//div = reg & 0xff;
+	div = reg & 0xff;
 	mul = (reg >> 18) & 0x7f;
 	if (mul) {
-		//freq /= div;
+		if (div != 0)
+			freq /= div;
 		freq *= mul + 1;
 	} else {
 		freq = 0;
@@ -80,16 +81,22 @@ int at91_clock_init(unsigned long main_clock)
 	gd->arch.main_clk_rate_hz = main_clock;
 
 	/* report if PLLA is more than mildly overclocked */
+#ifdef CONFIG_SAMA5D4
 	plla = atmel_smc(0x24, 0x28, 0, 0);
+#else
+	plla = readl(&pmc->pllar);
+#endif
 	gd->arch.plla_rate_hz = at91_pll_rate(main_clock, plla);
 
 	/*
 	 * MCK and CPU derive from one of those primary clocks.
 	 * For now, assume this parentage won't change.
 	 */
-
+#ifdef CONFIG_SAMA5D4
 	mckr = atmel_smc(0x24, 0x30, 0, 0);
-
+#else
+	mckr = readl(&pmc->mckr);
+#endif
 	/* plla divisor by 2 */
 	if (mckr & (1 << 12))
 		gd->arch.plla_rate_hz >>= 1;
