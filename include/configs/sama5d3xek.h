@@ -189,6 +189,8 @@
 
 #if defined(CONFIG_CMD_USB) || defined(CONFIG_CMD_MMC)
 #define CONFIG_CMD_FAT
+#define CONFIG_CMD_EXT4
+#define CONFIG_CMD_EXT4_WRITE
 #endif
 
 #define CONFIG_SYS_LOAD_ADDR			0x22000000 /* load address */
