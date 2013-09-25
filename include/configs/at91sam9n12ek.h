@@ -202,7 +202,7 @@
 #define CONFIG_BOOTCOMMAND						\
 	"setenv bootargs ${console} ${mtdparts} ${bootargs_nand};"	\
 	"sf probe 0; sf read 0x22000000 0x100000 0x300000; "		\
-	"bootm 0x22000000"
+	"bootz 0x22000000"
 
 #elif defined(CONFIG_SYS_USE_NANDFLASH)
 
@@ -215,7 +215,7 @@
 	"setenv bootargs ${console} ${mtdparts} ${bootargs_nand};"	\
 	"nand read 0x21000000 0x180000 0x080000;"			\
 	"nand read 0x22000000 0x200000 0x400000;"			\
-	"bootm 0x22000000 - 0x21000000"
+	"bootz 0x22000000 - 0x21000000"
 
 #else /* CONFIG_SYS_USE_MMC */
 
@@ -228,8 +228,8 @@
 #define CONFIG_BOOTCOMMAND						\
 	"setenv bootargs ${console} ${mtdparts} ${bootargs_mmc};"	\
 	"fatload mmc 0:1 0x21000000 dtb;"				\
-	"fatload mmc 0:1 0x22000000 uImage;"				\
-	"bootm 0x22000000 - 0x21000000"
+	"fatload mmc 0:1 0x22000000 zImage;"				\
+	"bootz 0x22000000 - 0x21000000"
 
 #endif
 

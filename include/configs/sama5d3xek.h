@@ -214,7 +214,7 @@
 #define CONFIG_ENV_SECT_SIZE    0x1000
 #define CONFIG_BOOTCOMMAND      "sf probe 0; " \
                                 "sf read 0x22000000 0x42000 0x300000; " \
-                                "bootm 0x22000000"
+                                "bootz 0x22000000"
 #elif CONFIG_SYS_USE_NANDFLASH
 /* bootstrap + u-boot + env in nandflash */
 #define CONFIG_ENV_IS_IN_NAND
@@ -223,7 +223,7 @@
 #define CONFIG_ENV_SIZE			0x20000
 #define CONFIG_BOOTCOMMAND	"nand read 0x21000000 0x180000 0x80000;" \
 				"nand read 0x22000000 0x200000 0x600000;" \
-				"bootm 0x22000000 - 0x21000000"
+				"bootz 0x22000000 - 0x21000000"
 #elif CONFIG_SYS_USE_MMC
 /* bootstrap + u-boot + env in sd card */
 #define CONFIG_ENV_IS_IN_MMC
@@ -231,8 +231,8 @@
 #define CONFIG_ENV_OFFSET_REDUND	0x4000
 #define CONFIG_ENV_SIZE			0x2000
 #define CONFIG_BOOTCOMMAND	"mmcinfo;fatload mmc 0:1 0x21000000 dtb;" \
-				"fatload mmc 0:1 0x22000000 uImage;" \
-				"bootm 0x22000000 - 0x21000000"
+				"fatload mmc 0:1 0x22000000 zImage;" \
+				"bootz 0x22000000 - 0x21000000"
 #define CONFIG_SYS_MMC_ENV_DEV 0
 #else
 #define CONFIG_ENV_IS_NOWHERE
