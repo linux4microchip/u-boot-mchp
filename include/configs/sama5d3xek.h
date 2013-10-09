@@ -250,6 +250,6 @@
 #define CONFIG_SYS_HUSH_PARSER
 
 /* Size of malloc() pool */
-#define CONFIG_SYS_MALLOC_LEN		(1024 * 1024)
+#define CONFIG_SYS_MALLOC_LEN		(64 * 1024 * 1024)
 
 #endif
