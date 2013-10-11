@@ -189,6 +189,7 @@
 
 #if defined(CONFIG_CMD_USB) || defined(CONFIG_CMD_MMC)
 #define CONFIG_CMD_FAT
+#define CONFIG_FAT_WRITE
 #define CONFIG_CMD_EXT4
 #define CONFIG_CMD_EXT4_WRITE
 #endif
