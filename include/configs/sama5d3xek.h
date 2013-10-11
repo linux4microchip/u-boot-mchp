@@ -141,6 +141,14 @@
 #define CONFIG_PMECC_CAP		4
 #define CONFIG_PMECC_SECTOR_SIZE	512
 #define CONFIG_CMD_NAND_TRIMFFS
+#define CONFIG_CMD_MTDPARTS
+
+#define CONFIG_MTD_DEVICE
+#define CONFIG_MTD_PARTITIONS
+#define CONFIG_RBTREE
+#define CONFIG_LZO
+#define CONFIG_CMD_UBI
+#define CONFIG_CMD_UBIFS
 #endif
 
 /* Ethernet Hardware */
