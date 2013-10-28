@@ -114,7 +114,7 @@ void at91_seriald_hw_init(void)
 	at91_set_a_periph(AT91_PIO_PORTB, 31, 1);	/* DTXD */
 
 	/* Enable clock */
-	at91_periph_clk_enable(ATMEL_ID_SYS);
+	at91_periph_clk_enable(ATMEL_ID_DBGU);
 }
 
 #if defined(CONFIG_ATMEL_SPI)

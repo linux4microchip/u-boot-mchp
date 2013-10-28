@@ -74,7 +74,7 @@ int timer_init(void)
 	at91_pit_t *pit = (at91_pit_t *) ATMEL_BASE_PIT;
 
 	/* Enable PITC Clock */
-	writel(1 << ATMEL_ID_SYS, &pmc->pcer);
+	writel(1 << ATMEL_ID_PIT, &pmc->pcer);
 
 	/* Enable PITC */
 	writel(TIMER_LOAD_VAL | AT91_PIT_MR_EN , &pit->mr);
