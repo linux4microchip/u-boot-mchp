@@ -178,6 +178,12 @@ void lcd_show_board_info(void)
 
 int board_early_init_f(void)
 {
+	at91_periph_clk_enable(ATMEL_ID_PIOA);
+	at91_periph_clk_enable(ATMEL_ID_PIOB);
+	at91_periph_clk_enable(ATMEL_ID_PIOC);
+	at91_periph_clk_enable(ATMEL_ID_PIOD);
+	at91_periph_clk_enable(ATMEL_ID_PIOE);
+
 #ifdef CONFIG_USART1
 	at91_serial1_hw_init();
 #else
