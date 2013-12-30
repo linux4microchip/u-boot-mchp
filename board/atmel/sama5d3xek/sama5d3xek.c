@@ -309,6 +309,10 @@ void spi_cs_deactivate(struct spi_slave *slave)
 #define PINCTRL_PIO_PERIPH	11
 #define PINCTRL_PIO_CONF	15
 
+static const char *DTB_SOUND_COMPATILE_STRING = "atmel,sama5d3ek-wm8904";
+static const char *DTB_SOUND_PROPERTY_NAME_CODEC = "atmel,audio-codec";
+static const char *DTB_SOUND_PROPERTY_NAME_CODEC_BEFORE_REV_D = "atmel,audio-codec-before-revD";
+
 /*
  * SAMA5D3 GPBR3 content:
  * bit 0-4: cpu module revision code
@@ -333,6 +337,8 @@ void ft_board_setup(void *blob, bd_t *bd)
 	char mb_rev_code[2];
 	char pinctrl_isi_pck_as_mck[PINCTRL_CELL_SIZE];
 	char pinctrl_isi_reset[PINCTRL_CELL_SIZE];
+	const struct fdt_property *prop;
+	u32 *audio_phandle = 0;
 
 	printf("Device tree update:\n");
 
@@ -394,6 +400,39 @@ void ft_board_setup(void *blob, bd_t *bd)
 			return;
 		}
 		printf("  pinctrl for isi on mb rev B successfully updated\n");
+	}
+
+	/* sound is connected in TWI0 before rev.D */
+	if (mb_rev_code[0] < 'D') {
+		off_pinctrl = fdt_node_offset_by_compatible(blob, -1, DTB_SOUND_COMPATILE_STRING);
+		if (off_pinctrl < 0) {
+			printf("  error %d while looking for sound node\n", off_pinctrl);
+			return;
+		}
+
+		prop = fdt_get_property_namelen(blob,
+				off_pinctrl,
+				DTB_SOUND_PROPERTY_NAME_CODEC_BEFORE_REV_D,
+				strlen(DTB_SOUND_PROPERTY_NAME_CODEC_BEFORE_REV_D),
+				&off);
+		if (prop) {
+			u32 *tmp = (u32*)prop->data;
+			*audio_phandle = fdt32_to_cpu(*tmp);
+			/* convert it to fdt32 format */
+			*audio_phandle = cpu_to_fdt32(*audio_phandle);
+		} else {
+			printf("failed to find property: %s. error = %d\n", DTB_SOUND_PROPERTY_NAME_CODEC_BEFORE_REV_D, off);
+			return;
+		}
+
+		/* update the atmel,audio-codec property */
+		err = fdt_setprop_inplace(blob, off_pinctrl, DTB_SOUND_PROPERTY_NAME_CODEC, audio_phandle, sizeof(*audio_phandle));
+		if (err < 0) {
+			printf("  error %d while updating /sound node\n", err);
+			return;
+		}
+
+		printf("  TWI of sound on mb rev %c successfully updated\n", mb_rev_code[0]);
 	}
 }
 
