@@ -310,6 +310,7 @@ void spi_cs_deactivate(struct spi_slave *slave)
 #define PINCTRL_PIO_CONF	15
 
 static const char *DTB_SOUND_COMPATILE_STRING = "atmel,sama5d3ek-wm8904";
+static const char *DTB_SOUND_COMPATILE_STRING_3_10 = "atmel,asoc-wm8904";
 static const char *DTB_SOUND_PROPERTY_NAME_CODEC = "atmel,audio-codec";
 static const char *DTB_SOUND_PROPERTY_NAME_CODEC_BEFORE_REV_D = "atmel,audio-codec-before-revD";
 
@@ -406,8 +407,12 @@ void ft_board_setup(void *blob, bd_t *bd)
 	if (mb_rev_code[0] < 'D') {
 		off_pinctrl = fdt_node_offset_by_compatible(blob, -1, DTB_SOUND_COMPATILE_STRING);
 		if (off_pinctrl < 0) {
-			printf("  error %d while looking for sound node\n", off_pinctrl);
-			return;
+			/* try to find another compatible string of sound */
+			off_pinctrl = fdt_node_offset_by_compatible(blob, -1, DTB_SOUND_COMPATILE_STRING_3_10);
+			if (off_pinctrl < 0) {
+				printf("  error %d while looking for sound node\n", off_pinctrl);
+				return;
+			}
 		}
 
 		prop = fdt_get_property_namelen(blob,
