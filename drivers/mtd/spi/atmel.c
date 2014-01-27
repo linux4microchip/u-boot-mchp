@@ -577,10 +577,12 @@ static int at25_unprotect(struct spi_flash *flash)
 	u8 status;
 
 	ret = at25_read_status(flash);
-	if (ret < 0)
+	if (ret < 0) {
 		debug("SF: Read AT25 status failed\n");
-	else
+		return ret;
+	} else {
 		status = ret;
+	}
 
 	if ((status & AT25_STATUS_SWP) == AT25_STATUS_SWP_PROTECTNONE) {
 		/* Protection already disabled */
@@ -697,7 +699,6 @@ int dataflash_write_at25(struct spi_flash *flash,
 	size_t chunk_len;
 	size_t actual;
 	int ret;
-	u8 status;
 	u32 addr;
 	u8 cmd[4];
 	u8 *data = (u8 *)buf;
@@ -713,8 +714,6 @@ int dataflash_write_at25(struct spi_flash *flash,
 	ret = at25_read_status(flash);
 	if (ret < 0)
 		goto out;
-	else
-		status = ret;
 
 	/* Using page programming. */
 	for (actual = 0; actual < len; actual += chunk_len, data += chunk_len) {
