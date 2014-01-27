@@ -212,6 +212,10 @@
 
 #define CONFIG_SYS_LOAD_ADDR			0x22000000 /* load address */
 
+#define CONFIG_CMD_MEMTEST
+#define CONFIG_SYS_MEMTEST_START		CONFIG_SYS_SDRAM_BASE
+#define CONFIG_SYS_MEMTEST_END			0x26e00000
+
 #ifdef CONFIG_SYS_USE_SERIALFLASH
 /* bootstrap + u-boot + env + linux in serial flash */
 #define CONFIG_ENV_IS_IN_SPI_FLASH
