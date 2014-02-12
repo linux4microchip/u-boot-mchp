@@ -48,6 +48,9 @@
 #define CONFIG_CMD_BOOTZ
 #define CONFIG_OF_LIBFDT		/* Device Tree support */
 
+#define CONFIG_BOARD_LATE_INIT
+#define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
+
 /* general purpose I/O */
 #define CONFIG_AT91_GPIO
 

@@ -48,6 +48,45 @@ DECLARE_GLOBAL_DATA_PTR;
  * Miscelaneous platform dependent initialisations
  */
 
+/* One-wire information detect */
+
+/*
+ * SN layout
+ *   31  30         25         20         15         10         5          0
+ *   -----------------------------------------------------------------------
+ *   |   | Vendor ID| Board ID | Vendor ID| Board ID | Vendor ID| Board ID |
+ *   -----------------------------------------------------------------------
+ *       |         EK          |         DM          |         CPU         |
+ */
+#define GPBR_ONEWIRE_INFO_SN	2	/* SN info is in GPBR2 */
+#define		BOARD_ID_SAM9x5_DM	1
+#define		BOARD_ID_PDA_DM		7
+#define		BOARD_ID_SAMA5D3X_DM	9
+#define		BOARD_ID_PDA7_DM	15
+char get_dm_board_id(void)
+{
+	return (readl(ATMEL_BASE_GPBR + 4 * GPBR_ONEWIRE_INFO_SN) >> 10) & 0x1f;
+}
+
+/*
+ * REV layout
+ *   31              24     21     18     15         10         5          0
+ *   -----------------------------------------------------------------------
+ *   |               |  EK  |  DM  |  CPU |    EK    |    DM    |   CPU    |
+ *   -----------------------------------------------------------------------
+ *                   |     Revision id    |        Revision Code           |
+ */
+#define GPBR_ONEWIRE_INFO_REV	3	/* REV info is in GPBR3 */
+char get_mb_rev_code(void)
+{
+	char mb_rev_code = 'a';
+
+	mb_rev_code += 0x1f &
+		(readl(ATMEL_BASE_GPBR + 4 * GPBR_ONEWIRE_INFO_REV) >> 10);
+
+	return mb_rev_code;
+}
+
 #ifdef CONFIG_NAND_ATMEL
 void sama5d3xek_nand_hw_init(void)
 {
@@ -314,3 +353,35 @@ void spi_cs_deactivate(struct spi_slave *slave)
 	}
 }
 #endif /* CONFIG_ATMEL_SPI */
+
+#ifdef CONFIG_BOARD_LATE_INIT
+int board_late_init(void)
+{
+#ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
+	const char *SAMA5D3_MB_REV_ENV_NAME = "mb_rev";
+	const char *SAMA5D3_DM_TYPE_ENV_NAME = "dm_type";
+	char rev_code[2], dm_id;
+
+	rev_code[0] = get_mb_rev_code();
+	rev_code[1] = '\0';
+	setenv(SAMA5D3_MB_REV_ENV_NAME, rev_code);
+
+	dm_id = get_dm_board_id();
+	switch (dm_id) {
+	case BOARD_ID_PDA_DM:
+		setenv(SAMA5D3_DM_TYPE_ENV_NAME, "pda4");
+		break;
+	case BOARD_ID_PDA7_DM:
+		setenv(SAMA5D3_DM_TYPE_ENV_NAME, "pda7");
+		break;
+	case BOARD_ID_SAM9x5_DM:
+	case BOARD_ID_SAMA5D3X_DM:
+	default:
+		setenv(SAMA5D3_DM_TYPE_ENV_NAME, "");
+		break;
+	}
+#endif
+
+	return 0;
+}
+#endif
