@@ -50,6 +50,7 @@
 
 #define CONFIG_BOARD_LATE_INIT
 #define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
+#define CONFIG_FIT
 
 /* general purpose I/O */
 #define CONFIG_AT91_GPIO
@@ -107,6 +108,7 @@
 #undef CONFIG_CMD_LOADS
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_DHCP
+#define CONFIG_CMD_IMI
 
 /* SDRAM */
 #define CONFIG_NR_DRAM_BANKS		1
@@ -235,24 +237,39 @@
 
 #define CONFIG_SYS_LOAD_ADDR			0x22000000 /* load address */
 
+#define CONFIG_EXTRA_ENV_SETTINGS \
+	"findfdt="\
+		"if test $mb_rev = 'c'; then "			\
+			"setenv mb_name $ek_name'_rev'$mb_rev; "\
+		"else "						\
+			"setenv mb_name $ek_name; "		\
+		"fi; "						\
+		"if test $dm_type = undefined; then "		\
+			"setenv conf_name $mb_name; "		\
+		"else "						\
+			"setenv conf_name $mb_name'_'$dm_type; "\
+		"fi; "						\
+		"setenv fdtfile $conf_name'.dtb'; \0"
+
 #ifdef CONFIG_SYS_USE_SERIALFLASH
 /* bootstrap + u-boot + env + linux in serial flash */
 #define CONFIG_ENV_IS_IN_SPI_FLASH
 #define CONFIG_ENV_OFFSET       0x5000
 #define CONFIG_ENV_SIZE         0x3000
 #define CONFIG_ENV_SECT_SIZE    0x1000
-#define CONFIG_BOOTCOMMAND      "sf probe 0; " \
-				"sf read 0x22000000 0x42000 0x300000; " \
-				"bootm 0x22000000"
+#define CONFIG_BOOTCOMMAND	"run findfdt; " \
+				"sf probe 0; " \
+				"sf read 0x22000000 0x42000 0x380000; " \
+				"bootm 0x22000000#conf@$conf_name"
 #elif CONFIG_SYS_USE_NANDFLASH
 /* bootstrap + u-boot + env in nandflash */
 #define CONFIG_ENV_IS_IN_NAND
 #define CONFIG_ENV_OFFSET		0xc0000
 #define CONFIG_ENV_OFFSET_REDUND	0x100000
 #define CONFIG_ENV_SIZE			0x20000
-#define CONFIG_BOOTCOMMAND	"nand read 0x21000000 0x180000 0x80000;" \
-				"nand read 0x22000000 0x200000 0x600000;" \
-				"bootm 0x22000000 - 0x21000000"
+#define CONFIG_BOOTCOMMAND	"run findfdt; " \
+				"nand read 0x22000000 0x200000 0x600000; " \
+				"bootm 0x22000000#conf@$conf_name"
 #elif CONFIG_SYS_USE_MMC
 /* bootstrap + u-boot + env in sd card */
 #define CONFIG_ENV_IS_IN_FAT
@@ -262,9 +279,9 @@
 #define FAT_ENV_DEVICE		0
 #define FAT_ENV_PART		1
 #define CONFIG_ENV_SIZE		0x4000
-#define CONFIG_BOOTCOMMAND	"fatload mmc 0:1 0x21000000 dtb; " \
-				"fatload mmc 0:1 0x22000000 uImage; " \
-				"bootm 0x22000000 - 0x21000000"
+#define CONFIG_BOOTCOMMAND	"run findfdt; " \
+				"fatload mmc 0:1 0x22000000 sama5d3xek.itb; " \
+				"bootm 0x22000000#conf@$conf_name"
 #define CONFIG_SYS_MMC_ENV_DEV	0
 #else
 #define CONFIG_ENV_IS_NOWHERE
