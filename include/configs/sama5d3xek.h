@@ -35,6 +35,9 @@
 
 #define CONFIG_SYS_GENERIC_BOARD
 
+#define CONFIG_BOARD_LATE_INIT
+#define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
+
 /* general purpose I/O */
 #define CONFIG_AT91_GPIO
 
