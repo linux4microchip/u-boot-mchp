@@ -360,12 +360,20 @@ void spi_cs_deactivate(struct spi_slave *slave)
 #endif /* CONFIG_ATMEL_SPI */
 
 #ifdef CONFIG_BOARD_LATE_INIT
+#include <linux/ctype.h>
 int board_late_init(void)
 {
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
+	const char *SAMA5D3_BOARD_EK_NAME = "ek_name";
 	const char *SAMA5D3_MB_REV_ENV_NAME = "mb_rev";
 	const char *SAMA5D3_DM_TYPE_ENV_NAME = "dm_type";
 	char rev_code[2], dm_id;
+	char name[32], *p;
+
+	strcpy(name, get_cpu_name());
+	for (p = name; *p != '\0'; *p = tolower(*p), p++);
+	strcat(name, "ek");
+	setenv(SAMA5D3_BOARD_EK_NAME, name);
 
 	rev_code[0] = get_mb_rev_code();
 	rev_code[1] = '\0';
