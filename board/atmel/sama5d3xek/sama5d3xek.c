@@ -165,6 +165,11 @@ void lcd_disable(void)
 
 static void sama5d3xek_lcd_hw_init(void)
 {
+	/* if LCD is PDA7 module, then set output bpp to 18 bit */
+	char dm_id = get_dm_board_id();
+	if (dm_id == BOARD_ID_PDA7_DM)
+		panel_info.vl_bpox = 18;
+
 	gd->fb_base = CONFIG_SAMA5D3_LCD_BASE;
 
 	/* The higher 8 bit of LCD is board related */
