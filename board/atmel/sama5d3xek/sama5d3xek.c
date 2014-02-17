@@ -105,6 +105,7 @@ vidinfo_t panel_info = {
 	.vl_clk = 24000000,
 	.vl_sync = ATMEL_LCDC_INVLINE_NORMAL | ATMEL_LCDC_INVFRAME_NORMAL,
 	.vl_bpix = LCD_BPP,
+	.vl_bpox = LCD_OUTPUT_BPP,
 	.vl_tft = 1,
 	.vl_hsync_len = 128,
 	.vl_left_margin = 64,

@@ -132,6 +132,7 @@ vidinfo_t panel_info = {
 	.vl_clk = 24000000,
 	.vl_sync = LCDC_LCDCFG5_HSPOL | LCDC_LCDCFG5_VSPOL,
 	.vl_bpix = LCD_BPP,
+	.vl_bpox = LCD_OUTPUT_BPP,
 	.vl_tft = 1,
 	.vl_clk_pol = 1,
 	.vl_hsync_len = 128,
