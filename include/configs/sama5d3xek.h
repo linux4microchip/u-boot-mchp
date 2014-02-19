@@ -247,7 +247,11 @@
 		"if test $dm_type = undefined; then "		\
 			"setenv conf_name $mb_name; "		\
 		"else "						\
-			"setenv conf_name $mb_name'_'$dm_type; "\
+			"if test $ek_name = sama5d35ek; then "	\
+				"setenv conf_name $mb_name; "	\
+			"else "					\
+				"setenv conf_name $mb_name'_'$dm_type; "\
+			"fi; "					\
 		"fi; "						\
 		"setenv fdtfile $conf_name'.dtb'; \0"
 
