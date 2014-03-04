@@ -41,6 +41,23 @@ char *get_cpu_name()
 }
 
 #if defined(CONFIG_ATMEL_SPI)
+void at91_spi0_hw_init(unsigned long cs_mask)
+{
+	at91_set_a_periph(AT91_PIO_PORTC, 0, 0);       /* SPI0_MISO */
+	at91_set_a_periph(AT91_PIO_PORTC, 1, 0);       /* SPI0_MOSI */
+	at91_set_a_periph(AT91_PIO_PORTC, 2, 0);       /* SPI0_SPCK */
+
+	if (cs_mask & (1 << 0))
+		at91_set_pio_output(AT91_PIO_PORTC, 3, 1);
+	if (cs_mask & (1 << 1))
+		at91_set_pio_output(AT91_PIO_PORTC, 4, 1);
+	if (cs_mask & (1 << 2))
+		at91_set_pio_output(AT91_PIO_PORTC, 28, 1);
+
+	/* Enable clock */
+	at91_periph_clk_enable(ATMEL_ID_SPI0);
+}
+
 void at91_spi1_hw_init(unsigned long cs_mask)
 {
 	at91_set_a_periph(AT91_PIO_PORTB, 18, 0);       /* SPI1_MISO */
