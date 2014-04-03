@@ -109,6 +109,7 @@
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_IMI
+#define CONFIG_CMD_SETEXPR
 
 /* SDRAM */
 #define CONFIG_NR_DRAM_BANKS		1
@@ -237,6 +238,19 @@
 
 #define CONFIG_SYS_LOAD_ADDR			0x22000000 /* load address */
 
+/*
+ * Nand PMECC Header
+ *
+ *  31     28 27 26                18 17  16 15     13  12                4 3       1 0
+ * -------------------------------------------------------------------------------------
+ * |   key   |  |     eccOffset      |sector|eccBitReq |     spareSize     |nbSector | |
+ * |         |  |                    |Size  |          |                   |PerPage  | |
+ * -------------------------------------------------------------------------------------
+ */
+
+/* Nand PMECC setting: 4bit ecc per 512-byte. pagesize: 2048. oobsize: 64 */
+#define CONFIG_NAND_PMECC_HEADER		0xC0902405
+
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"findfdt="\
 		"if test $mb_rev = 'c'; then "			\
@@ -253,7 +267,32 @@
 				"setenv conf_name $mb_name'_'$dm_type; "\
 			"fi; "					\
 		"fi; "						\
-		"setenv fdtfile $conf_name'.dtb'; \0"
+		"setenv fdtfile $conf_name'.dtb'; \0"		\
+	"flush_bootstrap_nand="\
+		"if test $filesize = undefined; then "		\
+			"echo ERROR: filesize is not defined!;"	\
+			"exit;"					\
+		"else "						\
+			"setexpr copysize $filesize + 0xd0; "	\
+		"fi; "						\
+		"if test $fileaddr = undefined; then "		\
+			"echo ERROR: fileaddr is not defined!;"	\
+			"exit;"					\
+		"else "						\
+			"setexpr copyaddr $fileaddr + 0x10000; "\
+		"fi; "						\
+		"run fix_boot_head; run fix_boot_addr; "	\
+		"run write_nand_boot; \0"			\
+	"fix_boot_head="\
+		"mw.l $copyaddr " __stringify(CONFIG_NAND_PMECC_HEADER) " 0x34;"	\
+		"setexpr tmp $copyaddr + 0xd0; "		\
+		"cp.b $fileaddr $tmp $filesize;\0"		\
+	"fix_boot_addr="\
+		"setexpr tmp $copyaddr + 0xe4; "		\
+		"mw.l $tmp $filesize;\0"			\
+	"write_nand_boot="\
+		"nand erase 0 0x10000; "			\
+		"nand write $copyaddr 0 $copysize;\0"
 
 #ifdef CONFIG_SYS_USE_SERIALFLASH
 /* bootstrap + u-boot + env + linux in serial flash */
