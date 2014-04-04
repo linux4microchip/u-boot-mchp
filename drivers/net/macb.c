@@ -766,6 +766,18 @@ int macb_eth_initialize(int id, void *regs, unsigned int phy_addr)
 	miiphy_register(netdev->name, macb_miiphy_read, macb_miiphy_write);
 	macb->bus = miiphy_get_dev_by_name(netdev->name);
 #endif
+
+#ifdef CONFIG_MACB1
+	/*
+	 * As the MACB1 share pin with LCD, so when design hardware, there
+	 * is an buffer chip bwteen these two devices, which cause the phy
+	 * can not get the reset strap value correctly.
+	 * Add this workaround to make macb1 working.
+	 */
+	if (id == 1)
+		macb_mdio_write(macb, 0x16, 0x2);
+#endif
+
 	return 0;
 }
 
