@@ -126,7 +126,7 @@ typedef struct at91_pmc {
 #else
 #define AT91_PMC_MCKR_MDIV_1		0x00000000
 #define AT91_PMC_MCKR_MDIV_2		0x00000100
-#ifdef CONFIG_SAMA5D3
+#if defined(CONFIG_SAMA5D3) || defined(CONFIG_SAMA5D4)
 #define AT91_PMC_MCKR_MDIV_3		0x00000300
 #endif
 #define AT91_PMC_MCKR_MDIV_4		0x00000200

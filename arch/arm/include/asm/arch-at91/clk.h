@@ -50,12 +50,20 @@ static inline u32 get_pllb_init(void)
 
 static inline unsigned long get_macb_pclk_rate(unsigned int dev_id)
 {
+#ifdef CPU_HAS_H32MXDIV
+	return get_mck_clk_rate() / H32MXDIV;
+#else
 	return get_mck_clk_rate();
+#endif
 }
 
 static inline unsigned long get_usart_clk_rate(unsigned int dev_id)
 {
+#ifdef CPU_HAS_H32MXDIV
+	return get_mck_clk_rate() / H32MXDIV;
+#else
 	return get_mck_clk_rate();
+#endif
 }
 
 static inline unsigned long get_lcdc_clk_rate(unsigned int dev_id)
@@ -65,17 +73,38 @@ static inline unsigned long get_lcdc_clk_rate(unsigned int dev_id)
 
 static inline unsigned long get_spi_clk_rate(unsigned int dev_id)
 {
+#ifdef CPU_HAS_H32MXDIV
+	return get_mck_clk_rate() / H32MXDIV;
+#else
 	return get_mck_clk_rate();
+#endif
 }
 
 static inline unsigned long get_twi_clk_rate(unsigned int dev_id)
 {
+#ifdef CPU_HAS_H32MXDIV
+	return get_mck_clk_rate() / H32MXDIV;
+#else
 	return get_mck_clk_rate();
+#endif
 }
 
 static inline unsigned long get_mci_clk_rate(void)
 {
+#ifdef CPU_HAS_H32MXDIV
+	return get_mck_clk_rate() / H32MXDIV;
+#else
 	return get_mck_clk_rate();
+#endif
+}
+
+static inline unsigned long get_pit_clk_rate(void)
+{
+#ifdef CPU_HAS_H32MXDIV
+	return get_mck_clk_rate() / H32MXDIV;
+#else
+	return get_mck_clk_rate();
+#endif
 }
 
 int at91_clock_init(unsigned long main_clock);
