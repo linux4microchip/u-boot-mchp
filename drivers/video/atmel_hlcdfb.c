@@ -96,11 +96,7 @@ void lcd_ctrl_init(void *lcdbase)
 
 	value |= panel_info.vl_sync;
 
-#ifndef LCD_OUTPUT_BPP
-	/* Output is 24bpp */
-	value |= LCDC_LCDCFG5_MODE_OUTPUT_24BPP;
-#else
-	switch (LCD_OUTPUT_BPP) {
+	switch (panel_info.vl_bpox) {
 	case 12:
 		value |= LCDC_LCDCFG5_MODE_OUTPUT_12BPP;
 		break;
@@ -117,7 +113,6 @@ void lcd_ctrl_init(void *lcdbase)
 		BUG();
 		break;
 	}
-#endif
 
 	value |= LCDC_LCDCFG5_GUARDTIME(ATMEL_LCDC_GUARD_TIME);
 	value |= (LCDC_LCDCFG5_DISPDLY | LCDC_LCDCFG5_VSPDLYS);
