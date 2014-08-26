@@ -157,7 +157,7 @@
 				"mtdparts=atmel_nand:-(root) "\
 				"rw rootfstype=jffs2"
 
-#else /* CONFIG_SYS_USE_NANDFLASH */
+#elif CONFIG_SYS_USE_NANDFLASH
 
 /* bootstrap + u-boot + env + linux in nandflash */
 #define CONFIG_ENV_IS_IN_NAND		1
@@ -170,6 +170,22 @@
 				"mtdparts=atmel_nand:128k(bootstrap)ro,256k(uboot)ro,128k(env1)ro,128k(env2)ro,2M(linux),-(root) " \
 				"rw rootfstype=jffs2"
 
+#else /* CONFIG_SYS_USE_MMC */
+
+/* bootstrap + u-boot + env + linux in mmc */
+#define CONFIG_ENV_IS_IN_FAT
+#define CONFIG_FAT_WRITE
+#define FAT_ENV_INTERFACE	"mmc"
+#define FAT_ENV_FILE		"uboot.env"
+#define FAT_ENV_DEVICE_AND_PART	"0"
+#define CONFIG_ENV_SIZE		0x4000
+#define CONFIG_BOOTCOMMAND	"fatload mmc 0:1 0x21000000 at91sam9rlek.dtb; " \
+				"fatload mmc 0:1 0x22000000 zImage; " \
+				"bootz 0x22000000 - 0x21000000"
+#define CONFIG_BOOTARGS		"console=ttyS0,115200 " \
+				"mtdparts=atmel_nand:" \
+				"8M(bootstrap/uboot/kernel)ro,-(rootfs) " \
+				"root=/dev/mmcblk0p2 rw rootwait"
 #endif
 
 #define CONFIG_SYS_PROMPT		"U-Boot> "
