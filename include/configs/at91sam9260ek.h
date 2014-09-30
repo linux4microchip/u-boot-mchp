@@ -90,7 +90,6 @@
 #define CONFIG_CMD_PING		1
 #define CONFIG_CMD_DHCP		1
 #define CONFIG_CMD_NAND		1
-#define CONFIG_CMD_MMC
 #define CONFIG_CMD_FAT
 #define CONFIG_CMD_USB		1
 
@@ -133,8 +132,8 @@
 # define CONFIG_MACH_TYPE MACH_TYPE_AT91SAM9260EK
 #endif
 
-/* DataFlash */
 #ifndef CONFIG_AT91SAM9G20EK_2MMC
+/* DataFlash */
 #define CONFIG_ATMEL_DATAFLASH_SPI
 #define CONFIG_HAS_DATAFLASH		1
 #define CONFIG_SYS_SPI_WRITE_TOUT		(5*CONFIG_SYS_HZ)
@@ -142,6 +141,9 @@
 #define CONFIG_SYS_DATAFLASH_LOGIC_ADDR_CS0	0xC0000000	/* CS0 */
 #define CONFIG_SYS_DATAFLASH_LOGIC_ADDR_CS1	0xD0000000	/* CS1 */
 #define AT91_SPI_CLK			15000000
+#else
+/* Enable MMC. The MCCK is conflicted with DataFlash */
+#define CONFIG_CMD_MMC
 #endif
 
 #ifdef CONFIG_AT91SAM9G20EK
