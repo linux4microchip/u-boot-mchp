@@ -134,6 +134,7 @@
 #define CONFIG_MACB_SEARCH_PHY
 
 /* LCD */
+#ifndef CONFIG_MACB1
 #define CONFIG_LCD
 #define LCD_BPP				LCD_COLOR16
 #define LCD_OUTPUT_BPP                  18
@@ -144,6 +145,7 @@
 #define CONFIG_ATMEL_HLCD
 #define CONFIG_ATMEL_LCD_RGB565
 #define CONFIG_SYS_CONSOLE_IS_IN_ENV
+#endif
 
 #ifdef CONFIG_SYS_USE_SERIALFLASH
 /* bootstrap + u-boot + env + linux in serial flash */

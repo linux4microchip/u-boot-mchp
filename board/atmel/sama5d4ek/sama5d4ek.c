@@ -250,6 +250,25 @@ void sama5d4ek_macb0_hw_init(void)
 }
 #endif
 
+#ifdef CONFIG_MACB1
+void sama5d4ek_macb1_hw_init(void)
+{
+	at91_set_b_periph(AT91_PIO_PORTA, 2, 0);	/* TXCK */
+	at91_set_b_periph(AT91_PIO_PORTA, 4, 0);	/* TXEN */
+	at91_set_b_periph(AT91_PIO_PORTA, 14, 0);	/* TX0 */
+	at91_set_b_periph(AT91_PIO_PORTA, 15, 0);	/* Tx1 */
+	at91_set_b_periph(AT91_PIO_PORTA, 10, 0);	/* RXDV */
+	at91_set_b_periph(AT91_PIO_PORTA, 11, 0);	/* RXER */
+	at91_set_b_periph(AT91_PIO_PORTA, 12, 0);	/* RX0 */
+	at91_set_b_periph(AT91_PIO_PORTA, 13, 0);	/* RX1 */
+	at91_set_b_periph(AT91_PIO_PORTA, 23, 0);	/* MDIO */
+	at91_set_b_periph(AT91_PIO_PORTA, 22, 0);	/* MDC */
+
+	/* Enable clock */
+	at91_periph_clk_enable(ATMEL_ID_GMAC1);
+}
+#endif
+
 char *get_cpu_name()
 {
 	return "SAMA5D4";
@@ -294,8 +313,12 @@ int board_init(void)
 #ifdef CONFIG_MACB
 	sama5d4ek_macb0_hw_init();
 #endif
+#ifdef CONFIG_MACB1
+	sama5d4ek_macb1_hw_init();
+#else
 #ifdef CONFIG_LCD
 	sama5d4ek_lcd_hw_init();
+#endif
 #endif
 #ifdef CONFIG_CMD_USB
 	sama5d4ek_usb_hw_init();
@@ -317,6 +340,10 @@ int board_eth_init(bd_t *bis)
 
 #ifdef CONFIG_MACB
 	rc = macb_eth_initialize(0, (void *)ATMEL_BASE_GMAC0, 0x00);
+#endif
+
+#ifdef CONFIG_MACB1
+	rc = macb_eth_initialize(1, (void *)ATMEL_BASE_GMAC1, 0x00);
 #endif
 
 	return rc;
