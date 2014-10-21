@@ -78,7 +78,7 @@ typedef struct at91_pmc {
 #define AT91_PMC_PLLXR_DIV(x)		(x & 0xFF)
 #define AT91_PMC_PLLXR_PLLCOUNT(x)	((x & 0x3F) << 8)
 #define AT91_PMC_PLLXR_OUT(x)		((x & 0x03) << 14)
-#ifdef CONFIG_SAMA5D3
+#if defined(CONFIG_SAMA5D3) || defined(CONFIG_SAMA5D4)
 #define AT91_PMC_PLLXR_MUL(x)		((x & 0x7F) << 18)
 #else
 #define AT91_PMC_PLLXR_MUL(x)		((x & 0x7FF) << 16)
@@ -97,7 +97,7 @@ typedef struct at91_pmc {
 #define AT91_PMC_MCKR_CSS_PLLB		0x00000003
 #define AT91_PMC_MCKR_CSS_MASK		0x00000003
 
-#ifdef CONFIG_SAMA5D3
+#if defined(CONFIG_SAMA5D3) || defined(CONFIG_SAMA5D4)
 #define AT91_PMC_MCKR_PRES_1		0x00000000
 #define AT91_PMC_MCKR_PRES_2		0x00000010
 #define AT91_PMC_MCKR_PRES_4		0x00000020
