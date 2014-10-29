@@ -174,6 +174,23 @@
 #define CPU_HAS_PCR
 #define CPU_HAS_H32MXDIV
 
+/* sama5d4 series chip id definitions */
+#define ARCH_ID_SAMA5D4		0x8a5c07c0
+#define ARCH_EXID_SAMA5D41	0x00000001
+#define ARCH_EXID_SAMA5D42	0x00000002
+#define ARCH_EXID_SAMA5D43	0x00000003
+#define ARCH_EXID_SAMA5D44	0x00000004
+
+#define cpu_is_sama5d4()	(get_chip_id() == ARCH_ID_SAMA5D4)
+#define cpu_is_sama5d41()	(cpu_is_sama5d4() && \
+		(get_extension_chip_id() == ARCH_EXID_SAMA5D41))
+#define cpu_is_sama5d42()	(cpu_is_sama5d4() && \
+		(get_extension_chip_id() == ARCH_EXID_SAMA5D42))
+#define cpu_is_sama5d43()	(cpu_is_sama5d4() && \
+		(get_extension_chip_id() == ARCH_EXID_SAMA5D43))
+#define cpu_is_sama5d44()	(cpu_is_sama5d4() && \
+		(get_extension_chip_id() == ARCH_EXID_SAMA5D44))
+
 /*
  * The clock of peripheral connect to H32MX is decided by H32MXDIV
  * bit in MCKR, if this bit is set, the peripheral only work at half

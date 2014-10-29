@@ -269,11 +269,6 @@ void sama5d4ek_macb1_hw_init(void)
 }
 #endif
 
-char *get_cpu_name()
-{
-	return "SAMA5D4";
-}
-
 static void sama5d4ek_serial3_hw_init(void)
 {
 	at91_set_b_periph(AT91_PIO_PORTE, 17, 1);	/* TXD3 */
