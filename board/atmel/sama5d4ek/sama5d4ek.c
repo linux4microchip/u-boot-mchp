@@ -10,6 +10,7 @@
 #include <asm/arch/at91_common.h>
 #include <asm/arch/at91_pmc.h>
 #include <asm/arch/at91_rstc.h>
+#include <asm/arch/atmel_usba_udc.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/clk.h>
 #include <asm/arch/sama5d3_smc.h>
@@ -103,6 +104,18 @@ static void sama5d4ek_usb_hw_init(void)
 	at91_set_pio_output(AT91_PIO_PORTE, 11, 0);
 	at91_set_pio_output(AT91_PIO_PORTE, 12, 0);
 	at91_set_pio_output(AT91_PIO_PORTE, 10, 0);
+}
+#endif
+
+#ifdef CONFIG_USB_GADGET_ATMEL_USBA
+static void sama5d4ek_udp_hw_init(void)
+{
+	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
+
+	/* Enable UPLL clock */
+	writel(AT91_PMC_UPLLEN | AT91_PMC_BIASEN, &pmc->uckr);
+	/* Enable UDPHS clock */
+	at91_periph_clk_enable(ATMEL_ID_UDPHS);
 }
 #endif
 
@@ -304,6 +317,9 @@ int board_init(void)
 #endif
 #ifdef CONFIG_GENERIC_ATMEL_MCI
 	sama5d4ek_mci1_hw_init();
+#endif
+#ifdef CONFIG_USB_GADGET_ATMEL_USBA
+	sama5d4ek_udp_hw_init();
 #endif
 #ifdef CONFIG_MACB
 	sama5d4ek_macb0_hw_init();
