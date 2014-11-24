@@ -357,5 +357,12 @@ int board_eth_init(bd_t *bis)
 	rc = macb_eth_initialize(1, (void *)ATMEL_BASE_GMAC1, 0x00);
 #endif
 
+#ifdef CONFIG_USB_GADGET_ATMEL_USBA
+	usba_udc_probe(&pdata);
+#ifdef CONFIG_USB_ETH_RNDIS
+	usb_eth_initialize(bis);
+#endif
+#endif
+
 	return rc;
 }
