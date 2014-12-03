@@ -46,10 +46,17 @@ int at91_set_pio_pullup(unsigned port, unsigned pin, int use_pullup)
 
 	if (at91_port && (pin < 32)) {
 		mask = 1 << pin;
-		if (use_pullup)
+		if (use_pullup) {
+#ifdef CPU_HAS_PIO3
+			writel(1 << pin, &at91_port->ppddr);
+#endif
 			writel(1 << pin, &at91_port->puer);
-		else
+		} else {
 			writel(1 << pin, &at91_port->pudr);
+#ifdef CPU_HAS_PIO3
+			writel(1 << pin, &at91_port->ppder);
+#endif
+		}
 		writel(mask, &at91_port->per);
 	}
 
