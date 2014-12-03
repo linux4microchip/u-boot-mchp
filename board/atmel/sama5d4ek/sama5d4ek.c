@@ -107,18 +107,6 @@ static void sama5d4ek_usb_hw_init(void)
 }
 #endif
 
-#ifdef CONFIG_USB_GADGET_ATMEL_USBA
-static void sama5d4ek_udp_hw_init(void)
-{
-	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
-
-	/* Enable UPLL clock */
-	writel(AT91_PMC_UPLLEN | AT91_PMC_BIASEN, &pmc->uckr);
-	/* Enable UDPHS clock */
-	at91_periph_clk_enable(ATMEL_ID_UDPHS);
-}
-#endif
-
 #ifdef CONFIG_LCD
 vidinfo_t panel_info = {
 	.vl_col = 800,
@@ -319,7 +307,7 @@ int board_init(void)
 	sama5d4ek_mci1_hw_init();
 #endif
 #ifdef CONFIG_USB_GADGET_ATMEL_USBA
-	sama5d4ek_udp_hw_init();
+	at91_udp_hw_init();
 #endif
 #ifdef CONFIG_MACB
 	sama5d4ek_macb0_hw_init();
