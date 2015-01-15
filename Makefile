@@ -1216,7 +1216,7 @@ CLEAN_FILES += u-boot.lds include/bmp_logo.h include/bmp_logo_data.h \
 
 # Directories & files removed with 'make clobber'
 CLOBBER_DIRS  += spl tpl
-CLOBBER_FILES += u-boot* MLO* SPL System.map
+CLOBBER_FILES += boot* u-boot* MLO* SPL System.map
 
 # Directories & files removed with 'make mrproper'
 MRPROPER_DIRS  += include/config include/generated          \
