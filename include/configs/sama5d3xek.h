@@ -47,17 +47,6 @@
 #define CONFIG_USART_BASE		ATMEL_BASE_DBGU
 #define	CONFIG_USART_ID			ATMEL_ID_DBGU
 
-/*
- * This needs to be defined for the OHCI code to work but it is defined as
- * ATMEL_ID_UHPHS in the CPU specific header files.
- */
-#define ATMEL_ID_UHP			ATMEL_ID_UHPHS
-
-/*
- * Specify the clock enable bit in the PMC_SCER register.
- */
-#define ATMEL_PMC_UHP			AT91SAM926x_PMC_UHP
-
 /* LCD */
 #define CONFIG_LCD
 #define LCD_BPP				LCD_COLOR16
@@ -164,13 +153,9 @@
 #define CONFIG_CMD_USB
 
 #ifdef CONFIG_CMD_USB
-#define CONFIG_USB_ATMEL
-#define CONFIG_USB_ATMEL_CLK_SEL_UPLL
-#define CONFIG_USB_OHCI_NEW
-#define CONFIG_SYS_USB_OHCI_CPU_INIT
-#define CONFIG_SYS_USB_OHCI_REGS_BASE		ATMEL_BASE_OHCI
-#define CONFIG_SYS_USB_OHCI_SLOT_NAME		"sama5d3"
-#define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	3
+#define CONFIG_USB_EHCI
+#define CONFIG_USB_EHCI_ATMEL
+#define CONFIG_SYS_USB_EHCI_MAX_ROOT_PORTS	3
 #define CONFIG_DOS_PARTITION
 #define CONFIG_USB_STORAGE
 #endif
