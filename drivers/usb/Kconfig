@@ -55,6 +55,8 @@ source "drivers/usb/emul/Kconfig"
 
 comment "USB peripherals"
 
+source "drivers/usb/gadget/Kconfig"
+
 config USB_STORAGE
 	bool "USB Mass Storage support"
 	---help---

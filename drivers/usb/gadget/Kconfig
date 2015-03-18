@@ -1,0 +1,27 @@
+menuconfig USB_GADGET
+	bool "USB Gadget Support"
+	help
+	   USB is a master/slave protocol, organized with one master
+	   host (such as a PC) controlling up to 127 peripheral devices.
+	   The USB hardware is asymmetric, which makes it easier to set up:
+	   you can't connect a "to-the-host" connector to a peripheral.
+
+	   Linux can run in the host, or in the peripheral.  In both cases
+	   you need a low level bus controller driver, and some software
+	   talking to it.  Peripheral controllers are often discrete silicon,
+	   or are integrated with the CPU in a microcontroller.  The more
+	   familiar host side controllers have names like "EHCI", "OHCI",
+	   or "UHCI", and are usually integrated into southbridges on PC
+	   motherboards.
+
+	   Enable this configuration option if you want to run Linux inside
+	   a USB peripheral device.  Configure one hardware driver for your
+	   peripheral/device side bus controller, and a "gadget driver" for
+	   your peripheral protocol.  (If you use modular gadget drivers,
+	   you may configure more than one.)
+
+	   If in doubt, say "N" and don't enable these drivers; most people
+	   don't have this kind of hardware (except maybe inside Linux PDAs).
+
+	   For more information, see <http://www.linux-usb.org/gadget> and
+	   the kernel DocBook documentation for this API.
