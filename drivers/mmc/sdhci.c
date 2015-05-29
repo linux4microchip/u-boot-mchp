@@ -286,7 +286,7 @@ static int sdhci_send_command(struct mmc *mmc, struct mmc_cmd *cmd,
 static int sdhci_set_clock(struct mmc *mmc, unsigned int clock)
 {
 	struct sdhci_host *host = mmc->priv;
-	unsigned int div, clk, timeout, reg;
+	unsigned int div, clk = 0, timeout, reg;
 
 	/* Wait max 20 ms */
 	timeout = 200;
@@ -310,14 +310,34 @@ static int sdhci_set_clock(struct mmc *mmc, unsigned int clock)
 		return 0;
 
 	if (SDHCI_GET_VERSION(host) >= SDHCI_SPEC_300) {
-		/* Version 3.00 divisors must be a multiple of 2. */
-		if (mmc->cfg->f_max <= clock)
-			div = 1;
-		else {
-			for (div = 2; div < SDHCI_MAX_DIV_SPEC_300; div += 2) {
-				if ((mmc->cfg->f_max / div) <= clock)
+		/*
+		 * Check if the Host Controller supports Programmable Clock
+		 * Mode.
+		 */
+		if (host->clk_mul) {
+			for (div = 1; div <= 1024; div++) {
+				if ((mmc->cfg->f_max * host->clk_mul / div)
+					<= clock)
 					break;
 			}
+
+			/*
+			 * Set Programmable Clock Mode in the Clock
+			 * Control register.
+			 */
+			clk = SDHCI_PROG_CLOCK_MODE;
+			div--;
+		} else {
+			/* Version 3.00 divisors must be a multiple of 2. */
+			if (mmc->cfg->f_max <= clock) {
+				div = 1;
+			} else {
+				for (div = 2; div < SDHCI_MAX_DIV_SPEC_300; div += 2) {
+					if ((mmc->cfg->f_max / div) <= clock)
+						break;
+				}
+			}
+			div >>= 1;
 		}
 	} else {
 		/* Version 2.00 divisors must be a power of 2. */
@@ -325,13 +345,13 @@ static int sdhci_set_clock(struct mmc *mmc, unsigned int clock)
 			if ((mmc->cfg->f_max / div) <= clock)
 				break;
 		}
+		div >>= 1;
 	}
-	div >>= 1;
 
 	if (host->set_clock)
 		host->set_clock(host->index, div);
 
-	clk = (div & SDHCI_DIV_MASK) << SDHCI_DIVIDER_SHIFT;
+	clk |= (div & SDHCI_DIV_MASK) << SDHCI_DIVIDER_SHIFT;
 	clk |= ((div & SDHCI_DIV_HI_MASK) >> SDHCI_DIV_MASK_LEN)
 		<< SDHCI_DIVIDER_HI_SHIFT;
 	clk |= SDHCI_CLOCK_INT_EN;
@@ -480,7 +500,7 @@ static const struct mmc_ops sdhci_ops = {
 
 int add_sdhci(struct sdhci_host *host, u32 max_clk, u32 min_clk)
 {
-	unsigned int caps;
+	unsigned int caps, caps_1;
 
 	host->cfg.name = host->name;
 	host->cfg.ops = &sdhci_ops;
@@ -545,6 +565,14 @@ int add_sdhci(struct sdhci_host *host, u32 max_clk, u32 min_clk)
 		host->cfg.host_caps |= host->host_caps;
 
 	host->cfg.b_max = CONFIG_SYS_MMC_MAX_BLK_COUNT;
+
+	/*
+	 * In case of Host Controller v3.00, find out whether clock
+	 * multiplier is supported.
+	 */
+	caps_1 = sdhci_readl(host, SDHCI_CAPABILITIES_1);
+	host->clk_mul = (caps_1 & SDHCI_CLOCK_MUL_MASK) >>
+			SDHCI_CLOCK_MUL_SHIFT;
 
 	sdhci_reset(host, SDHCI_RESET_ALL);
 
