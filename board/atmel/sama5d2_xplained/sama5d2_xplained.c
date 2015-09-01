@@ -7,6 +7,7 @@
 
 #include <common.h>
 #include <atmel_hlcdc.h>
+#include <i2c.h>
 #include <lcd.h>
 #include <mmc.h>
 #include <net.h>
@@ -266,12 +267,51 @@ int dram_init(void)
 	return 0;
 }
 
+#ifdef CONFIG_CMD_I2C
+static int set_ethaddr_from_eeprom(void)
+{
+	const int ETH_ADDR_LEN = 6;
+	unsigned char ethaddr[ETH_ADDR_LEN];
+	const char * ETHADDR_NAME = "ethaddr";
+
+	if (getenv(ETHADDR_NAME))
+		return 0;
+
+	if (i2c_set_bus_num(0)) {
+		printf("i2c bus 0 is not valid\n");
+		return -1;
+	}
+
+	if (i2c_read(CONFIG_AT24MAC_ADDR,
+		     CONFIG_AT24MAC_REG, 1, ethaddr, ETH_ADDR_LEN)) {
+		printf("Failed to read ethernet address from EEPROM\n");
+		return -1;
+	}
+
+	if (!is_valid_ethaddr(ethaddr)) {
+		printf("The ethernet address read from EEPROM is not valid!\n");
+		return -1;
+	}
+
+	return eth_setenv_enetaddr(ETHADDR_NAME, ethaddr);
+}
+#else
+static int set_ethaddr_from_eeprom(void)
+{
+	return 0;
+}
+#endif
+
 int board_eth_init(bd_t *bis)
 {
 	int rc = 0;
 
 #ifdef CONFIG_MACB
 	rc = macb_eth_initialize(0, (void *)ATMEL_BASE_GMAC, 0x00);
+	if (rc)
+		printf("GMAC register failed\n");
+	else
+		set_ethaddr_from_eeprom();
 #endif
 
 #ifdef CONFIG_USB_GADGET_ATMEL_USBA
