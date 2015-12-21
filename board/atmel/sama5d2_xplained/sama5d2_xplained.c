@@ -195,7 +195,7 @@ static void board_sdhci0_hw_init(void)
 
 	at91_periph_clk_enable(ATMEL_ID_SDMMC0);
 	at91_enable_periph_generated_clk(ATMEL_ID_SDMMC0,
-					 GCK_CSS_PLLA_CLK, 1);
+					 GCK_CSS_UPLL_CLK, 1);
 }
 #endif
 
@@ -213,7 +213,7 @@ static void board_sdhci1_hw_init(void)
 
 	at91_periph_clk_enable(ATMEL_ID_SDMMC1);
 	at91_enable_periph_generated_clk(ATMEL_ID_SDMMC1,
-					 GCK_CSS_PLLA_CLK, 1);
+					 GCK_CSS_UPLL_CLK, 1);
 }
 #endif
 
