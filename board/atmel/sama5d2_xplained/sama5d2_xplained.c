@@ -157,6 +157,7 @@ static void board_gmac_hw_init(void)
 	at91_periph_clk_enable(ATMEL_ID_GMAC);
 }
 
+#ifndef CONFIG_SPL_BUILD
 static void board_sdhci0_hw_init(void)
 {
 	atmel_pio4_set_a_periph(AT91_PIO_PORTA, 0, 0);	/* SDMMC0_CK */
@@ -176,6 +177,7 @@ static void board_sdhci0_hw_init(void)
 	at91_enable_periph_generated_clk(ATMEL_ID_SDMMC0,
 					 GCK_CSS_PLLA_CLK, 1);
 }
+#endif
 
 static void board_sdhci1_hw_init(void)
 {
@@ -290,9 +292,6 @@ void spl_board_init(void)
 	board_spi0_hw_init();
 #endif
 #ifdef CONFIG_ATMEL_SDHCI
-#ifdef CONFIG_ATMEL_SDHCI0
-	board_sdhci0_hw_init();
-#endif
 #ifdef CONFIG_ATMEL_SDHCI1
 	board_sdhci1_hw_init();
 #endif
