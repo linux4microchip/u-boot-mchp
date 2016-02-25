@@ -125,6 +125,9 @@
 
 #endif
 
+#undef CONFIG_BAUDRATE
+#define CONFIG_BAUDRATE			57600
+
 /* SPL */
 #define CONFIG_SPL_FRAMEWORK
 #define CONFIG_SPL_TEXT_BASE		0x200000
