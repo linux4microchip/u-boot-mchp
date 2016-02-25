@@ -199,6 +199,48 @@ int atmel_pio4_get_pio_input(u32 port, u32 pin)
 	return (readl(&port_base->pdsr) & mask) ? 1 : 0;
 }
 
+int gpio_request(unsigned gpio, const char *label)
+{
+	return 0;
+}
+
+int gpio_free(unsigned gpio)
+{
+	return 0;
+}
+
+int gpio_direction_input(unsigned gpio)
+{
+	atmel_pio4_get_pio_input(at91_gpio_to_port(gpio),
+				 at91_gpio_to_pin(gpio));
+
+	return 0;
+}
+
+int gpio_direction_output(unsigned gpio, int value)
+{
+	atmel_pio4_set_pio_output(at91_gpio_to_port(gpio),
+				  at91_gpio_to_pin(gpio),
+				  value);
+
+	return 0;
+}
+
+int gpio_get_value(unsigned gpio)
+{
+	return atmel_pio4_get_pio_input(at91_gpio_to_port(gpio),
+					at91_gpio_to_pin(gpio));
+}
+
+int gpio_set_value(unsigned gpio, int value)
+{
+	atmel_pio4_set_pio_output(at91_gpio_to_port(gpio),
+				  at91_gpio_to_pin(gpio),
+				  value);
+
+	return 0;
+}
+
 #ifdef CONFIG_DM_GPIO
 static int atmel_pio4_direction_input(struct udevice *dev, unsigned offset)
 {
