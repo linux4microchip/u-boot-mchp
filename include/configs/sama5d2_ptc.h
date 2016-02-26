@@ -1,7 +1,7 @@
 /*
- * Configuration file for the SAMA5D2 Xplained Board.
+ * Configuration settings for the SAMA5D2 PTC Engineering board.
  *
- * Copyright (C) 2015 Atmel Corporation
+ * Copyright (C) 2016 Atmel
  *		      Wenyou Yang <wenyou.yang@atmel.com>
  *
  * SPDX-License-Identifier:	GPL-2.0+
@@ -17,11 +17,9 @@
 
 /* serial console */
 #define CONFIG_ATMEL_USART
-#define CONFIG_USART_BASE		ATMEL_BASE_UART1
-#define CONFIG_USART_ID			ATMEL_ID_UART1
+#define CONFIG_USART_BASE		ATMEL_BASE_UART0
+#define CONFIG_USART_ID			ATMEL_ID_UART0
 
-/* SDRAM */
-#define CONFIG_NR_DRAM_BANKS		1
 #define CONFIG_SYS_SDRAM_BASE           ATMEL_BASE_DDRCS
 #define CONFIG_SYS_SDRAM_SIZE		0x20000000
 
@@ -37,10 +35,12 @@
 #undef CONFIG_AT91_GPIO
 #define CONFIG_ATMEL_PIO4
 
+/* SDRAM */
+#define CONFIG_NR_DRAM_BANKS		1
+
 /* SerialFlash */
 #ifdef CONFIG_CMD_SF
 #define CONFIG_ATMEL_SPI
-#define CONFIG_ATMEL_SPI0
 #define CONFIG_SPI_FLASH_ATMEL
 #define CONFIG_SF_DEFAULT_BUS		0
 #define CONFIG_SF_DEFAULT_CS		0
@@ -48,33 +48,35 @@
 #endif
 
 /* NAND flash */
-#undef CONFIG_CMD_NAND
+#define CONFIG_CMD_NAND
 
-/* MMC */
-#define CONFIG_CMD_MMC
-
-#ifdef CONFIG_CMD_MMC
-#define CONFIG_MMC
-#define CONFIG_GENERIC_MMC
-#define CONFIG_SDHCI
-#define CONFIG_ATMEL_SDHCI
-#ifndef CONFIG_SPL_BUILD
-#define CONFIG_ATMEL_SDHCI0
-#endif
-#define CONFIG_ATMEL_SDHCI1
-#define CONFIG_SUPPORT_EMMC_BOOT
+#ifdef CONFIG_CMD_NAND
+#define CONFIG_NAND_ATMEL
+#define CONFIG_SYS_MAX_NAND_DEVICE	1
+#define CONFIG_SYS_NAND_BASE		ATMEL_BASE_CS3
+/* our ALE is AD21 */
+#define CONFIG_SYS_NAND_MASK_ALE	(1 << 21)
+/* our CLE is AD22 */
+#define CONFIG_SYS_NAND_MASK_CLE	(1 << 22)
+#define CONFIG_SYS_NAND_ONFI_DETECTION
+/* PMECC & PMERRLOC */
+#define CONFIG_ATMEL_NAND_HWECC
+#define CONFIG_ATMEL_NAND_HW_PMECC
+#define CONFIG_CMD_NAND_TRIMFFS
 #endif
 
 /* Software I2C */
 #define CONFIG_CMD_I2C
 
+#ifdef CONFIG_CMD_I2C
 #define CONFIG_SYS_I2C
 #define CONFIG_SYS_I2C_SOFT
 #define CONFIG_SYS_I2C_SOFT_SPEED       50000
-#define CONFIG_SOFT_I2C_GPIO_SCL        GPIO_PIN_PD(5)
-#define CONFIG_SOFT_I2C_GPIO_SDA        GPIO_PIN_PD(4)
-#define CONFIG_AT24MAC_ADDR		0x5c
+#define CONFIG_SOFT_I2C_GPIO_SCL        GPIO_PIN_PC(7)
+#define CONFIG_SOFT_I2C_GPIO_SDA        GPIO_PIN_PC(6)
+#define CONFIG_AT24MAC_ADDR		0x5f
 #define CONFIG_AT24MAC_REG		0x9a
+#endif
 
 /* USB */
 #define CONFIG_CMD_USB
@@ -92,9 +94,9 @@
 #define CONFIG_USB_GADGET_ATMEL_USBA
 #define CONFIG_USB_ETHER
 #define CONFIG_USB_ETH_RNDIS
-#define CONFIG_USBNET_MANUFACTURER      "Atmel SAMA5D2 XPlained"
+#define CONFIG_USBNET_MANUFACTURER      "Atmel SAMA5D2_PTC"
 
-#if defined(CONFIG_CMD_USB) || defined(CONFIG_CMD_MMC)
+#if defined(CONFIG_CMD_USB)
 #define CONFIG_CMD_FAT
 #define CONFIG_DOS_PARTITION
 #endif
@@ -105,36 +107,24 @@
 #define CONFIG_NET_RETRY_COUNT		20
 #define CONFIG_MACB_SEARCH_PHY
 
-/* LCD */
-/* #define CONFIG_LCD */
-
-#ifdef CONFIG_LCD
-#define LCD_BPP				LCD_COLOR16
-#define LCD_OUTPUT_BPP                  24
-#define CONFIG_LCD_LOGO
-#define CONFIG_LCD_INFO
-#define CONFIG_LCD_INFO_BELOW_LOGO
-#define CONFIG_SYS_WHITE_ON_BLACK
-#define CONFIG_ATMEL_HLCD
-#define CONFIG_ATMEL_LCD_RGB565
-#define CONFIG_SYS_CONSOLE_IS_IN_ENV
-#endif
-
-#ifdef CONFIG_SYS_USE_MMC
-
-/* bootstrap + u-boot + env in sd card */
-#undef FAT_ENV_DEVICE_AND_PART
+#ifdef CONFIG_SYS_USE_NANDFLASH
+#undef CONFIG_ENV_OFFSET
+#undef CONFIG_ENV_OFFSET_REDUND
 #undef CONFIG_BOOTCOMMAND
-
-#define FAT_ENV_DEVICE_AND_PART	"1"
-#define CONFIG_BOOTCOMMAND	"fatload mmc 1:1 0x21000000 at91-sama5d2_xplained.dtb; " \
-				"fatload mmc 1:1 0x22000000 zImage; " \
-				"bootz 0x22000000 - 0x21000000"
-#undef CONFIG_BOOTARGS
-#define CONFIG_BOOTARGS \
-	"console=ttyS0,115200 earlyprintk root=/dev/mmcblk1p2 rw rootwait"
-
+/* u-boot env in nand flash */
+#define CONFIG_ENV_IS_IN_NAND
+#define CONFIG_ENV_OFFSET		0x200000
+#define CONFIG_ENV_OFFSET_REDUND	0x400000
+#define CONFIG_BOOTCOMMAND		"nand read 0x21000000 0xb80000 0x80000;"	\
+					"nand read 0x22000000 0x600000 0x600000;"	\
+					"bootz 0x22000000 - 0x21000000"
 #endif
+
+#undef CONFIG_BOOTARGS
+#define CONFIG_BOOTARGS							\
+	"console=ttyS0,57600 earlyprintk "				\
+	"mtdparts=atmel_nand:6M(bootstrap)ro, 6M(kernel)ro,-(rootfs) "	\
+	"rootfstype=ubifs ubi.mtd=2 root=ubi0:rootfs"
 
 #undef CONFIG_BAUDRATE
 #define CONFIG_BAUDRATE			57600
@@ -156,22 +146,26 @@
 #define CONFIG_SPL_BOARD_INIT
 #define CONFIG_SYS_MONITOR_LEN		(512 << 10)
 
-#ifdef CONFIG_SYS_USE_MMC
-#define CONFIG_SPL_LDSCRIPT		arch/arm/mach-at91/armv7/u-boot-spl.lds
-#define CONFIG_SPL_MMC_SUPPORT
-#define CONFIG_SYS_U_BOOT_MAX_SIZE_SECTORS	0x400
-#define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR 0x200
-#define CONFIG_SYS_MMCSD_FS_BOOT_PARTITION	1
-#define CONFIG_SPL_FS_LOAD_PAYLOAD_NAME		"u-boot.img"
-#define CONFIG_SPL_FAT_SUPPORT
-#define CONFIG_SPL_LIBDISK_SUPPORT
-
-#elif CONFIG_SYS_USE_SERIALFLASH
+#ifdef CONFIG_SYS_USE_SERIALFLASH
 #define CONFIG_SPL_SPI_SUPPORT
 #define CONFIG_SPL_SPI_FLASH_SUPPORT
 #define CONFIG_SPL_SPI_LOAD
 #define CONFIG_SYS_SPI_U_BOOT_OFFS	0x8000
 
+#elif CONFIG_SYS_USE_NANDFLASH
+#define CONFIG_SPL_NAND_SUPPORT
+#define CONFIG_SPL_NAND_DRIVERS
+#define CONFIG_SPL_NAND_BASE
+#define CONFIG_PMECC_CAP		8
+#define CONFIG_PMECC_SECTOR_SIZE	512
+#define CONFIG_SYS_NAND_U_BOOT_OFFS	0x40000
+#define CONFIG_SYS_NAND_5_ADDR_CYCLE
+#define CONFIG_SYS_NAND_PAGE_SIZE	0x1000
+#define CONFIG_SYS_NAND_PAGE_COUNT	64
+#define CONFIG_SYS_NAND_OOBSIZE		224
+#define CONFIG_SYS_NAND_BLOCK_SIZE	0x40000
+#define CONFIG_SYS_NAND_BAD_BLOCK_POS	0x0
+#define CONFIG_SPL_GENERATE_ATMEL_PMECC_HEADER
 #endif
 
 #endif

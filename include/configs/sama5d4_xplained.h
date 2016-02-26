@@ -72,6 +72,17 @@
 #define ATMEL_BASE_MMCI			ATMEL_BASE_MCI1
 #endif
 
+/* Software I2C */
+#define CONFIG_CMD_I2C
+
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_SOFT
+#define CONFIG_SYS_I2C_SOFT_SPEED       50000
+#define CONFIG_SOFT_I2C_GPIO_SCL        GPIO_PIN_PA(31)
+#define CONFIG_SOFT_I2C_GPIO_SDA        GPIO_PIN_PA(30)
+#define CONFIG_AT24MAC_ADDR		0x5c
+#define CONFIG_AT24MAC_REG		0x9a
+
 /* USB */
 #define CONFIG_CMD_USB
 
