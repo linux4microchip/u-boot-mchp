@@ -126,6 +126,9 @@
 	"mtdparts=atmel_nand:6M(bootstrap)ro, 6M(kernel)ro,-(rootfs) "	\
 	"rootfstype=ubifs ubi.mtd=2 root=ubi0:rootfs"
 
+#undef CONFIG_BAUDRATE
+#define CONFIG_BAUDRATE			57600
+
 /* SPL */
 #define CONFIG_SPL_FRAMEWORK
 #define CONFIG_SPL_TEXT_BASE		0x200000
