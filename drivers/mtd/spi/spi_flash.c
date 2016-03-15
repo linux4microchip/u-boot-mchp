@@ -1033,6 +1033,98 @@ static int set_quad_mode(struct spi_flash *flash, u8 idcode0)
 	}
 }
 
+/* Transitional function to be removed */
+static int spi_flash_setup_deprecated(struct spi_flash *flash,
+				      const struct spi_flash_params *params,
+				      int best_match)
+{
+	struct spi_slave *spi = flash->spi;
+	u8 idcode0 = params->jedec >> 16;
+	u8 cmd;
+	int ret;
+	static u8 spi_read_cmds_array[] = {
+		CMD_READ_ARRAY_SLOW,
+		CMD_READ_ARRAY_FAST,
+		CMD_READ_DUAL_OUTPUT_FAST,
+		CMD_READ_QUAD_OUTPUT_FAST,
+		CMD_READ_DUAL_IO_FAST,
+		CMD_READ_QUAD_IO_FAST,
+		CMD_READ_DUAL_IO_FAST,	/* same op code as for DUAL_IO_FAST */
+		CMD_READ_QUAD_IO_FAST,	/* same op code as for QUAD_IO_FAST */
+	};
+
+	/* Look for the fastest read cmd */
+	if (best_match) {
+		cmd = spi_read_cmds_array[best_match - 1];
+		flash->read_cmd = cmd;
+	} else {
+		/* Go for default supported read cmd */
+		flash->read_cmd = CMD_READ_ARRAY_FAST;
+	}
+
+	/* Not require to look for fastest only two write cmds yet */
+	if (params->flags & WR_QPP && spi->mode & SPI_TX_QUAD)
+		flash->write_cmd = CMD_QUAD_PAGE_PROGRAM;
+	else
+		/* Go for default supported write cmd */
+		flash->write_cmd = CMD_PAGE_PROGRAM;
+
+	/* Set the quad enable bit - only for quad commands */
+	if ((flash->read_cmd == CMD_READ_QUAD_OUTPUT_FAST) ||
+	    (flash->read_cmd == CMD_READ_QUAD_IO_FAST) ||
+	    (flash->write_cmd == CMD_QUAD_PAGE_PROGRAM)) {
+		ret = set_quad_mode(flash, idcode0);
+		if (ret) {
+			debug("SF: Fail to set QEB for %02x\n", idcode0);
+			return -EINVAL;
+		}
+	}
+
+	/* Read dummy_byte: dummy byte is determined based on the
+	 * dummy cycles of a particular command.
+	 * Fast commands - dummy_byte = dummy_cycles/8
+	 * I/O commands- dummy_byte = (dummy_cycles * no.of lines)/8
+	 * For I/O commands except cmd[0] everything goes on no.of lines
+	 * based on particular command but incase of fast commands except
+	 * data all go on single line irrespective of command.
+	 */
+	switch (flash->read_cmd) {
+	case CMD_READ_QUAD_IO_FAST:
+		flash->dummy_byte = 2;
+		break;
+	case CMD_READ_ARRAY_SLOW:
+		flash->dummy_byte = 0;
+		break;
+	default:
+		flash->dummy_byte = 1;
+	}
+
+	return 0;
+}
+
+static int spi_flash_setup(struct spi_flash *flash,
+			   const struct spi_flash_params *params,
+			   u8 e_rd_cmd)
+{
+	int match = fls(params->e_rd_cmd & e_rd_cmd);
+
+	/*
+	 * The (Fast) Read and Page Program opcodes to be used depends on the
+	 * manufacturer.
+	 */
+	switch (params->jedec >> 16) {
+		/*
+		 * TODO: Manufacturer dedicated setup will be added HERE by
+		 * further patches.
+		 */
+
+	default:
+		return spi_flash_setup_deprecated(flash, params, match);
+	}
+
+	return 0;
+}
+
 #if CONFIG_IS_ENABLED(OF_CONTROL)
 int spi_flash_decode_fdt(const void *blob, struct spi_flash *flash)
 {
@@ -1090,18 +1182,8 @@ int spi_flash_scan(struct spi_flash *flash, u8 e_rd_cmd)
 	const struct spi_flash_params *params;
 	const struct spi_flash_read_id_config *cfg;
 	u16 jedec, ext_jedec;
-	u8 cmd, idcode[5];
+	u8 idcode[5];
 	int ret;
-	static u8 spi_read_cmds_array[] = {
-		CMD_READ_ARRAY_SLOW,
-		CMD_READ_ARRAY_FAST,
-		CMD_READ_DUAL_OUTPUT_FAST,
-		CMD_READ_QUAD_OUTPUT_FAST,
-		CMD_READ_DUAL_IO_FAST,
-		CMD_READ_QUAD_IO_FAST,
-		CMD_READ_DUAL_IO_FAST,	/* same op code as for DUAL_IO_FAST */
-		CMD_READ_QUAD_IO_FAST,	/* same op code as for QUAD_IO_FAST */
-	};
 
 	/* Assign spi_flash ops */
 #ifndef CONFIG_DM_SPI_FLASH
@@ -1238,52 +1320,13 @@ int spi_flash_scan(struct spi_flash *flash, u8 e_rd_cmd)
 	/* Now erase size becomes valid sector size */
 	flash->sector_size = flash->erase_size;
 
-	/* Look for the fastest read cmd */
-	cmd = fls(params->e_rd_cmd & e_rd_cmd);
-	if (cmd) {
-		cmd = spi_read_cmds_array[cmd - 1];
-		flash->read_cmd = cmd;
-	} else {
-		/* Go for default supported read cmd */
-		flash->read_cmd = CMD_READ_ARRAY_FAST;
-	}
-
-	/* Not require to look for fastest only two write cmds yet */
-	if (params->flags & WR_QPP && spi->mode & SPI_TX_QUAD)
-		flash->write_cmd = CMD_QUAD_PAGE_PROGRAM;
-	else
-		/* Go for default supported write cmd */
-		flash->write_cmd = CMD_PAGE_PROGRAM;
-
-	/* Set the quad enable bit - only for quad commands */
-	if ((flash->read_cmd == CMD_READ_QUAD_OUTPUT_FAST) ||
-	    (flash->read_cmd == CMD_READ_QUAD_IO_FAST) ||
-	    (flash->write_cmd == CMD_QUAD_PAGE_PROGRAM)) {
-		ret = set_quad_mode(flash, idcode[0]);
-		if (ret) {
-			debug("SF: Fail to set QEB for %02x\n", idcode[0]);
-			return -EINVAL;
-		}
-	}
-
-	/* Read dummy_byte: dummy byte is determined based on the
-	 * dummy cycles of a particular command.
-	 * Fast commands - dummy_byte = dummy_cycles/8
-	 * I/O commands- dummy_byte = (dummy_cycles * no.of lines)/8
-	 * For I/O commands except cmd[0] everything goes on no.of lines
-	 * based on particular command but incase of fast commands except
-	 * data all go on single line irrespective of command.
+	/*
+	 * Setup (Fast) Read & Page Program opcode and protocols.
+	 * Also set the right number of dummy/mode cycles.
 	 */
-	switch (flash->read_cmd) {
-	case CMD_READ_QUAD_IO_FAST:
-		flash->dummy_byte = 2;
-		break;
-	case CMD_READ_ARRAY_SLOW:
-		flash->dummy_byte = 0;
-		break;
-	default:
-		flash->dummy_byte = 1;
-	}
+	ret = spi_flash_setup(flash, params, e_rd_cmd);
+	if (ret < 0)
+		return ret;
 
 #ifdef CONFIG_SPI_FLASH_STMICRO
 	if (params->flags & E_FSR)
