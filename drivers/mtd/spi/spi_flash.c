@@ -249,6 +249,11 @@ static int spi_flash_cmd_wait_ready(struct spi_flash *flash,
 	return -ETIMEDOUT;
 }
 
+int spi_flash_wait_ready(struct spi_flash *flash)
+{
+	return spi_flash_cmd_wait_ready(flash, SPI_FLASH_PROG_TIMEOUT);
+}
+
 int spi_flash_update_reg(struct spi_flash *flash, u8 opcode,
 			 size_t len, const void *buf)
 {
@@ -267,7 +272,7 @@ int spi_flash_update_reg(struct spi_flash *flash, u8 opcode,
 		return ret;
 	}
 
-	ret = spi_flash_cmd_wait_ready(flash, SPI_FLASH_PROG_TIMEOUT);
+	ret = spi_flash_wait_ready(flash);
 	if (ret < 0) {
 		debug("SF: write register timed out\n");
 		return ret;

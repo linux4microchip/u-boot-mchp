@@ -190,6 +190,9 @@ static inline int spi_flash_cmd_write_disable(struct spi_flash *flash)
 	return spi_flash_cmd(flash->spi, CMD_WRITE_DISABLE, NULL, 0);
 }
 
+/* Wait for Busy/Write in Progress flag to be cleared */
+int spi_flash_wait_ready(struct spi_flash *flash);
+
 /*
  * Used for spi_flash register update operation
  * - spi_flash_cmd_write_enable
