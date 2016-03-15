@@ -23,6 +23,15 @@ config ALTERA_SPI
 	  IP core. Please find details on the "Embedded Peripherals IP
 	  User Guide" of Altera.
 
+config ATMEL_QSPI
+	bool "Atmel QSPI driver"
+	depends on ARCH_AT91
+	select SPI_FLASH
+	select DM_SPI_FLASH
+	help
+	  Enable the Ateml Quad-SPI (QSPI) driver. This driver can only be
+	  used to access SPI NOR flashes.
+
 config CADENCE_QSPI
 	bool "Cadence QSPI driver"
 	help
