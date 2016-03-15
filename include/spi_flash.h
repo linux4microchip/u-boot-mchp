@@ -88,6 +88,7 @@ enum spi_flash_protocol {
  * @read_proto		SPI protocol to be used by &read ops
  * @write_proto		SPI protocol to be used by &write ops
  * @erase_proto		SPI protocol to be used by &erase ops
+ * @addr_width		Number of address bytes (typically 3 or 4)
  * @memory_map:		Address of read-only SPI flash access
  * @flash_lock:		lock a region of the SPI Flash
  * @flash_unlock:	unlock a region of the SPI Flash
@@ -117,6 +118,7 @@ struct spi_flash {
 	u32 page_size;
 	u32 sector_size;
 	u32 erase_size;
+	u32 addr_width;
 #ifdef CONFIG_SPI_FLASH_BAR
 	u8 bank_read_cmd;
 	u8 bank_write_cmd;

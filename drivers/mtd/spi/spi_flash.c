@@ -22,12 +22,15 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-static void spi_flash_addr(u32 addr, u8 *cmd)
+static void spi_flash_addr(const struct spi_flash *flash, u32 addr, u8 *cmd)
 {
+	u8 shift = flash->addr_width * 8;
+
 	/* cmd[0] is actual command */
-	cmd[1] = addr >> 16;
-	cmd[2] = addr >> 8;
-	cmd[3] = addr >> 0;
+	cmd[1] = addr >> (shift -  8);
+	cmd[2] = addr >> (shift - 16);
+	cmd[3] = addr >> (shift - 24);
+	cmd[4] = addr >> (shift - 32);
 }
 
 static int read_sr(struct spi_flash *flash, u8 *rs)
@@ -153,6 +156,62 @@ bar_end:
 	return 0;
 }
 #endif
+
+#ifdef CONFIG_SPI_FLASH_4B_OPCODES
+struct address_entry {
+	u8	src_opcode;
+	u8	dst_opcode;
+};
+
+static u8 spi_flash_convert_opcode(u8 opcode,
+				   const struct address_entry *entries,
+				   size_t num_entries)
+{
+	int b, e;
+
+	b = 0;
+	e = num_entries - 1;
+	while (b <= e) {
+		int m = (b + e) >> 1;
+		const struct address_entry *entry = &entries[m];
+
+		if (opcode == entry->src_opcode)
+			return entry->dst_opcode;
+
+		if (opcode < entry->src_opcode)
+			e = m - 1;
+		else
+			b = m + 1;
+	}
+
+	/* No convertion found */
+	return opcode;
+}
+
+static u8 spi_flash_3to4_opcode(u8 opcode)
+{
+	/* MUST be sorted by 3byte opcode */
+#define ENTRY_3TO4(_opcode)	{ _opcode, _opcode##_4B }
+	static const struct address_entry spi_flash_3to4_table[] = {
+		ENTRY_3TO4(CMD_READ_ARRAY_SLOW),	/* 0x03 */
+		ENTRY_3TO4(CMD_READ_ARRAY_FAST),	/* 0x0b */
+		ENTRY_3TO4(CMD_ERASE_4K),		/* 0x20 */
+		ENTRY_3TO4(CMD_QUAD_PAGE_PROGRAM),	/* 0x32 */
+		ENTRY_3TO4(CMD_QUAD_PAGE_PROGRAM_MXIC),	/* 0x38 */
+		ENTRY_3TO4(CMD_READ_DUAL_OUTPUT_FAST),	/* 0x3b */
+		ENTRY_3TO4(CMD_ERASE_32K),		/* 0x52 */
+		ENTRY_3TO4(CMD_READ_QUAD_OUTPUT_FAST),	/* 0x6b */
+		ENTRY_3TO4(CMD_READ_DUAL_IO_FAST),	/* 0xbb */
+		ENTRY_3TO4(CMD_ERASE_64K),		/* 0xd8 */
+		ENTRY_3TO4(CMD_READ_QUAD_IO_FAST),	/* 0xeb */
+	};
+#undef ENTRY_3TO4
+
+	return spi_flash_convert_opcode(opcode,
+					spi_flash_3to4_table,
+					ARRAY_SIZE(spi_flash_3to4_table));
+}
+#endif /* CONFIG_SPI_FLASH_4B_OPCODES */
 
 #ifdef CONFIG_SF_DUAL_FLASH
 static void spi_flash_dual(struct spi_flash *flash, u32 *addr)
@@ -353,10 +412,11 @@ static int spi_flash_erase_impl(struct spi_flash *flash, u32 offset)
 {
 	struct spi_slave *spi = flash->spi;
 	u8 cmd[SPI_FLASH_CMD_LEN];
+	size_t cmdsz = 1 + flash->addr_width;
 
 	cmd[0] = flash->erase_cmd;
-	spi_flash_addr(offset, cmd);
-	return spi_flash_cmd_write(spi, cmd, sizeof(cmd), NULL, 0);
+	spi_flash_addr(flash, offset, cmd);
+	return spi_flash_cmd_write(spi, cmd, cmdsz, NULL, 0);
 }
 
 int spi_flash_cmd_erase_ops(struct spi_flash *flash, u32 offset, size_t len)
@@ -461,10 +521,10 @@ static int spi_flash_write_impl(struct spi_flash *flash, u32 offset,
 {
 	struct spi_slave *spi = flash->spi;
 	u8 cmd[SPI_FLASH_CMD_LEN];
-	size_t cmdsz = sizeof(cmd);
+	size_t cmdsz = 1 + flash->addr_width;
 
 	cmd[0] = flash->write_cmd;
-	spi_flash_addr(offset, cmd);
+	spi_flash_addr(flash, offset, cmd);
 #ifdef CONFIG_SPI_FLASH_SST
 	if (flash->flags & SNOR_F_SST_WR_2ND)
 		cmdsz = 1;
@@ -567,7 +627,7 @@ static int spi_flash_read_impl(struct spi_flash *flash, u32 offset,
 	size_t cmdsz;
 	int ret;
 
-	cmdsz = SPI_FLASH_CMD_LEN + flash->dummy_byte;
+	cmdsz = 1 + flash->addr_width + flash->dummy_byte;
 	cmd = calloc(1, cmdsz);
 	if (!cmd) {
 		debug("SF: Failed to allocate cmd\n");
@@ -575,7 +635,7 @@ static int spi_flash_read_impl(struct spi_flash *flash, u32 offset,
 	}
 
 	cmd[0] = flash->read_cmd;
-	spi_flash_addr(offset, cmd);
+	spi_flash_addr(flash, offset, cmd);
 	ret = spi_flash_cmd_read(spi, cmd, cmdsz, buf, len);
 	free(cmd);
 	return ret;
@@ -1255,15 +1315,22 @@ int spi_flash_scan(struct spi_flash *flash, u8 e_rd_cmd)
 	puts("\n");
 #endif
 
-#ifndef CONFIG_SPI_FLASH_BAR
+	/* Set number of bytes for address and convert opcodes if needed */
+	flash->addr_width = 3;
 	if (((flash->dual_flash == SF_SINGLE_FLASH) &&
 	     (flash->size > SPI_FLASH_16MB_BOUN)) ||
 	     ((flash->dual_flash > SF_SINGLE_FLASH) &&
 	     (flash->size > SPI_FLASH_16MB_BOUN << 1))) {
+#if defined(CONFIG_SPI_FLASH_4B_OPCODES)
+		flash->addr_width = 4;
+		flash->read_cmd  = spi_flash_3to4_opcode(flash->read_cmd);
+		flash->write_cmd = spi_flash_3to4_opcode(flash->write_cmd);
+		flash->erase_cmd = spi_flash_3to4_opcode(flash->erase_cmd);
+#elif !defined(CONFIG_SPI_FLASH_BAR)
 		puts("SF: Warning - Only lower 16MiB accessible,");
-		puts(" Full access #define CONFIG_SPI_FLASH_BAR\n");
-	}
+		puts(" Full access #define CONFIG_SPI_FLASH_ABOVE_16MB\n");
 #endif
+	}
 
 	return ret;
 }
