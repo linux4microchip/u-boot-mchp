@@ -214,6 +214,11 @@ int spi_flash_update_reg(struct spi_flash *flash, u8 opcode, size_t len,
 int spi_flash_cmd_write_ops(struct spi_flash *flash, u32 offset,
 		size_t len, const void *buf);
 
+typedef int (*spi_flash_write_fn)(struct spi_flash *, u32, size_t,
+				  const void *);
+int spi_flash_write_alg(struct spi_flash *flash, u32 offset, size_t len,
+			const void *buf, spi_flash_write_fn write_fn);
+
 /* Flash read operation, support all possible read commands */
 int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
 		size_t len, void *data);
