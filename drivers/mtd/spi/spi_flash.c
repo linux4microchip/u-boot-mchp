@@ -261,12 +261,6 @@ int spi_flash_write_common(struct spi_flash *flash, const u8 *cmd,
 	if (buf == NULL)
 		timeout = SPI_FLASH_PAGE_ERASE_TIMEOUT;
 
-	ret = spi_claim_bus(spi);
-	if (ret) {
-		debug("SF: unable to claim SPI bus\n");
-		return ret;
-	}
-
 	ret = spi_flash_cmd_write_enable(flash);
 	if (ret < 0) {
 		debug("SF: enabling write failed\n");
@@ -287,13 +281,12 @@ int spi_flash_write_common(struct spi_flash *flash, const u8 *cmd,
 		return ret;
 	}
 
-	spi_release_bus(spi);
-
 	return ret;
 }
 
 int spi_flash_cmd_erase_ops(struct spi_flash *flash, u32 offset, size_t len)
 {
+	struct spi_slave *spi = flash->spi;
 	u32 erase_size, erase_addr;
 	u8 cmd[SPI_FLASH_CMD_LEN];
 	int ret = -1;
@@ -304,11 +297,18 @@ int spi_flash_cmd_erase_ops(struct spi_flash *flash, u32 offset, size_t len)
 		return -1;
 	}
 
+	ret = spi_claim_bus(spi);
+	if (ret) {
+		debug("SF: unable to claim SPI bus\n");
+		return ret;
+	}
+
 	if (flash->flash_is_locked) {
 		if (flash->flash_is_locked(flash, offset, len) > 0) {
 			printf("offset 0x%x is protected and cannot be erased\n",
 			       offset);
-			return -EINVAL;
+			ret = -EINVAL;
+			goto release;
 		}
 	}
 
@@ -323,7 +323,7 @@ int spi_flash_cmd_erase_ops(struct spi_flash *flash, u32 offset, size_t len)
 #ifdef CONFIG_SPI_FLASH_BAR
 		ret = spi_flash_write_bar(flash, erase_addr);
 		if (ret < 0)
-			return ret;
+			break;
 #endif
 		spi_flash_addr(erase_addr, cmd);
 
@@ -340,6 +340,9 @@ int spi_flash_cmd_erase_ops(struct spi_flash *flash, u32 offset, size_t len)
 		len -= erase_size;
 	}
 
+release:
+	spi_release_bus(spi);
+
 	return ret;
 }
 
@@ -355,11 +358,18 @@ int spi_flash_cmd_write_ops(struct spi_flash *flash, u32 offset,
 
 	page_size = flash->page_size;
 
+	ret = spi_claim_bus(spi);
+	if (ret) {
+		debug("SF: unable to claim SPI bus\n");
+		return ret;
+	}
+
 	if (flash->flash_is_locked) {
 		if (flash->flash_is_locked(flash, offset, len) > 0) {
 			printf("offset 0x%x is protected and cannot be written\n",
 			       offset);
-			return -EINVAL;
+			ret = -EINVAL;
+			goto release;
 		}
 	}
 
@@ -374,7 +384,7 @@ int spi_flash_cmd_write_ops(struct spi_flash *flash, u32 offset,
 #ifdef CONFIG_SPI_FLASH_BAR
 		ret = spi_flash_write_bar(flash, write_addr);
 		if (ret < 0)
-			return ret;
+			break;
 #endif
 		byte_addr = offset % page_size;
 		chunk_len = min(len - actual, (size_t)(page_size - byte_addr));
@@ -398,6 +408,9 @@ int spi_flash_cmd_write_ops(struct spi_flash *flash, u32 offset,
 		offset += chunk_len;
 	}
 
+release:
+	spi_release_bus(spi);
+
 	return ret;
 }
 
@@ -407,19 +420,11 @@ int spi_flash_read_common(struct spi_flash *flash, const u8 *cmd,
 	struct spi_slave *spi = flash->spi;
 	int ret;
 
-	ret = spi_claim_bus(spi);
-	if (ret) {
-		debug("SF: unable to claim SPI bus\n");
-		return ret;
-	}
-
 	ret = spi_flash_cmd_read(spi, cmd, cmd_len, data, data_len);
 	if (ret < 0) {
 		debug("SF: read cmd failed\n");
 		return ret;
 	}
-
-	spi_release_bus(spi);
 
 	return ret;
 }
@@ -446,25 +451,26 @@ int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
 	int bank_sel = 0;
 	int ret = -1;
 
+	ret = spi_claim_bus(spi);
+	if (ret) {
+		debug("SF: unable to claim SPI bus\n");
+		return ret;
+	}
+
 	/* Handle memory-mapped SPI */
 	if (flash->memory_map) {
-		ret = spi_claim_bus(spi);
-		if (ret) {
-			debug("SF: unable to claim SPI bus\n");
-			return ret;
-		}
 		spi_xfer(spi, 0, NULL, NULL, SPI_XFER_MMAP);
 		spi_flash_copy_mmap(data, flash->memory_map + offset, len);
 		spi_xfer(spi, 0, NULL, NULL, SPI_XFER_MMAP_END);
-		spi_release_bus(spi);
-		return 0;
+		goto release;
 	}
 
 	cmdsz = SPI_FLASH_CMD_LEN + flash->dummy_byte;
 	cmd = calloc(1, cmdsz);
 	if (!cmd) {
 		debug("SF: Failed to allocate cmd\n");
-		return -ENOMEM;
+		ret = -ENOMEM;
+		goto release;
 	}
 
 	cmd[0] = flash->read_cmd;
@@ -478,7 +484,7 @@ int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
 #ifdef CONFIG_SPI_FLASH_BAR
 		ret = spi_flash_write_bar(flash, read_addr);
 		if (ret < 0)
-			return ret;
+			break;
 		bank_sel = flash->bank_curr;
 #endif
 		remain_len = ((SPI_FLASH_16MB_BOUN << flash->shift) *
@@ -502,6 +508,10 @@ int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
 	}
 
 	free(cmd);
+
+release:
+	spi_release_bus(spi);
+
 	return ret;
 }
 
