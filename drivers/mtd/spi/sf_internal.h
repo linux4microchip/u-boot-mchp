@@ -51,7 +51,8 @@ enum {
 
 enum spi_nor_option_flags {
 	SNOR_F_SST_WR		= BIT(0),
-	SNOR_F_USE_FSR		= BIT(1),
+	SNOR_F_SST_WR_2ND	= BIT(1),
+	SNOR_F_USE_FSR		= BIT(2),
 };
 
 #define SPI_FLASH_3B_ADDR_LEN		3
@@ -118,11 +119,6 @@ enum spi_nor_option_flags {
 #ifdef CONFIG_SPI_FLASH_SST
 # define CMD_SST_BP		0x02    /* Byte Program */
 # define CMD_SST_AAI_WP		0xAD	/* Auto Address Incr Word Program */
-
-int sst_write_wp(struct spi_flash *flash, u32 offset, size_t len,
-		const void *buf);
-int sst_write_bp(struct spi_flash *flash, u32 offset, size_t len,
-		const void *buf);
 #endif
 
 /**

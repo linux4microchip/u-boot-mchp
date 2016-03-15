@@ -364,6 +364,14 @@ int spi_flash_cmd_erase_ops(struct spi_flash *flash, u32 offset, size_t len)
 	return spi_flash_erase_alg(flash, offset, len, spi_flash_erase_impl);
 }
 
+#if defined(CONFIG_SPI_FLASH_SST)
+static int sst_write_wp(struct spi_flash *flash, u32 offset, size_t len,
+			const void *buf, spi_flash_write_fn write_fn);
+
+static int sst_write_bp(struct spi_flash *flash, u32 offset, size_t len,
+			const void *buf, spi_flash_write_fn write_fn);
+#endif
+
 int spi_flash_write_alg(struct spi_flash *flash, u32 offset, size_t len,
 			const void *buf, spi_flash_write_fn write_fn)
 {
@@ -372,6 +380,15 @@ int spi_flash_write_alg(struct spi_flash *flash, u32 offset, size_t len,
 	u32 write_addr;
 	size_t chunk_len, actual;
 	int ret = -1;
+
+#if defined(CONFIG_SPI_FLASH_SST)
+	if (flash->flags & SNOR_F_SST_WR) {
+		if (spi->mode & SPI_TX_BYTE)
+			return sst_write_bp(flash, offset, len, buf, write_fn);
+		else
+			return sst_write_wp(flash, offset, len, buf, write_fn);
+	}
+#endif
 
 	page_size = flash->page_size;
 
@@ -448,6 +465,10 @@ static int spi_flash_write_impl(struct spi_flash *flash, u32 offset,
 
 	cmd[0] = flash->write_cmd;
 	spi_flash_addr(offset, cmd);
+#ifdef CONFIG_SPI_FLASH_SST
+	if (flash->flags & SNOR_F_SST_WR_2ND)
+		cmdsz = 1;
+#endif
 	return spi_flash_cmd_write(spi, cmd, cmdsz, buf, len);
 }
 
@@ -567,38 +588,33 @@ int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
 }
 
 #ifdef CONFIG_SPI_FLASH_SST
-static int sst_byte_write(struct spi_flash *flash, u32 offset, const void *buf)
+static int sst_byte_write(struct spi_flash *flash, u32 offset, const void *buf,
+			  spi_flash_write_fn write_fn)
 {
 	struct spi_slave *spi = flash->spi;
 	int ret;
-	u8 cmd[4] = {
-		CMD_SST_BP,
-		offset >> 16,
-		offset >> 8,
-		offset,
-	};
 
+	flash->write_cmd = CMD_SST_BP;
 	debug("BP[%02x]: 0x%p => cmd = { 0x%02x 0x%06x }\n",
-	      spi_w8r8(spi, CMD_READ_STATUS), buf, cmd[0], offset);
+	      spi_w8r8(spi, CMD_READ_STATUS), buf, flash->write_cmd, offset);
 
 	ret = spi_flash_cmd_write_enable(flash);
 	if (ret)
 		return ret;
 
-	ret = spi_flash_cmd_write(spi, cmd, sizeof(cmd), buf, 1);
+	ret = write_fn(flash, offset, 1, buf);
 	if (ret)
 		return ret;
 
 	return spi_flash_cmd_wait_ready(flash, SPI_FLASH_PROG_TIMEOUT);
 }
 
-int sst_write_wp(struct spi_flash *flash, u32 offset, size_t len,
-		const void *buf)
+static int sst_write_wp(struct spi_flash *flash, u32 offset, size_t len,
+			const void *buf, spi_flash_write_fn write_fn)
 {
 	struct spi_slave *spi = flash->spi;
-	size_t actual, cmd_len;
+	size_t actual;
 	int ret;
-	u8 cmd[4];
 
 	ret = spi_claim_bus(spi);
 	if (ret) {
@@ -606,10 +622,12 @@ int sst_write_wp(struct spi_flash *flash, u32 offset, size_t len,
 		return ret;
 	}
 
+	flash->flags &= ~SNOR_F_SST_WR_2ND;
+
 	/* If the data is not word aligned, write out leading single byte */
 	actual = offset % 2;
 	if (actual) {
-		ret = sst_byte_write(flash, offset, buf);
+		ret = sst_byte_write(flash, offset, buf, write_fn);
 		if (ret)
 			goto done;
 	}
@@ -619,19 +637,14 @@ int sst_write_wp(struct spi_flash *flash, u32 offset, size_t len,
 	if (ret)
 		goto done;
 
-	cmd_len = 4;
-	cmd[0] = CMD_SST_AAI_WP;
-	cmd[1] = offset >> 16;
-	cmd[2] = offset >> 8;
-	cmd[3] = offset;
+	flash->write_cmd = CMD_SST_AAI_WP;
 
 	for (; actual < len - 1; actual += 2) {
 		debug("WP[%02x]: 0x%p => cmd = { 0x%02x 0x%06x }\n",
 		      spi_w8r8(spi, CMD_READ_STATUS), buf + actual,
-		      cmd[0], offset);
+		      flash->write_cmd, offset);
 
-		ret = spi_flash_cmd_write(spi, cmd, cmd_len,
-					buf + actual, 2);
+		ret = write_fn(flash, offset, 2, buf + actual);
 		if (ret) {
 			debug("SF: sst word program failed\n");
 			break;
@@ -641,16 +654,17 @@ int sst_write_wp(struct spi_flash *flash, u32 offset, size_t len,
 		if (ret)
 			break;
 
-		cmd_len = 1;
+		flash->flags |= SNOR_F_SST_WR_2ND;
 		offset += 2;
 	}
+	flash->flags &= ~SNOR_F_SST_WR_2ND;
 
 	if (!ret)
 		ret = spi_flash_cmd_write_disable(flash);
 
 	/* If there is a single trailing byte, write it out */
 	if (!ret && actual != len)
-		ret = sst_byte_write(flash, offset, buf + actual);
+		ret = sst_byte_write(flash, offset, buf + actual, write_fn);
 
  done:
 	debug("SF: sst: program %s %zu bytes @ 0x%zx\n",
@@ -660,8 +674,8 @@ int sst_write_wp(struct spi_flash *flash, u32 offset, size_t len,
 	return ret;
 }
 
-int sst_write_bp(struct spi_flash *flash, u32 offset, size_t len,
-		const void *buf)
+static int sst_write_bp(struct spi_flash *flash, u32 offset, size_t len,
+			const void *buf, spi_flash_write_fn write_fn)
 {
 	struct spi_slave *spi = flash->spi;
 	size_t actual;
@@ -674,7 +688,7 @@ int sst_write_bp(struct spi_flash *flash, u32 offset, size_t len,
 	}
 
 	for (actual = 0; actual < len; actual++) {
-		ret = sst_byte_write(flash, offset, buf + actual);
+		ret = sst_byte_write(flash, offset, buf + actual, write_fn);
 		if (ret) {
 			debug("SF: sst byte program failed\n");
 			break;
@@ -993,14 +1007,6 @@ int spi_flash_scan(struct spi_flash *flash)
 	flash->read_reg = spi_flash_cmd_read_reg_ops;
 	flash->write_reg = spi_flash_cmd_write_reg_ops;
 	flash->write = spi_flash_cmd_write_ops;
-#if defined(CONFIG_SPI_FLASH_SST)
-	if (flash->flags & SNOR_F_SST_WR) {
-		if (spi->mode & SPI_TX_BYTE)
-			flash->write = sst_write_bp;
-		else
-			flash->write = sst_write_wp;
-	}
-#endif
 	flash->erase = spi_flash_cmd_erase_ops;
 	flash->read = spi_flash_cmd_read_ops;
 #endif
