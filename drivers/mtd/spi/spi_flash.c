@@ -1022,11 +1022,6 @@ static int set_quad_mode(struct spi_flash *flash, u8 idcode0)
 	case SPI_FLASH_CFI_MFR_WINBOND:
 		return spansion_quad_enable(flash);
 #endif
-#ifdef CONFIG_SPI_FLASH_STMICRO
-	case SPI_FLASH_CFI_MFR_STMICRO:
-		debug("SF: QEB is volatile for %02x flash\n", idcode0);
-		return 0;
-#endif
 	default:
 		printf("SF: Need set QEB func for %02x flash\n", idcode0);
 		return -1;
@@ -1113,10 +1108,10 @@ static int spi_flash_setup(struct spi_flash *flash,
 	 * manufacturer.
 	 */
 	switch (params->jedec >> 16) {
-		/*
-		 * TODO: Manufacturer dedicated setup will be added HERE by
-		 * further patches.
-		 */
+#ifdef CONFIG_SPI_FLASH_STMICRO
+	case SPI_FLASH_CFI_MFR_STMICRO:
+		return spi_flash_setup_micron(flash, params, match);
+#endif
 
 	default:
 		return spi_flash_setup_deprecated(flash, params, match);

@@ -142,6 +142,24 @@ enum spi_nor_option_flags {
 # define CMD_SST_AAI_WP		0xAD	/* Auto Address Incr Word Program */
 #endif
 
+/* Micron specific */
+#ifdef CONFIG_SPI_FLASH_STMICRO
+
+/* Volatile Configuration Register (VCR) */
+#define CMD_MICRON_WR_VCR	0x81
+#define CMD_MICRON_RD_VCR	0x85
+#define MICRON_VCR_XIP		BIT(3)
+#define MICRON_VCR_DUMMIES	0xf0
+#define MICRON_VCR_DUMMIES_(x)	(((x) << 4) & MICRON_VCR_DUMMIES)
+
+/* Enhanced Volatile Configuraiton Register (EVCR) */
+#define CMD_MICRON_WR_EVCR	0x61
+#define CMD_MICRON_RD_EVCR	0x65
+#define MICRON_EVCR_QUAD_DIS	BIT(7)
+#define MICRON_EVCR_DUAL_DIS	BIT(6)
+#endif
+
+
 /**
  * struct spi_flash_params - SPI/QSPI flash device params structure
  *
@@ -262,6 +280,12 @@ int spi_flash_set_dummy_byte(struct spi_flash *flash, u8 num_dummy_cycles);
 #ifdef CONFIG_SPI_FLASH_MTD
 int spi_flash_mtd_register(struct spi_flash *flash);
 void spi_flash_mtd_unregister(void);
+#endif
+
+#ifdef CONFIG_SPI_FLASH_STMICRO
+int spi_flash_setup_micron(struct spi_flash *flash,
+			   const struct spi_flash_params *params,
+			   int best_match);
 #endif
 
 /**
