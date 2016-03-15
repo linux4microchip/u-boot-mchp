@@ -281,11 +281,11 @@ int spi_flash_update_reg(struct spi_flash *flash, u8 opcode,
 	return 0;
 }
 
-int spi_flash_cmd_erase_ops(struct spi_flash *flash, u32 offset, size_t len)
+int spi_flash_erase_alg(struct spi_flash *flash, u32 offset, size_t len,
+			spi_flash_erase_fn erase_fn)
 {
 	struct spi_slave *spi = flash->spi;
 	u32 erase_size, erase_addr;
-	u8 cmd[SPI_FLASH_CMD_LEN];
 	int ret = -1;
 
 	erase_size = flash->erase_size;
@@ -309,7 +309,6 @@ int spi_flash_cmd_erase_ops(struct spi_flash *flash, u32 offset, size_t len)
 		}
 	}
 
-	cmd[0] = flash->erase_cmd;
 	while (len) {
 		erase_addr = offset;
 
@@ -328,12 +327,8 @@ int spi_flash_cmd_erase_ops(struct spi_flash *flash, u32 offset, size_t len)
 			break;
 		}
 
-		spi_flash_addr(erase_addr, cmd);
-
-		debug("SF: erase %2x %2x %2x %2x (%x)\n", cmd[0], cmd[1],
-		      cmd[2], cmd[3], erase_addr);
-
-		ret = spi_flash_cmd_write(spi, cmd, sizeof(cmd), NULL, 0);
+		debug("SF: erase %2x %06x\n", flash->erase_cmd, erase_addr);
+		ret = erase_fn(flash, erase_addr);
 		if (ret < 0) {
 			debug("SF: erase failed\n");
 			break;
@@ -354,6 +349,21 @@ release:
 	spi_release_bus(spi);
 
 	return ret;
+}
+
+static int spi_flash_erase_impl(struct spi_flash *flash, u32 offset)
+{
+	struct spi_slave *spi = flash->spi;
+	u8 cmd[SPI_FLASH_CMD_LEN];
+
+	cmd[0] = flash->erase_cmd;
+	spi_flash_addr(offset, cmd);
+	return spi_flash_cmd_write(spi, cmd, sizeof(cmd), NULL, 0);
+}
+
+int spi_flash_cmd_erase_ops(struct spi_flash *flash, u32 offset, size_t len)
+{
+	return spi_flash_erase_alg(flash, offset, len, spi_flash_erase_impl);
 }
 
 int spi_flash_cmd_write_ops(struct spi_flash *flash, u32 offset,

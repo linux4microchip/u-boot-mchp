@@ -169,6 +169,10 @@ int spi_flash_cmd_write(struct spi_slave *spi, const u8 *cmd, size_t cmd_len,
 /* Flash erase(sectors) operation, support all possible erase commands */
 int spi_flash_cmd_erase_ops(struct spi_flash *flash, u32 offset, size_t len);
 
+typedef int (*spi_flash_erase_fn)(struct spi_flash *, u32);
+int spi_flash_erase_alg(struct spi_flash *flash, u32 offset, size_t len,
+			spi_flash_erase_fn erase_fn);
+
 /* Lock stmicro spi flash region */
 int stm_lock(struct spi_flash *flash, u32 ofs, size_t len);
 
