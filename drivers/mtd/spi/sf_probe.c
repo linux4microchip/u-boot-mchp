@@ -111,6 +111,22 @@ void spi_flash_free(struct spi_flash *flash)
 
 #else /* defined CONFIG_DM_SPI_FLASH */
 
+static int spi_flash_std_read_reg(struct udevice *dev, u8 opcode, size_t len,
+				  void *buf)
+{
+	struct spi_flash *flash = dev_get_uclass_priv(dev);
+
+	return spi_flash_cmd_read_reg_ops(flash, opcode, len, buf);
+}
+
+static int spi_flash_std_write_reg(struct udevice *dev, u8 opcode, size_t len,
+				   const void *buf)
+{
+	struct spi_flash *flash = dev_get_uclass_priv(dev);
+
+	return spi_flash_cmd_write_reg_ops(flash, opcode, len, buf);
+}
+
 static int spi_flash_std_read(struct udevice *dev, u32 offset, size_t len,
 			      void *buf)
 {
@@ -157,6 +173,8 @@ static int spi_flash_std_probe(struct udevice *dev)
 }
 
 static const struct dm_spi_flash_ops spi_flash_std_ops = {
+	.read_reg = spi_flash_std_read_reg,
+	.write_reg = spi_flash_std_write_reg,
 	.read = spi_flash_std_read,
 	.write = spi_flash_std_write,
 	.erase = spi_flash_std_erase,

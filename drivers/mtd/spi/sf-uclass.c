@@ -13,6 +13,17 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+int spi_flash_read_reg_dm(struct udevice *dev, u8 opcode, size_t len, void *buf)
+{
+	return sf_get_ops(dev)->read_reg(dev, opcode, len, buf);
+}
+
+int spi_flash_write_reg_dm(struct udevice *dev, u8 opcode, size_t len,
+			   const void *buf)
+{
+	return sf_get_ops(dev)->write_reg(dev, opcode, len, buf);
+}
+
 int spi_flash_read_dm(struct udevice *dev, u32 offset, size_t len, void *buf)
 {
 	return sf_get_ops(dev)->read(dev, offset, len, buf);

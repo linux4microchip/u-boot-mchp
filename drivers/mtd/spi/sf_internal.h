@@ -12,6 +12,7 @@
 
 #include <linux/types.h>
 #include <linux/compiler.h>
+#include <spi_flash.h>
 
 /* Dual SPI flash memories - see SPI_COMM_DUAL_... */
 enum spi_dual_flash {
@@ -185,13 +186,13 @@ int stm_is_locked(struct spi_flash *flash, u32 ofs, size_t len);
 /* Enable writing on the SPI flash */
 static inline int spi_flash_cmd_write_enable(struct spi_flash *flash)
 {
-	return spi_flash_cmd(flash->spi, CMD_WRITE_ENABLE, NULL, 0);
+	return spi_flash_write_reg(flash, CMD_WRITE_ENABLE, 0, NULL);
 }
 
 /* Disable writing on the SPI flash */
 static inline int spi_flash_cmd_write_disable(struct spi_flash *flash)
 {
-	return spi_flash_cmd(flash->spi, CMD_WRITE_DISABLE, NULL, 0);
+	return spi_flash_write_reg(flash, CMD_WRITE_DISABLE, 0, NULL);
 }
 
 /* Wait for Busy/Write in Progress flag to be cleared */
@@ -206,6 +207,10 @@ int spi_flash_wait_ready(struct spi_flash *flash);
 int spi_flash_update_reg(struct spi_flash *flash, u8 opcode, size_t len,
 			 const void *buf);
 
+/* Flash write register operation */
+int spi_flash_cmd_write_reg_ops(struct spi_flash *flash, u8 opcode, size_t len,
+				const void *buf);
+
 /*
  * Flash write operation, support all possible write commands.
  * Write the requested data out breaking it up into multiple write
@@ -218,6 +223,10 @@ typedef int (*spi_flash_write_fn)(struct spi_flash *, u32, size_t,
 				  const void *);
 int spi_flash_write_alg(struct spi_flash *flash, u32 offset, size_t len,
 			const void *buf, spi_flash_write_fn write_fn);
+
+/* Flash read register operation */
+int spi_flash_cmd_read_reg_ops(struct spi_flash *flash, u8 opcode, size_t len,
+			       void *buf);
 
 /* Flash read operation, support all possible read commands */
 int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,

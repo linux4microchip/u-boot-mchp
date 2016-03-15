@@ -32,12 +32,9 @@ static void spi_flash_addr(u32 addr, u8 *cmd)
 
 static int read_sr(struct spi_flash *flash, u8 *rs)
 {
-	struct spi_slave *spi = flash->spi;
 	int ret;
-	u8 cmd;
 
-	cmd = CMD_READ_STATUS;
-	ret = spi_flash_cmd_read(spi, &cmd, 1, rs, 1);
+	ret = spi_flash_read_reg(flash, CMD_READ_STATUS, 1, rs);
 	if (ret < 0) {
 		debug("SF: fail to read status register\n");
 		return ret;
@@ -48,11 +45,9 @@ static int read_sr(struct spi_flash *flash, u8 *rs)
 
 static int read_fsr(struct spi_flash *flash, u8 *fsr)
 {
-	struct spi_slave *spi = flash->spi;
 	int ret;
-	const u8 cmd = CMD_FLAG_STATUS;
 
-	ret = spi_flash_cmd_read(spi, &cmd, 1, fsr, 1);
+	ret = spi_flash_read_reg(flash, CMD_FLAG_STATUS, 1, fsr);
 	if (ret < 0) {
 		debug("SF: fail to read flag status register\n");
 		return ret;
@@ -77,12 +72,9 @@ static int write_sr(struct spi_flash *flash, u8 ws)
 #if defined(CONFIG_SPI_FLASH_SPANSION) || defined(CONFIG_SPI_FLASH_WINBOND)
 static int read_cr(struct spi_flash *flash, u8 *rc)
 {
-	struct spi_slave *spi = flash->spi;
 	int ret;
-	u8 cmd;
 
-	cmd = CMD_READ_CONFIG;
-	ret = spi_flash_cmd_read(spi, &cmd, 1, rc, 1);
+	ret = spi_flash_read_reg(flash, CMD_READ_CONFIG, 1, rc);
 	if (ret < 0) {
 		debug("SF: fail to read config register\n");
 		return ret;
@@ -134,7 +126,6 @@ bar_end:
 
 static int spi_flash_read_bar(struct spi_flash *flash, u8 idcode0)
 {
-	struct spi_slave *spi = flash->spi;
 	u8 curr_bank = 0;
 	int ret;
 
@@ -151,7 +142,7 @@ static int spi_flash_read_bar(struct spi_flash *flash, u8 idcode0)
 		flash->bank_write_cmd = CMD_EXTNADDR_WREAR;
 	}
 
-	ret = spi_flash_cmd_read(spi, &flash->bank_read_cmd, 1, &curr_bank, 1);
+	ret = spi_flash_read_reg(flash, flash->bank_read_cmd, &curr_bank, 1);
 	if (ret) {
 		debug("SF: fail to read bank addr register\n");
 		return ret;
@@ -257,7 +248,6 @@ int spi_flash_wait_ready(struct spi_flash *flash)
 int spi_flash_update_reg(struct spi_flash *flash, u8 opcode,
 			 size_t len, const void *buf)
 {
-	struct spi_slave *spi = flash->spi;
 	int ret;
 
 	ret = spi_flash_cmd_write_enable(flash);
@@ -266,7 +256,7 @@ int spi_flash_update_reg(struct spi_flash *flash, u8 opcode,
 		return ret;
 	}
 
-	ret = spi_flash_cmd_write(spi, &opcode, 1, buf, len);
+	ret = spi_flash_write_reg(flash, opcode, len, buf);
 	if (ret < 0) {
 		debug("SF: write cmd failed\n");
 		return ret;
@@ -279,6 +269,14 @@ int spi_flash_update_reg(struct spi_flash *flash, u8 opcode,
 	}
 
 	return 0;
+}
+
+int spi_flash_cmd_write_reg_ops(struct spi_flash *flash, u8 opcode, size_t len,
+				const void *buf)
+{
+	struct spi_slave *spi = flash->spi;
+
+	return spi_flash_cmd_write(spi, &opcode, 1, buf, len);
 }
 
 int spi_flash_erase_alg(struct spi_flash *flash, u32 offset, size_t len,
@@ -458,6 +456,14 @@ int spi_flash_cmd_write_ops(struct spi_flash *flash, u32 offset,
 {
 	return spi_flash_write_alg(flash, offset, len, buf,
 				   spi_flash_write_impl);
+}
+
+int spi_flash_cmd_read_reg_ops(struct spi_flash *flash, u8 opcode,
+			       size_t len, void *buf)
+{
+	struct spi_slave *spi = flash->spi;
+
+	return spi_flash_cmd_read(spi, &opcode, 1, buf, len);
 }
 
 /*
@@ -982,8 +988,25 @@ int spi_flash_scan(struct spi_flash *flash)
 		CMD_READ_DUAL_IO_FAST,
 		CMD_READ_QUAD_IO_FAST };
 
+	/* Assign spi_flash ops */
+#ifndef CONFIG_DM_SPI_FLASH
+	flash->read_reg = spi_flash_cmd_read_reg_ops;
+	flash->write_reg = spi_flash_cmd_write_reg_ops;
+	flash->write = spi_flash_cmd_write_ops;
+#if defined(CONFIG_SPI_FLASH_SST)
+	if (flash->flags & SNOR_F_SST_WR) {
+		if (spi->mode & SPI_TX_BYTE)
+			flash->write = sst_write_bp;
+		else
+			flash->write = sst_write_wp;
+	}
+#endif
+	flash->erase = spi_flash_cmd_erase_ops;
+	flash->read = spi_flash_cmd_read_ops;
+#endif
+
 	/* Read the ID codes */
-	ret = spi_flash_cmd(spi, CMD_READ_ID, idcode, sizeof(idcode));
+	ret = spi_flash_read_reg(flash, CMD_READ_ID, sizeof(idcode), idcode);
 	if (ret) {
 		printf("SF: Failed to get idcodes\n");
 		return ret;
@@ -1031,21 +1054,6 @@ int spi_flash_scan(struct spi_flash *flash)
 	/* Assign spi flash flags */
 	if (params->flags & SST_WR)
 		flash->flags |= SNOR_F_SST_WR;
-
-	/* Assign spi_flash ops */
-#ifndef CONFIG_DM_SPI_FLASH
-	flash->write = spi_flash_cmd_write_ops;
-#if defined(CONFIG_SPI_FLASH_SST)
-	if (flash->flags & SNOR_F_SST_WR) {
-		if (spi->mode & SPI_TX_BYTE)
-			flash->write = sst_write_bp;
-		else
-			flash->write = sst_write_wp;
-	}
-#endif
-	flash->erase = spi_flash_cmd_erase_ops;
-	flash->read = spi_flash_cmd_read_ops;
-#endif
 
 	/* lock hooks are flash specific - assign them based on idcode0 */
 	switch (idcode[0]) {

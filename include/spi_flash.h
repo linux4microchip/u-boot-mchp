@@ -52,6 +52,9 @@ struct spi_slave;
  * @flash_lock:		lock a region of the SPI Flash
  * @flash_unlock:	unlock a region of the SPI Flash
  * @flash_is_locked:	check if a region of the SPI Flash is completely locked
+ * @read_reg:		Flash read_reg ops: Send cmd to read len bytes into buf
+ * @write_reg:		Flash write_reg ops: Send cmd to write len bytes from
+ *			buf
  * @read:		Flash read ops: Read len bytes at offset into buf
  *			Supported cmds: Fast Array Read
  * @write:		Flash write ops: Write len bytes from buf into offset
@@ -101,6 +104,10 @@ struct spi_flash {
 	 * if required, perhaps with a way of scanning through the list to
 	 * find the driver that matches the device.
 	 */
+	int (*read_reg)(struct spi_flash *flash, u8 opcode, size_t len,
+			void *buf);
+	int (*write_reg)(struct spi_flash *flash, u8 opcode, size_t len,
+			 const void *buf);
 	int (*read)(struct spi_flash *flash, u32 offset, size_t len, void *buf);
 	int (*write)(struct spi_flash *flash, u32 offset, size_t len,
 			const void *buf);
@@ -109,6 +116,9 @@ struct spi_flash {
 };
 
 struct dm_spi_flash_ops {
+	int (*read_reg)(struct udevice *dev, u8 opcode, size_t len, void *buf);
+	int (*write_reg)(struct udevice *dev, u8 opcode, size_t len,
+			 const void *buf);
 	int (*read)(struct udevice *dev, u32 offset, size_t len, void *buf);
 	int (*write)(struct udevice *dev, u32 offset, size_t len,
 		     const void *buf);
@@ -119,6 +129,30 @@ struct dm_spi_flash_ops {
 #define sf_get_ops(dev) ((struct dm_spi_flash_ops *)(dev)->driver->ops)
 
 #ifdef CONFIG_DM_SPI_FLASH
+/**
+ * spi_flash_read_reg_dm() - Send register command and read data result
+ *
+ * @dev:	SPI flash device
+ * @opcode:	Register command op code
+ * @len:	Number of bytes to read as register command output
+ * @buf:	Buffer to fill with the register command output
+ * @return 0 if OK, -ve on error
+ */
+int spi_flash_read_reg_dm(struct udevice *dev, u8 opcode, size_t len,
+			  void *buf);
+
+/**
+ * spi_flash_write_reg_dm() - Send register command with data
+ *
+ * @dev:	SPI flash device
+ * @opcode:	Register command op code
+ * @len:	Number of bytes to write as register command input
+ * @buf:	Buffer filled with the register command input
+ * @return 0 if OK, -ve on error
+ */
+int spi_flash_write_reg_dm(struct udevice *dev, u8 opcode, size_t len,
+			   const void *buf);
+
 /**
  * spi_flash_read_dm() - Read data from SPI flash
  *
@@ -165,6 +199,18 @@ struct spi_flash *spi_flash_probe(unsigned int bus, unsigned int cs,
 /* Compatibility function - this is the old U-Boot API */
 void spi_flash_free(struct spi_flash *flash);
 
+static inline int spi_flash_read_reg(struct spi_flash *flash, u8 opcode,
+				     size_t len, void *buf)
+{
+	return spi_flash_read_reg_dm(flash->dev, opcode, len, buf);
+}
+
+static inline int spi_flash_write_reg(struct spi_flash *flash, u8 opcode,
+				      size_t len, const void *buf)
+{
+	return spi_flash_write_reg_dm(flash->dev, opcode, len, buf);
+}
+
 static inline int spi_flash_read(struct spi_flash *flash, u32 offset,
 				 size_t len, void *buf)
 {
@@ -207,6 +253,18 @@ struct spi_flash *spi_flash_probe_fdt(const void *blob, int slave_node,
 				      int spi_node);
 
 void spi_flash_free(struct spi_flash *flash);
+
+static inline int spi_flash_read_reg(struct spi_flash *flash, u8 opcode,
+				     size_t len, void *buf)
+{
+	return flash->read_reg(flash, opcode, len, buf);
+}
+
+static inline int spi_flash_write_reg(struct spi_flash *flash, u8 opcode,
+				      size_t len, const void *buf)
+{
+	return flash->write_reg(flash, opcode, len, buf);
+}
 
 static inline int spi_flash_read(struct spi_flash *flash, u32 offset,
 		size_t len, void *buf)
