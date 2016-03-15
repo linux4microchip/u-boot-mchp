@@ -28,6 +28,42 @@
 
 struct spi_slave;
 
+#define SPI_FLASH_PROTO_CMD_OFF	8
+#define SPI_FLASH_PROTO_CMD_MASK	GENMASK(11, 8)
+#define SPI_FLASH_PROTO_CMD_TO_PROTO(cmd) \
+	(((cmd) << SPI_FLASH_PROTO_CMD_OFF) & SPI_FLASH_PROTO_CMD_MASK)
+#define SPI_FLASH_PROTO_CMD_FROM_PROTO(proto) \
+	((((u32)(proto)) & SPI_FLASH_PROTO_CMD_MASK) >> SPI_FLASH_PROTO_CMD_OFF)
+
+#define SPI_FLASH_PROTO_ADR_OFF	4
+#define SPI_FLASH_PROTO_ADR_MASK	GENMASK(7, 4)
+#define SPI_FLASH_PROTO_ADR_TO_PROTO(adr) \
+	(((adr) << SPI_FLASH_PROTO_ADR_OFF) & SPI_FLASH_PROTO_ADR_MASK)
+#define SPI_FLASH_PROTO_ADR_FROM_PROTO(proto) \
+	((((u32)(proto)) & SPI_FLASH_PROTO_ADR_MASK) >> SPI_FLASH_PROTO_ADR_OFF)
+
+#define SPI_FLASH_PROTO_DAT_OFF	0
+#define SPI_FLASH_PROTO_DAT_MASK	GENMASK(3, 0)
+#define SPI_FLASH_PROTO_DAT_TO_PROTO(dat) \
+	(((dat) << SPI_FLASH_PROTO_DAT_OFF) & SPI_FLASH_PROTO_DAT_MASK)
+#define SPI_FLASH_PROTO_DAT_FROM_PROTO(proto) \
+	((((u32)(proto)) & SPI_FLASH_PROTO_DAT_MASK) >> SPI_FLASH_PROTO_DAT_OFF)
+
+#define SPI_FLASH_PROTO(cmd, adr, dat)	     \
+	(SPI_FLASH_PROTO_CMD_TO_PROTO(cmd) | \
+	 SPI_FLASH_PROTO_ADR_TO_PROTO(adr) | \
+	 SPI_FLASH_PROTO_DAT_TO_PROTO(dat))
+
+enum spi_flash_protocol {
+	SPI_FLASH_PROTO_1_1_1 = SPI_FLASH_PROTO(1, 1, 1), /* SPI */
+	SPI_FLASH_PROTO_1_1_2 = SPI_FLASH_PROTO(1, 1, 2), /* Dual Output */
+	SPI_FLASH_PROTO_1_1_4 = SPI_FLASH_PROTO(1, 1, 4), /* Quad Output */
+	SPI_FLASH_PROTO_1_2_2 = SPI_FLASH_PROTO(1, 2, 2), /* Dual IO */
+	SPI_FLASH_PROTO_1_4_4 = SPI_FLASH_PROTO(1, 4, 4), /* Quad IO */
+	SPI_FLASH_PROTO_2_2_2 = SPI_FLASH_PROTO(2, 2, 2), /* Dual Command */
+	SPI_FLASH_PROTO_4_4_4 = SPI_FLASH_PROTO(4, 4, 4), /* Quad Command */
+};
+
 /**
  * struct spi_flash - SPI flash structure
  *
@@ -48,6 +84,10 @@ struct spi_slave;
  * @read_cmd:		Read cmd - Array Fast, Extn read and quad read.
  * @write_cmd:		Write cmd - page and quad program.
  * @dummy_byte:		Dummy cycles for read operation.
+ * @reg_proto		SPI protocol to be used by &read_reg and &write_reg ops
+ * @read_proto		SPI protocol to be used by &read ops
+ * @write_proto		SPI protocol to be used by &write ops
+ * @erase_proto		SPI protocol to be used by &erase ops
  * @memory_map:		Address of read-only SPI flash access
  * @flash_lock:		lock a region of the SPI Flash
  * @flash_unlock:	unlock a region of the SPI Flash
@@ -86,6 +126,11 @@ struct spi_flash {
 	u8 read_cmd;
 	u8 write_cmd;
 	u8 dummy_byte;
+
+	enum spi_flash_protocol reg_proto;
+	enum spi_flash_protocol read_proto;
+	enum spi_flash_protocol write_proto;
+	enum spi_flash_protocol erase_proto;
 
 	void *memory_map;
 

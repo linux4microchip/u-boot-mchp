@@ -987,10 +987,37 @@ int spi_flash_decode_fdt(const void *blob, struct spi_flash *flash)
 }
 #endif /* CONFIG_IS_ENABLED(OF_CONTROL) */
 
+struct spi_flash_read_id_config {
+	enum spi_flash_protocol	proto;
+	u8			e_rd_cmd;
+	u8			cmd;
+	int			idlen;
+};
+
+static const struct spi_flash_read_id_config configs[] = {
+	/* Regular JEDEC Read ID (MUST be first, always tested) */
+	{SPI_FLASH_PROTO_1_1_1, (ARRAY_SLOW | ARRAY_FAST), CMD_READ_ID, 5},
+#if defined(CONFIG_SPI_FLASH_WINBOND)
+	/* Winbond QPI mode */
+	{SPI_FLASH_PROTO_4_4_4, QUAD_CMD_FAST, CMD_READ_ID, 5},
+#endif
+#if defined(CONFIG_SPI_FLASH_STMICRO) || defined(CONFIG_SPI_FLASH_MACRONIX)
+	/* Micron Quad mode & Macronix QPI mode */
+	{SPI_FLASH_PROTO_4_4_4, QUAD_CMD_FAST, CMD_READ_ID_MIO, 3},
+#endif
+#if defined(CONFIG_SPI_FLASH_STMICRO)
+	/* Micron Dual mode */
+	{SPI_FLASH_PROTO_2_2_2, DUAL_CMD_FAST, CMD_READ_ID_MIO, 3},
+#endif
+	/* Sentinel */
+	{SPI_FLASH_PROTO_1_1_1, 0, 0, 0},
+};
+
 int spi_flash_scan(struct spi_flash *flash, u8 e_rd_cmd)
 {
 	struct spi_slave *spi = flash->spi;
 	const struct spi_flash_params *params;
+	const struct spi_flash_read_id_config *cfg;
 	u16 jedec, ext_jedec;
 	u8 cmd, idcode[5];
 	int ret;
@@ -1014,32 +1041,55 @@ int spi_flash_scan(struct spi_flash *flash, u8 e_rd_cmd)
 	flash->read = spi_flash_cmd_read_ops;
 #endif
 
-	/* Read the ID codes */
-	ret = spi_flash_read_reg(flash, CMD_READ_ID, sizeof(idcode), idcode);
-	if (ret) {
-		printf("SF: Failed to get idcodes\n");
-		return ret;
-	}
+	/*
+	 * Check whether the SPI NOR memory has already been configured (at
+	 * reset of by some bootloader) to use a protocol other than SPI 1-1-1.
+	 */
+	params = NULL;
+	jedec = 0;
+	ext_jedec = 0;
+	for (cfg = configs; cfg->e_rd_cmd; ++cfg) {
+		/* Only try protocols supported by the SPI controller */
+		if (cfg != configs && !(e_rd_cmd & cfg->e_rd_cmd))
+			continue;
+
+		/* Set this protocol for all commands */
+		flash->reg_proto = cfg->proto;
+		flash->read_proto = cfg->proto;
+		flash->write_proto = cfg->proto;
+		flash->erase_proto = cfg->proto;
+
+		/* Read the ID codes */
+		memset(idcode, 0, sizeof(idcode));
+		ret = spi_flash_read_reg(flash, cfg->cmd, cfg->idlen, idcode);
+		if (ret) {
+			printf("SF: Failed to get idcodes\n");
+			return -EINVAL;
+		}
 
 #ifdef DEBUG
-	printf("SF: Got idcodes\n");
-	print_buffer(0, idcode, 1, sizeof(idcode), 0);
+		printf("SF: Got idcodes\n");
+		print_buffer(0, idcode, 1, sizeof(idcode), 0);
 #endif
 
-	jedec = idcode[1] << 8 | idcode[2];
-	ext_jedec = idcode[3] << 8 | idcode[4];
+		jedec = idcode[1] << 8 | idcode[2];
+		ext_jedec = idcode[3] << 8 | idcode[4];
 
-	/* Validate params from spi_flash_params table */
-	params = spi_flash_params_table;
-	for (; params->name != NULL; params++) {
-		if ((params->jedec >> 16) == idcode[0]) {
-			if ((params->jedec & 0xFFFF) == jedec) {
-				if (params->ext_jedec == 0)
-					break;
-				else if (params->ext_jedec == ext_jedec)
-					break;
+		/* Validate params from spi_flash_params table */
+		params = spi_flash_params_table;
+		for (; params->name != NULL; params++) {
+			if ((params->jedec >> 16) == idcode[0]) {
+				if ((params->jedec & 0xFFFF) == jedec) {
+					if (params->ext_jedec == 0)
+						break;
+					else if (params->ext_jedec == ext_jedec)
+						break;
+				}
 			}
 		}
+
+		if (params->name)
+			break;
 	}
 
 	if (!params->name) {

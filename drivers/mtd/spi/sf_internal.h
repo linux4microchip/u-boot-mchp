@@ -99,6 +99,7 @@ enum spi_nor_option_flags {
 #define CMD_READ_STATUS1		0x35
 #define CMD_READ_CONFIG			0x35
 #define CMD_FLAG_STATUS			0x70
+#define CMD_READ_ID_MIO			0xaf
 
 /* Bank addr access commands */
 #ifdef CONFIG_SPI_FLASH_BAR
