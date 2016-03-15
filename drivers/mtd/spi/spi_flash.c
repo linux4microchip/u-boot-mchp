@@ -63,11 +63,9 @@ static int read_fsr(struct spi_flash *flash, u8 *fsr)
 
 static int write_sr(struct spi_flash *flash, u8 ws)
 {
-	u8 cmd;
 	int ret;
 
-	cmd = CMD_WRITE_STATUS;
-	ret = spi_flash_write_common(flash, &cmd, 1, &ws, 1);
+	ret = spi_flash_update_reg(flash, CMD_WRITE_STATUS, 1, &ws);
 	if (ret < 0) {
 		debug("SF: fail to write status register\n");
 		return ret;
@@ -96,16 +94,14 @@ static int read_cr(struct spi_flash *flash, u8 *rc)
 static int write_cr(struct spi_flash *flash, u8 wc)
 {
 	u8 data[2];
-	u8 cmd;
 	int ret;
 
 	ret = read_sr(flash, &data[0]);
 	if (ret < 0)
 		return ret;
 
-	cmd = CMD_WRITE_STATUS;
 	data[1] = wc;
-	ret = spi_flash_write_common(flash, &cmd, 1, &data, 2);
+	ret = spi_flash_update_reg(flash, CMD_WRITE_STATUS, 2, data);
 	if (ret) {
 		debug("SF: fail to write config register\n");
 		return ret;
@@ -118,15 +114,14 @@ static int write_cr(struct spi_flash *flash, u8 wc)
 #ifdef CONFIG_SPI_FLASH_BAR
 static int spi_flash_write_bar(struct spi_flash *flash, u32 offset)
 {
-	u8 cmd, bank_sel;
+	u8 bank_sel;
 	int ret;
 
 	bank_sel = offset / (SPI_FLASH_16MB_BOUN << flash->shift);
 	if (bank_sel == flash->bank_curr)
 		goto bar_end;
 
-	cmd = flash->bank_write_cmd;
-	ret = spi_flash_write_common(flash, &cmd, 1, &bank_sel, 1);
+	ret = spi_flash_update_reg(flash, flash->bank_write_cmd, 1, &bank_sel);
 	if (ret < 0) {
 		debug("SF: fail to write bank register\n");
 		return ret;
@@ -254,15 +249,11 @@ static int spi_flash_cmd_wait_ready(struct spi_flash *flash,
 	return -ETIMEDOUT;
 }
 
-int spi_flash_write_common(struct spi_flash *flash, const u8 *cmd,
-		size_t cmd_len, const void *buf, size_t buf_len)
+int spi_flash_update_reg(struct spi_flash *flash, u8 opcode,
+			 size_t len, const void *buf)
 {
 	struct spi_slave *spi = flash->spi;
-	unsigned long timeout = SPI_FLASH_PROG_TIMEOUT;
 	int ret;
-
-	if (buf == NULL)
-		timeout = SPI_FLASH_PAGE_ERASE_TIMEOUT;
 
 	ret = spi_flash_cmd_write_enable(flash);
 	if (ret < 0) {
@@ -270,21 +261,19 @@ int spi_flash_write_common(struct spi_flash *flash, const u8 *cmd,
 		return ret;
 	}
 
-	ret = spi_flash_cmd_write(spi, cmd, cmd_len, buf, buf_len);
+	ret = spi_flash_cmd_write(spi, &opcode, 1, buf, len);
 	if (ret < 0) {
 		debug("SF: write cmd failed\n");
 		return ret;
 	}
 
-	ret = spi_flash_cmd_wait_ready(flash, timeout);
+	ret = spi_flash_cmd_wait_ready(flash, SPI_FLASH_PROG_TIMEOUT);
 	if (ret < 0) {
-		debug("SF: write %s timed out\n",
-		      timeout == SPI_FLASH_PROG_TIMEOUT ?
-			"program" : "page erase");
+		debug("SF: write register timed out\n");
 		return ret;
 	}
 
-	return ret;
+	return 0;
 }
 
 int spi_flash_cmd_erase_ops(struct spi_flash *flash, u32 offset, size_t len)
@@ -328,14 +317,27 @@ int spi_flash_cmd_erase_ops(struct spi_flash *flash, u32 offset, size_t len)
 		if (ret < 0)
 			break;
 #endif
+		ret = spi_flash_cmd_write_enable(flash);
+		if (ret < 0) {
+			debug("SF: enabling write failed\n");
+			break;
+		}
+
 		spi_flash_addr(erase_addr, cmd);
 
 		debug("SF: erase %2x %2x %2x %2x (%x)\n", cmd[0], cmd[1],
 		      cmd[2], cmd[3], erase_addr);
 
-		ret = spi_flash_write_common(flash, cmd, sizeof(cmd), NULL, 0);
+		ret = spi_flash_cmd_write(spi, cmd, sizeof(cmd), NULL, 0);
 		if (ret < 0) {
 			debug("SF: erase failed\n");
+			break;
+		}
+
+		ret = spi_flash_cmd_wait_ready(flash,
+					       SPI_FLASH_PAGE_ERASE_TIMEOUT);
+		if (ret < 0) {
+			debug("SF: write page erase timed out\n");
 			break;
 		}
 
@@ -396,15 +398,27 @@ int spi_flash_cmd_write_ops(struct spi_flash *flash, u32 offset,
 			chunk_len = min(chunk_len,
 					(size_t)spi->max_write_size);
 
+		ret = spi_flash_cmd_write_enable(flash);
+		if (ret < 0) {
+			debug("SF: enabling write failed\n");
+			break;
+		}
+
 		spi_flash_addr(write_addr, cmd);
 
 		debug("SF: 0x%p => cmd = { 0x%02x 0x%02x%02x%02x } chunk_len = %zu\n",
 		      buf + actual, cmd[0], cmd[1], cmd[2], cmd[3], chunk_len);
 
-		ret = spi_flash_write_common(flash, cmd, sizeof(cmd),
-					buf + actual, chunk_len);
+		ret = spi_flash_cmd_write(spi, cmd, sizeof(cmd),
+					  buf + actual, chunk_len);
 		if (ret < 0) {
 			debug("SF: write failed\n");
+			break;
+		}
+
+		ret = spi_flash_cmd_wait_ready(flash, SPI_FLASH_PROG_TIMEOUT);
+		if (ret < 0) {
+			debug("SF: write program timed out\n");
 			break;
 		}
 

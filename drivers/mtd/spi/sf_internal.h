@@ -191,13 +191,13 @@ static inline int spi_flash_cmd_write_disable(struct spi_flash *flash)
 }
 
 /*
- * Used for spi_flash write operation
+ * Used for spi_flash register update operation
  * - spi_flash_cmd_write_enable
- * - spi_flash_cmd_write
+ * - write new register value
  * - spi_flash_cmd_wait_ready
  */
-int spi_flash_write_common(struct spi_flash *flash, const u8 *cmd,
-		size_t cmd_len, const void *buf, size_t buf_len);
+int spi_flash_update_reg(struct spi_flash *flash, u8 opcode, size_t len,
+			 const void *buf);
 
 /*
  * Flash write operation, support all possible write commands.
