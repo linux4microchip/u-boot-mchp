@@ -240,6 +240,12 @@ typedef int (*spi_flash_read_fn)(struct spi_flash *, u32, size_t, void *);
 int spi_flash_read_alg(struct spi_flash *flash, u32 offset, size_t len,
 		void *data, spi_flash_read_fn read_fn);
 
+/*
+ * Helper function to compute the number of dummy bytes from both the number
+ * of dummy cycles and the SPI protocol used for (Fast) Read operations.
+ */
+int spi_flash_set_dummy_byte(struct spi_flash *flash, u8 num_dummy_cycles);
+
 #ifdef CONFIG_SPI_FLASH_MTD
 int spi_flash_mtd_register(struct spi_flash *flash);
 void spi_flash_mtd_unregister(void);

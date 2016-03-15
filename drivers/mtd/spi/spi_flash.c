@@ -882,6 +882,17 @@ int stm_unlock(struct spi_flash *flash, u32 ofs, size_t len)
 }
 #endif
 
+int spi_flash_set_dummy_byte(struct spi_flash *flash, u8 num_dummy_cycles)
+{
+	u8 dummy_bits = num_dummy_cycles;
+
+	dummy_bits *= SPI_FLASH_PROTO_ADR_FROM_PROTO(flash->read_proto);
+	if (dummy_bits & 0x7)
+		return -EINVAL;
+
+	flash->dummy_byte = dummy_bits >> 3;
+	return 0;
+}
 
 #ifdef CONFIG_SPI_FLASH_MACRONIX
 static int macronix_quad_enable(struct spi_flash *flash)
