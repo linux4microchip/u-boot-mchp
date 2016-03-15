@@ -207,12 +207,6 @@ int spi_flash_write_common(struct spi_flash *flash, const u8 *cmd,
 int spi_flash_cmd_write_ops(struct spi_flash *flash, u32 offset,
 		size_t len, const void *buf);
 
-/*
- * Same as spi_flash_cmd_read(). Used as common part of the ->read() operation.
- */
-int spi_flash_read_common(struct spi_flash *flash, const u8 *cmd,
-		size_t cmd_len, void *data, size_t data_len);
-
 /* Flash read operation, support all possible read commands */
 int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
 		size_t len, void *data);

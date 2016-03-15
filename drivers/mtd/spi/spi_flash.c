@@ -32,11 +32,12 @@ static void spi_flash_addr(u32 addr, u8 *cmd)
 
 static int read_sr(struct spi_flash *flash, u8 *rs)
 {
+	struct spi_slave *spi = flash->spi;
 	int ret;
 	u8 cmd;
 
 	cmd = CMD_READ_STATUS;
-	ret = spi_flash_read_common(flash, &cmd, 1, rs, 1);
+	ret = spi_flash_cmd_read(spi, &cmd, 1, rs, 1);
 	if (ret < 0) {
 		debug("SF: fail to read status register\n");
 		return ret;
@@ -47,10 +48,11 @@ static int read_sr(struct spi_flash *flash, u8 *rs)
 
 static int read_fsr(struct spi_flash *flash, u8 *fsr)
 {
+	struct spi_slave *spi = flash->spi;
 	int ret;
 	const u8 cmd = CMD_FLAG_STATUS;
 
-	ret = spi_flash_read_common(flash, &cmd, 1, fsr, 1);
+	ret = spi_flash_cmd_read(spi, &cmd, 1, fsr, 1);
 	if (ret < 0) {
 		debug("SF: fail to read flag status register\n");
 		return ret;
@@ -77,11 +79,12 @@ static int write_sr(struct spi_flash *flash, u8 ws)
 #if defined(CONFIG_SPI_FLASH_SPANSION) || defined(CONFIG_SPI_FLASH_WINBOND)
 static int read_cr(struct spi_flash *flash, u8 *rc)
 {
+	struct spi_slave *spi = flash->spi;
 	int ret;
 	u8 cmd;
 
 	cmd = CMD_READ_CONFIG;
-	ret = spi_flash_read_common(flash, &cmd, 1, rc, 1);
+	ret = spi_flash_cmd_read(spi, &cmd, 1, rc, 1);
 	if (ret < 0) {
 		debug("SF: fail to read config register\n");
 		return ret;
@@ -136,6 +139,7 @@ bar_end:
 
 static int spi_flash_read_bar(struct spi_flash *flash, u8 idcode0)
 {
+	struct spi_slave *spi = flash->spi;
 	u8 curr_bank = 0;
 	int ret;
 
@@ -152,8 +156,7 @@ static int spi_flash_read_bar(struct spi_flash *flash, u8 idcode0)
 		flash->bank_write_cmd = CMD_EXTNADDR_WREAR;
 	}
 
-	ret = spi_flash_read_common(flash, &flash->bank_read_cmd, 1,
-				    &curr_bank, 1);
+	ret = spi_flash_cmd_read(spi, &flash->bank_read_cmd, 1, &curr_bank, 1);
 	if (ret) {
 		debug("SF: fail to read bank addr register\n");
 		return ret;
@@ -414,21 +417,6 @@ release:
 	return ret;
 }
 
-int spi_flash_read_common(struct spi_flash *flash, const u8 *cmd,
-		size_t cmd_len, void *data, size_t data_len)
-{
-	struct spi_slave *spi = flash->spi;
-	int ret;
-
-	ret = spi_flash_cmd_read(spi, cmd, cmd_len, data, data_len);
-	if (ret < 0) {
-		debug("SF: read cmd failed\n");
-		return ret;
-	}
-
-	return ret;
-}
-
 /*
  * TODO: remove the weak after all the other spi_flash_copy_mmap
  * implementations removed from drivers
@@ -496,7 +484,7 @@ int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
 
 		spi_flash_addr(read_addr, cmd);
 
-		ret = spi_flash_read_common(flash, cmd, cmdsz, data, read_len);
+		ret = spi_flash_cmd_read(spi, cmd, cmdsz, data, read_len);
 		if (ret < 0) {
 			debug("SF: read failed\n");
 			break;
