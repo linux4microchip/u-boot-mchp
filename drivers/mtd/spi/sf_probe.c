@@ -26,12 +26,29 @@
 static int spi_flash_probe_slave(struct spi_flash *flash)
 {
 	struct spi_slave *spi = flash->spi;
+	u8 mode_rx, e_rd_cmd;
 	int ret;
 
 	/* Setup spi_slave */
 	if (!spi) {
 		printf("SF: Failed to set up slave\n");
 		return -ENODEV;
+	}
+
+	/* Convert SPI mode_rx and mode to SPI flash read commands */
+	mode_rx = spi->mode_rx;
+	if (mode_rx & SPI_RX_QUAD) {
+		e_rd_cmd = RD_NORM | QUAD_OUTPUT_FAST;
+		if (spi->mode & SPI_TX_QUAD)
+			e_rd_cmd |= QUAD_IO_FAST;
+	} else if (mode_rx & SPI_RX_DUAL) {
+		e_rd_cmd = RD_NORM | DUAL_OUTPUT_FAST;
+		if (spi->mode & SPI_TX_DUAL)
+			e_rd_cmd |= DUAL_IO_FAST;
+	} else if ((mode_rx & (SPI_RX_SLOW | SPI_RX_FAST)) == SPI_RX_SLOW) {
+		e_rd_cmd = ARRAY_SLOW;
+	} else {
+		e_rd_cmd = RD_NORM;
 	}
 
 	/* Claim spi bus */
@@ -41,7 +58,7 @@ static int spi_flash_probe_slave(struct spi_flash *flash)
 		return ret;
 	}
 
-	ret = spi_flash_scan(flash);
+	ret = spi_flash_scan(flash, e_rd_cmd);
 	if (ret)
 		goto err_read_id;
 

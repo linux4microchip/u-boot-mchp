@@ -29,12 +29,19 @@ enum spi_read_cmds {
 	QUAD_OUTPUT_FAST	= BIT(3),
 	DUAL_IO_FAST		= BIT(4),
 	QUAD_IO_FAST		= BIT(5),
+	DUAL_CMD_FAST		= BIT(6),
+	QUAD_CMD_FAST		= BIT(7),
 };
 
 /* Normal - Extended - Full command set */
 #define RD_NORM		(ARRAY_SLOW | ARRAY_FAST)
-#define RD_EXTN		(RD_NORM | DUAL_OUTPUT_FAST | DUAL_IO_FAST)
-#define RD_FULL		(RD_EXTN | QUAD_OUTPUT_FAST | QUAD_IO_FAST)
+#define RD_EXTN		(RD_NORM | DUAL_OUTPUT_FAST)
+#define RD_DUAL		(RD_NORM | DUAL_OUTPUT_FAST | DUAL_IO_FAST)
+#define RD_DCMD		(RD_DUAL | DUAL_CMD_FAST)
+#define RD_QUAD		(RD_NORM | QUAD_OUTPUT_FAST | QUAD_IO_FAST)
+#define RD_QCMD		(RD_QUAD | QUAD_CMD_FAST)
+#define RD_FULL		(RD_DUAL | RD_QUAD)
+#define RD_FCMD		(RD_DCMD | RD_QCMD)
 
 /* sf param flags */
 enum {
@@ -240,6 +247,7 @@ void spi_flash_mtd_unregister(void);
 /**
  * spi_flash_scan - scan the SPI FLASH
  * @flash:	the spi flash structure
+ * @e_rd_cmd:	Enum list for read commands supported by the SPI controller
  *
  * The drivers can use this fuction to scan the SPI FLASH.
  * In the scanning, it will try to get all the necessary information to
@@ -247,6 +255,6 @@ void spi_flash_mtd_unregister(void);
  *
  * Return: 0 for success, others for failure.
  */
-int spi_flash_scan(struct spi_flash *flash);
+int spi_flash_scan(struct spi_flash *flash, u8 e_rd_cmd);
 
 #endif /* _SF_INTERNAL_H_ */

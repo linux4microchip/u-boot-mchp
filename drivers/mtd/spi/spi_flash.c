@@ -987,7 +987,7 @@ int spi_flash_decode_fdt(const void *blob, struct spi_flash *flash)
 }
 #endif /* CONFIG_IS_ENABLED(OF_CONTROL) */
 
-int spi_flash_scan(struct spi_flash *flash)
+int spi_flash_scan(struct spi_flash *flash, u8 e_rd_cmd)
 {
 	struct spi_slave *spi = flash->spi;
 	const struct spi_flash_params *params;
@@ -1000,7 +1000,10 @@ int spi_flash_scan(struct spi_flash *flash)
 		CMD_READ_DUAL_OUTPUT_FAST,
 		CMD_READ_QUAD_OUTPUT_FAST,
 		CMD_READ_DUAL_IO_FAST,
-		CMD_READ_QUAD_IO_FAST };
+		CMD_READ_QUAD_IO_FAST,
+		CMD_READ_DUAL_IO_FAST,	/* same op code as for DUAL_IO_FAST */
+		CMD_READ_QUAD_IO_FAST,	/* same op code as for QUAD_IO_FAST */
+	};
 
 	/* Assign spi_flash ops */
 #ifndef CONFIG_DM_SPI_FLASH
@@ -1115,7 +1118,7 @@ int spi_flash_scan(struct spi_flash *flash)
 	flash->sector_size = flash->erase_size;
 
 	/* Look for the fastest read cmd */
-	cmd = fls(params->e_rd_cmd & spi->mode_rx);
+	cmd = fls(params->e_rd_cmd & e_rd_cmd);
 	if (cmd) {
 		cmd = spi_read_cmds_array[cmd - 1];
 		flash->read_cmd = cmd;
