@@ -99,6 +99,11 @@ static inline unsigned long get_spi_clk_rate(unsigned int dev_id)
 		return get_mck_clk_rate();
 }
 
+static inline unsigned long get_qspi_clk_rate(unsigned int dev_id)
+{
+	return get_mck_clk_rate();
+}
+
 static inline unsigned long get_twi_clk_rate(unsigned int dev_id)
 {
 	if (get_h32mxdiv())
