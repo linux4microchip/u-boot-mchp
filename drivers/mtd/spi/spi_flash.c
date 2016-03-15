@@ -473,11 +473,10 @@ void __weak spi_flash_copy_mmap(void *data, void *offset, size_t len)
 	memcpy(data, offset, len);
 }
 
-int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
-		size_t len, void *data)
+int spi_flash_read_alg(struct spi_flash *flash, u32 offset, size_t len,
+		       void *data, spi_flash_read_fn read_fn)
 {
 	struct spi_slave *spi = flash->spi;
-	u8 *cmd, cmdsz;
 	u32 remain_len, read_len, read_addr;
 	int bank_sel = 0;
 	int ret = -1;
@@ -496,15 +495,6 @@ int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
 		goto release;
 	}
 
-	cmdsz = SPI_FLASH_CMD_LEN + flash->dummy_byte;
-	cmd = calloc(1, cmdsz);
-	if (!cmd) {
-		debug("SF: Failed to allocate cmd\n");
-		ret = -ENOMEM;
-		goto release;
-	}
-
-	cmd[0] = flash->read_cmd;
 	while (len) {
 		read_addr = offset;
 
@@ -525,9 +515,7 @@ int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
 		else
 			read_len = remain_len;
 
-		spi_flash_addr(read_addr, cmd);
-
-		ret = spi_flash_cmd_read(spi, cmd, cmdsz, data, read_len);
+		ret = read_fn(flash, read_addr, read_len, data);
 		if (ret < 0) {
 			debug("SF: read failed\n");
 			break;
@@ -538,12 +526,38 @@ int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
 		data += read_len;
 	}
 
-	free(cmd);
-
 release:
 	spi_release_bus(spi);
 
 	return ret;
+}
+
+static int spi_flash_read_impl(struct spi_flash *flash, u32 offset,
+			       size_t len, void *buf)
+{
+	struct spi_slave *spi = flash->spi;
+	u8 *cmd;
+	size_t cmdsz;
+	int ret;
+
+	cmdsz = SPI_FLASH_CMD_LEN + flash->dummy_byte;
+	cmd = calloc(1, cmdsz);
+	if (!cmd) {
+		debug("SF: Failed to allocate cmd\n");
+		return -ENOMEM;
+	}
+
+	cmd[0] = flash->read_cmd;
+	spi_flash_addr(offset, cmd);
+	ret = spi_flash_cmd_read(spi, cmd, cmdsz, buf, len);
+	free(cmd);
+	return ret;
+}
+
+int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
+		size_t len, void *buf)
+{
+	return spi_flash_read_alg(flash, offset, len, buf, spi_flash_read_impl);
 }
 
 #ifdef CONFIG_SPI_FLASH_SST

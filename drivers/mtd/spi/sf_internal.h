@@ -223,6 +223,10 @@ int spi_flash_write_alg(struct spi_flash *flash, u32 offset, size_t len,
 int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
 		size_t len, void *data);
 
+typedef int (*spi_flash_read_fn)(struct spi_flash *, u32, size_t, void *);
+int spi_flash_read_alg(struct spi_flash *flash, u32 offset, size_t len,
+		void *data, spi_flash_read_fn read_fn);
+
 #ifdef CONFIG_SPI_FLASH_MTD
 int spi_flash_mtd_register(struct spi_flash *flash);
 void spi_flash_mtd_unregister(void);
