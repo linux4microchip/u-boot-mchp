@@ -1,0 +1,33 @@
+/dts-v1/;
+#include "sama5d2.dtsi"
+
+/ {
+	model = "Atmel SAMA5D2 Xplained";
+	compatible = "atmel,sama5d2-xplained", "atmel,sama5d2", "atmel,sama5";
+
+	chosen {
+		stdout-path = "serial0";
+	};
+};
+
+&qspi0 {
+	status = "okay";
+
+	flash@0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "atmel,sama5d2-qspi-flash";
+		reg = <0>;
+		spi-max-frequency = <83000000>;
+
+		partition@00000000 {
+			label = "boot";
+			reg = <0x00000000 0x00c00000>;
+		};
+
+		partition@00c00000 {
+			label = "rootfs";
+			reg = <0x00c00000 0x00000000>;
+		};
+	};
+};

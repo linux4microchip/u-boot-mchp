@@ -1,0 +1,19 @@
+#include "skeleton.dtsi"
+
+/ {
+	model = "Atmel SAMA5D2 family SoC";
+	compatible = "atmel,sama5d2";
+
+	aliases {
+		spi0 = &qspi0;
+	};
+
+	qspi0: spi@f0020000 {
+		compatible = "atmel,sama5d2-qspi";
+		reg = <0xf0020000 0x100>, <0xd0000000 0x08000000>;
+		reg-names = "qspi_base", "qspi_mmap";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		status = "disabled";
+	};
+};
