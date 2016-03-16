@@ -55,6 +55,21 @@ static void board_spi0_hw_init(void)
 }
 #endif
 
+#ifdef CONFIG_ATMEL_QSPI0
+static void board_qspi0_hw_init(void)
+{
+	/* QSPI0 - ioset 3 */
+	atmel_pio4_set_f_periph(AT91_PIO_PORTA, 22, 0);	/* SCK */
+	atmel_pio4_set_f_periph(AT91_PIO_PORTA, 23, 0); /* CS */
+	atmel_pio4_set_f_periph(AT91_PIO_PORTA, 24, 1); /* IO0 */
+	atmel_pio4_set_f_periph(AT91_PIO_PORTA, 25, 1); /* IO1 */
+	atmel_pio4_set_f_periph(AT91_PIO_PORTA, 26, 1); /* IO2 */
+	atmel_pio4_set_f_periph(AT91_PIO_PORTA, 27, 1); /* IO3 */
+
+	at91_periph_clk_enable(ATMEL_ID_QSPI0);
+}
+#endif
+
 static void board_usb_hw_init(void)
 {
 	atmel_pio4_set_pio_output(AT91_PIO_PORTB, 10, 1);
@@ -240,6 +255,9 @@ int board_init(void)
 
 #ifdef CONFIG_ATMEL_SPI0
 	board_spi0_hw_init();
+#endif
+#ifdef CONFIG_ATMEL_QSPI0
+	board_qspi0_hw_init();
 #endif
 #ifdef CONFIG_ATMEL_SDHCI0
 	board_sdhci0_hw_init();

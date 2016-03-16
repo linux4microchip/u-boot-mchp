@@ -26,4 +26,10 @@ config ATMEL_SDHCI1
 	select ATMEL_SDHCI
 	default y
 
+config ATMEL_QSPI0
+	bool "QSPI0"
+	select DM_SPI
+	select ATMEL_QSPI
+	default n
+
 endif
