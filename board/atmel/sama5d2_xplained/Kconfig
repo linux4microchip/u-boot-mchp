@@ -12,4 +12,18 @@ config SYS_SOC
 config SYS_CONFIG_NAME
 	default "sama5d2_xplained"
 
+config ATMEL_SPI0
+	bool "SPI0"
+	default y
+
+config ATMEL_SDHCI0
+	bool "SDHCI0"
+	select ATMEL_SDHCI
+	default y
+
+config ATMEL_SDHCI1
+	bool "SDHCI1"
+	select ATMEL_SDHCI
+	default y
+
 endif

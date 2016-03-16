@@ -25,6 +25,7 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#ifndef CONFIG_DM_SPI
 int spi_cs_is_valid(unsigned int bus, unsigned int cs)
 {
 	return bus == 0 && cs == 0;
@@ -39,7 +40,9 @@ void spi_cs_deactivate(struct spi_slave *slave)
 {
 	atmel_pio4_set_pio_output(AT91_PIO_PORTA, 17, 1);
 }
+#endif
 
+#ifdef CONFIG_ATMEL_SPI0
 static void board_spi0_hw_init(void)
 {
 	atmel_pio4_set_a_periph(AT91_PIO_PORTA, 14, 0);
@@ -50,6 +53,7 @@ static void board_spi0_hw_init(void)
 
 	at91_periph_clk_enable(ATMEL_ID_SPI0);
 }
+#endif
 
 static void board_usb_hw_init(void)
 {
@@ -157,6 +161,7 @@ static void board_gmac_hw_init(void)
 	at91_periph_clk_enable(ATMEL_ID_GMAC);
 }
 
+#ifdef CONFIG_ATMEL_SDHCI0
 static void board_sdhci0_hw_init(void)
 {
 	atmel_pio4_set_a_periph(AT91_PIO_PORTA, 0, 0);	/* SDMMC0_CK */
@@ -176,7 +181,9 @@ static void board_sdhci0_hw_init(void)
 	at91_enable_periph_generated_clk(ATMEL_ID_SDMMC0,
 					 GCK_CSS_PLLA_CLK, 1);
 }
+#endif
 
+#ifdef CONFIG_ATMEL_SDHCI1
 static void board_sdhci1_hw_init(void)
 {
 	atmel_pio4_set_e_periph(AT91_PIO_PORTA, 18, 0);	/* SDMMC1_DAT0 */
@@ -192,6 +199,7 @@ static void board_sdhci1_hw_init(void)
 	at91_enable_periph_generated_clk(ATMEL_ID_SDMMC1,
 					 GCK_CSS_PLLA_CLK, 1);
 }
+#endif
 
 int board_mmc_init(bd_t *bis)
 {
@@ -230,16 +238,14 @@ int board_init(void)
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
 
-#ifdef CONFIG_ATMEL_SPI
+#ifdef CONFIG_ATMEL_SPI0
 	board_spi0_hw_init();
 #endif
-#ifdef CONFIG_ATMEL_SDHCI
 #ifdef CONFIG_ATMEL_SDHCI0
 	board_sdhci0_hw_init();
 #endif
 #ifdef CONFIG_ATMEL_SDHCI1
 	board_sdhci1_hw_init();
-#endif
 #endif
 #ifdef CONFIG_MACB
 	board_gmac_hw_init();
@@ -289,13 +295,11 @@ void spl_board_init(void)
 #ifdef CONFIG_SYS_USE_SERIALFLASH
 	board_spi0_hw_init();
 #endif
-#ifdef CONFIG_ATMEL_SDHCI
 #ifdef CONFIG_ATMEL_SDHCI0
 	board_sdhci0_hw_init();
 #endif
 #ifdef CONFIG_ATMEL_SDHCI1
 	board_sdhci1_hw_init();
-#endif
 #endif
 }
 

@@ -16,6 +16,8 @@
 #include "at91-sama5_common.h"
 
 /* serial console */
+#undef CONFIG_BAUDRATE
+#define CONFIG_BAUDRATE			57600
 #define CONFIG_ATMEL_USART
 #define CONFIG_USART_BASE		ATMEL_BASE_UART1
 #define CONFIG_USART_ID			ATMEL_ID_UART1
@@ -37,16 +39,6 @@
 #undef CONFIG_AT91_GPIO
 #define CONFIG_ATMEL_PIO4
 
-/* SerialFlash */
-#ifdef CONFIG_CMD_SF
-#define CONFIG_ATMEL_SPI
-#define CONFIG_ATMEL_SPI0
-#define CONFIG_SPI_FLASH_ATMEL
-#define CONFIG_SF_DEFAULT_BUS		0
-#define CONFIG_SF_DEFAULT_CS		0
-#define CONFIG_SF_DEFAULT_SPEED		30000000
-#endif
-
 /* NAND flash */
 #undef CONFIG_CMD_NAND
 
@@ -57,9 +49,6 @@
 #define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
 #define CONFIG_SDHCI
-#define CONFIG_ATMEL_SDHCI
-#define CONFIG_ATMEL_SDHCI0
-#define CONFIG_ATMEL_SDHCI1
 #define CONFIG_SUPPORT_EMMC_BOOT
 #endif
 
