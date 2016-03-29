@@ -14,6 +14,7 @@ endif
 
 obj-$(CONFIG_SPI_FLASH) += sf_probe.o spi_flash.o sf_params.o sf.o
 obj-$(CONFIG_SPI_FLASH_STMICRO) += sf_micron.o
+obj-$(CONFIG_SPI_FLASH_MACRONIX) += sf_macronix.o
 obj-$(CONFIG_SPI_FLASH_DATAFLASH) += sf_dataflash.o
 obj-$(CONFIG_SPI_FLASH_MTD) += sf_mtd.o
 obj-$(CONFIG_SPI_FLASH_SANDBOX) += sandbox.o

@@ -954,34 +954,6 @@ int spi_flash_set_dummy_byte(struct spi_flash *flash, u8 num_dummy_cycles)
 	return 0;
 }
 
-#ifdef CONFIG_SPI_FLASH_MACRONIX
-static int macronix_quad_enable(struct spi_flash *flash)
-{
-	u8 qeb_status;
-	int ret;
-
-	ret = read_sr(flash, &qeb_status);
-	if (ret < 0)
-		return ret;
-
-	if (qeb_status & STATUS_QEB_MXIC)
-		return 0;
-
-	ret = write_sr(flash, qeb_status | STATUS_QEB_MXIC);
-	if (ret < 0)
-		return ret;
-
-	/* read SR and check it */
-	ret = read_sr(flash, &qeb_status);
-	if (!(ret >= 0 && (qeb_status & STATUS_QEB_MXIC))) {
-		printf("SF: Macronix SR Quad bit not clear\n");
-		return -EINVAL;
-	}
-
-	return ret;
-}
-#endif
-
 #if defined(CONFIG_SPI_FLASH_SPANSION) || defined(CONFIG_SPI_FLASH_WINBOND)
 static int spansion_quad_enable(struct spi_flash *flash)
 {
@@ -1013,10 +985,6 @@ static int spansion_quad_enable(struct spi_flash *flash)
 static int set_quad_mode(struct spi_flash *flash, u8 idcode0)
 {
 	switch (idcode0) {
-#ifdef CONFIG_SPI_FLASH_MACRONIX
-	case SPI_FLASH_CFI_MFR_MACRONIX:
-		return macronix_quad_enable(flash);
-#endif
 #if defined(CONFIG_SPI_FLASH_SPANSION) || defined(CONFIG_SPI_FLASH_WINBOND)
 	case SPI_FLASH_CFI_MFR_SPANSION:
 	case SPI_FLASH_CFI_MFR_WINBOND:
@@ -1111,6 +1079,11 @@ static int spi_flash_setup(struct spi_flash *flash,
 #ifdef CONFIG_SPI_FLASH_STMICRO
 	case SPI_FLASH_CFI_MFR_STMICRO:
 		return spi_flash_setup_micron(flash, params, match);
+#endif
+
+#ifdef CONFIG_SPI_FLASH_MACRONIX
+	case SPI_FLASH_CFI_MFR_MACRONIX:
+		return spi_flash_setup_macronix(flash, params, match);
 #endif
 
 	default:

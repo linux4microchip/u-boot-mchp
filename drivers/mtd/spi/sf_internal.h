@@ -159,6 +159,13 @@ enum spi_nor_option_flags {
 #define MICRON_EVCR_DUAL_DIS	BIT(6)
 #endif
 
+/* Macronix specific */
+#ifdef CONFIG_SPI_FLASH_MACRONIX
+#define MACRONIX_READ_CR	0x15
+#define MACRONIX_CR_DC		0xc0
+#define MACRONIX_CR_DC_(x)	(((x) << 6) & MACRONIX_CR_DC)
+#endif
+
 
 /**
  * struct spi_flash_params - SPI/QSPI flash device params structure
@@ -286,6 +293,12 @@ void spi_flash_mtd_unregister(void);
 int spi_flash_setup_micron(struct spi_flash *flash,
 			   const struct spi_flash_params *params,
 			   int best_match);
+#endif
+
+#ifdef CONFIG_SPI_FLASH_MACRONIX
+int spi_flash_setup_macronix(struct spi_flash *flash,
+			     const struct spi_flash_params *params,
+			     int best_match);
 #endif
 
 /**
