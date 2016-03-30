@@ -16,8 +16,6 @@
 #include "at91-sama5_common.h"
 
 /* serial console */
-#undef CONFIG_BAUDRATE
-#define CONFIG_BAUDRATE			57600
 #define CONFIG_ATMEL_USART
 #define CONFIG_USART_BASE		ATMEL_BASE_UART1
 #define CONFIG_USART_ID			ATMEL_ID_UART1
