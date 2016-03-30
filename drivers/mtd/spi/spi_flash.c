@@ -193,6 +193,7 @@ static u8 spi_flash_3to4_opcode(u8 opcode)
 	/* MUST be sorted by 3byte opcode */
 #define ENTRY_3TO4(_opcode)	{ _opcode, _opcode##_4B }
 	static const struct address_entry spi_flash_3to4_table[] = {
+		ENTRY_3TO4(CMD_PAGE_PROGRAM),		/* 0x02 */
 		ENTRY_3TO4(CMD_READ_ARRAY_SLOW),	/* 0x03 */
 		ENTRY_3TO4(CMD_READ_ARRAY_FAST),	/* 0x0b */
 		ENTRY_3TO4(CMD_ERASE_4K),		/* 0x20 */
