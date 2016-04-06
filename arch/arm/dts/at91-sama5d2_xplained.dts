@@ -8,26 +8,30 @@
 	chosen {
 		stdout-path = "serial0";
 	};
-};
 
-&qspi0 {
-	status = "okay";
+	ahb {
+		apb {
+			qspi0: spi@f0020000 {
+				status = "okay";
 
-	flash@0 {
-		#address-cells = <1>;
-		#size-cells = <1>;
-		compatible = "atmel,sama5d2-qspi-flash";
-		reg = <0>;
-		spi-max-frequency = <83000000>;
+				flash@0 {
+					compatible = "atmel,sama5d2-qspi-flash";
+					reg = <0>;
+					#address-cells = <1>;
+					#size-cells = <1>;
+					spi-max-frequency = <83000000>;
 
-		partition@00000000 {
-			label = "boot";
-			reg = <0x00000000 0x00c00000>;
-		};
+					partition@00000000 {
+						label = "boot";
+						reg = <0x00000000 0x00c00000>;
+					};
 
-		partition@00c00000 {
-			label = "rootfs";
-			reg = <0x00c00000 0x00000000>;
+					partition@00c00000 {
+						label = "rootfs";
+						reg = <0x00c00000 0x00000000>;
+					};
+				};
+			};
 		};
 	};
 };
