@@ -37,6 +37,11 @@
 #undef CONFIG_AT91_GPIO
 #define CONFIG_ATMEL_PIO4
 
+/* SerialFlash */
+#ifdef CONFIG_ATMEL_SPI
+#define CONFIG_SF_DEFAULT_SPEED		30000000
+#endif
+
 /* NAND flash */
 #undef CONFIG_CMD_NAND
 

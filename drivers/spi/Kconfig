@@ -166,6 +166,13 @@ config ZYNQ_QSPI
 
 endif # if DM_SPI
 
+config ATMEL_SPI
+	bool "Atmel SPI driver"
+	select SPI_FLASH_ATMEL
+	help
+	  Enable the Atmel SPI driver. This driver can be used to access
+	  the SPI Flash, such as AT25DF321.
+
 config FSL_ESPI
 	bool "Freescale eSPI driver"
 	help
