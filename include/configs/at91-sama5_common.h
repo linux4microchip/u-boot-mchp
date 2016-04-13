@@ -113,8 +113,8 @@
 #define CONFIG_ENV_SIZE			0x10000
 #define CONFIG_ENV_SECT_SIZE		0x10000
 #define CONFIG_BOOTCOMMAND		"sf probe 0; "                          \
-					"sf read 0x21000000 0x60000 0x10000; "  \
-					"sf read 0x22000000 0x70000 0x500000; " \
+					"sf read 0x21000000 0x80000 0x10000; "  \
+					"sf read 0x22000000 0x90000 0x500000; " \
 					"bootz 0x22000000 - 0x21000000"
 #endif
 
