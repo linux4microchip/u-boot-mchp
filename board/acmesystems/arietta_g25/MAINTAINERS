@@ -1,0 +1,7 @@
+ACME SYSTEMS ARIETTA-G25 BOARD
+M:	Biagio Montaruli <biagio.hkr@gmail.com>
+S:	Maintained
+F:	board/acmesystems/arietta_g25/
+F:	include/configs/arietta_g25.h
+F:	configs/arietta_g25_128mb_defconfig
+F:	configs/arietta_g25_256mb_defconfig
