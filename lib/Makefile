@@ -16,6 +16,7 @@ obj-$(CONFIG_BZIP2) += bzip2/
 obj-$(CONFIG_TIZEN) += tizen/
 obj-$(CONFIG_FIT) += libfdt/
 obj-$(CONFIG_CMD_DHRYSTONE) += dhry/
+obj-$(CONFIG_ARCH_AT91) += at91/
 
 obj-$(CONFIG_AES) += aes.o
 obj-$(CONFIG_USB_TTY) += circbuf.o
