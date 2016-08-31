@@ -205,6 +205,12 @@
 #endif
 
 #ifdef CONFIG_SYS_USE_MMC
+#define CONFIG_BOOTCOMMAND	"if test ! -n ${dtb_name}; then "	\
+				    "setenv dtb_name at91sam9g25ek.dtb; " \
+				"fi; "					\
+				"fatload mmc 0:1 0x21000000 ${dtb_name}; " \
+				"fatload mmc 0:1 0x22000000 zImage; "	\
+				"bootz 0x22000000 - 0x21000000"
 #define CONFIG_BOOTARGS		"mem=128M console=ttyS0,115200 " \
 				"mtdparts=atmel_nand:" \
 				"8M(bootstrap/uboot/kernel)ro,-(rootfs) " \
