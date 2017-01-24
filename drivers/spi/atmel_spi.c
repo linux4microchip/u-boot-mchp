@@ -296,7 +296,8 @@ static void atmel_spi_cs_activate(struct udevice *dev)
 	struct dm_spi_slave_platdata *slave_plat = dev_get_parent_platdata(dev);
 	u32 cs = slave_plat->cs;
 
-	dm_gpio_set_value(&priv->cs_gpios[cs], 0);
+	if (dm_gpio_is_valid(&priv->cs_gpios[cs]))
+		dm_gpio_set_value(&priv->cs_gpios[cs], 0);
 }
 
 static void atmel_spi_cs_deactivate(struct udevice *dev)
@@ -306,7 +307,8 @@ static void atmel_spi_cs_deactivate(struct udevice *dev)
 	struct dm_spi_slave_platdata *slave_plat = dev_get_parent_platdata(dev);
 	u32 cs = slave_plat->cs;
 
-	dm_gpio_set_value(&priv->cs_gpios[cs], 1);
+	if (dm_gpio_is_valid(&priv->cs_gpios[cs]))
+		dm_gpio_set_value(&priv->cs_gpios[cs], 1);
 }
 
 static int atmel_spi_xfer(struct udevice *dev, unsigned int bitlen,
@@ -473,8 +475,11 @@ static int atmel_spi_probe(struct udevice *bus)
 	}
 
 	for(i = 0; i < ARRAY_SIZE(priv->cs_gpios); i++) {
-		dm_gpio_set_dir_flags(&priv->cs_gpios[i],
-				      GPIOD_IS_OUT | GPIOD_IS_OUT_ACTIVE);
+		if (dm_gpio_is_valid(&priv->cs_gpios[i])) {
+			dm_gpio_set_dir_flags(&priv->cs_gpios[i],
+					      GPIOD_IS_OUT |
+					      GPIOD_IS_OUT_ACTIVE);
+		}
 	}
 
 	writel(ATMEL_SPI_CR_SWRST, &bus_plat->regs->cr);
