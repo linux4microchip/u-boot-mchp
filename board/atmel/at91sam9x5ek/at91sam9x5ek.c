@@ -5,6 +5,7 @@
  */
 
 #include <common.h>
+#include <dm.h>
 #include <asm/io.h>
 #include <asm/arch/at91sam9x5_matrix.h>
 #include <asm/arch/at91sam9_smc.h>
@@ -13,12 +14,11 @@
 #include <asm/arch/clk.h>
 #include <asm/arch/gpio.h>
 #include <debug_uart.h>
-#include <lcd.h>
-#include <atmel_hlcdc.h>
-#ifdef CONFIG_LCD_INFO
+#include <atmel_lcd.h>
 #include <nand.h>
 #include <version.h>
-#endif
+#include <video.h>
+#include <video_console.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -85,103 +85,72 @@ static void at91sam9x5ek_nand_hw_init(void)
 }
 #endif
 
-#ifdef CONFIG_LCD
-vidinfo_t panel_info = {
-	.vl_col	= 800,
-	.vl_row = 480,
-	.vl_clk = 24000000,
-	.vl_sync = LCDC_LCDCFG5_HSPOL | LCDC_LCDCFG5_VSPOL,
-	.vl_bpix = LCD_BPP,
-	.vl_tft = 1,
-	.vl_clk_pol = 1,
-	.vl_hsync_len = 128,
-	.vl_left_margin = 64,
-	.vl_right_margin = 64,
-	.vl_vsync_len = 2,
-	.vl_upper_margin = 22,
-	.vl_lower_margin = 21,
-	.mmio = ATMEL_BASE_LCDC,
-};
-
-void lcd_enable(void)
-{
-	if (has_lcdc())
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 29, 1);	/* power up */
-}
-
-void lcd_disable(void)
-{
-	if (has_lcdc())
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 29, 0);	/* power down */
-}
-
-static void at91sam9x5ek_lcd_hw_init(void)
-{
-	if (has_lcdc()) {
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 26, 0);	/* LCDPWM */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 27, 0);	/* LCDVSYNC */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 28, 0);	/* LCDHSYNC */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 24, 0);	/* LCDDISP */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 29, 0);	/* LCDDEN */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 30, 0);	/* LCDPCK */
-
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 0, 0);	/* LCDD0 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 1, 0);	/* LCDD1 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 2, 0);	/* LCDD2 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 3, 0);	/* LCDD3 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 4, 0);	/* LCDD4 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 5, 0);	/* LCDD5 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 6, 0);	/* LCDD6 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 7, 0);	/* LCDD7 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 8, 0);	/* LCDD8 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 9, 0);	/* LCDD9 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 10, 0);	/* LCDD10 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 11, 0);	/* LCDD11 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 12, 0);	/* LCDD12 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 13, 0);	/* LCDD13 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 14, 0);	/* LCDD14 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 15, 0);	/* LCDD15 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 16, 0);	/* LCDD16 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 17, 0);	/* LCDD17 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 18, 0);	/* LCDD18 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 19, 0);	/* LCDD19 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 20, 0);	/* LCDD20 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 21, 0);	/* LCDD21 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 22, 0);	/* LCDD22 */
-		at91_pio3_set_a_periph(AT91_PIO_PORTC, 23, 0);	/* LCDD23 */
-
-		at91_periph_clk_enable(ATMEL_ID_LCDC);
-	}
-}
-
-#ifdef CONFIG_LCD_INFO
-void lcd_show_board_info(void)
+#if defined(CONFIG_DM_VIDEO) && defined(CONFIG_ATMEL_HLCD)
+static int video_show_board_logo_info(void)
 {
 	ulong dram_size, nand_size;
 	int i;
+	u32 len = 0;
+	char buf[255];
+	char *corp = "2017 Microchip Technology Inc.\n";
+	char *support = "at91support@atmel.com\n";
 	char temp[32];
+	struct udevice *dev, *con;
+	const char *s;
+	vidinfo_t logo_info;
+	int ret;
 
-	if (has_lcdc()) {
-		lcd_printf("%s\n", U_BOOT_VERSION);
-		lcd_printf("(C) 2012 ATMEL Corp\n");
-		lcd_printf("at91support@atmel.com\n");
-		lcd_printf("%s CPU at %s MHz\n",
-			get_cpu_name(),
+	get_microchip_logo_info(&logo_info);
+
+	len += sprintf(&buf[len], "%s\n", U_BOOT_VERSION);
+	memcpy(&buf[len], corp, strlen(corp));
+	len += strlen(corp);
+	memcpy(&buf[len], support, strlen(support));
+	len += strlen(support);
+	len += sprintf(&buf[len], "%s CPU at %s MHz\n", get_cpu_name(),
 			strmhz(temp, get_cpu_clk_rate()));
 
-		dram_size = 0;
-		for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++)
-			dram_size += gd->bd->bi_dram[i].size;
-		nand_size = 0;
-		for (i = 0; i < CONFIG_SYS_MAX_NAND_DEVICE; i++)
-			nand_size += nand_info[i]->size;
-		lcd_printf("  %ld MB SDRAM, %ld MB NAND\n",
-			dram_size >> 20,
-			nand_size >> 20);
-	}
+	dram_size = 0;
+	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++)
+		dram_size += gd->bd->bi_dram[i].size;
+	nand_size = 0;
+	for (i = 0; i < CONFIG_SYS_MAX_NAND_DEVICE; i++)
+		nand_size += nand_info[i]->size;
+
+	len += sprintf(&buf[len], "%ld MB SDRAM, %ld MB NAND\n",
+		       dram_size >> 20, nand_size >> 20);
+
+	ret = uclass_get_device(UCLASS_VIDEO, 0, &dev);
+	if (ret)
+		return ret;
+
+	ret = video_bmp_display(dev, logo_info.logo_addr,
+				logo_info.logo_x_offset,
+				logo_info.logo_y_offset, false);
+	if (ret)
+		return ret;
+
+	ret = uclass_get_device(UCLASS_VIDEO_CONSOLE, 0, &con);
+	if (ret)
+		return ret;
+
+	vidconsole_position_cursor(con, 0, logo_info.logo_height);
+	for (s = buf, i = 0; i < len; s++, i++)
+		vidconsole_put_char(con, *s);
+
+	return 0;
 }
-#endif /* CONFIG_LCD_INFO */
-#endif /* CONFIG_LCD */
+#endif
+
+#ifdef CONFIG_BOARD_LATE_INIT
+int board_late_init(void)
+{
+#ifdef CONFIG_DM_VIDEO
+	video_show_board_logo_info();
+#endif
+	return 0;
+}
+#endif
 
 #ifdef CONFIG_DEBUG_UART_BOARD_INIT
 void board_debug_uart_init(void)
@@ -214,9 +183,6 @@ int board_init(void)
 
 #if defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI)
 	at91_uhp_hw_init();
-#endif
-#ifdef CONFIG_LCD
-	at91sam9x5ek_lcd_hw_init();
 #endif
 	return 0;
 }
