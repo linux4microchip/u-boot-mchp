@@ -6,12 +6,13 @@
  */
 
 #include <common.h>
-#include <atmel_hlcdc.h>
+#include <atmel_lcd.h>
 #include <debug_uart.h>
 #include <dm.h>
 #include <i2c.h>
-#include <lcd.h>
 #include <version.h>
+#include <video.h>
+#include <video_console.h>
 #include <asm/io.h>
 #include <asm/arch/at91_common.h>
 #include <asm/arch/atmel_pio4.h>
@@ -28,90 +29,65 @@ static void board_usb_hw_init(void)
 	atmel_pio4_set_pio_output(AT91_PIO_PORTB, 10, 1);
 }
 
-#ifdef CONFIG_LCD
-vidinfo_t panel_info = {
-	.vl_col = 480,
-	.vl_row = 272,
-	.vl_clk = 9000000,
-	.vl_bpix = LCD_BPP,
-	.vl_tft = 1,
-	.vl_hsync_len = 41,
-	.vl_left_margin = 2,
-	.vl_right_margin = 2,
-	.vl_vsync_len = 11,
-	.vl_upper_margin = 2,
-	.vl_lower_margin = 2,
-	.mmio = ATMEL_BASE_LCDC,
-};
-
-/* No power up/down pin for the LCD pannel */
-void lcd_enable(void)	{ /* Empty! */ }
-void lcd_disable(void)	{ /* Empty! */ }
-
-unsigned int has_lcdc(void)
-{
-	return 1;
-}
-
-static void board_lcd_hw_init(void)
-{
-	atmel_pio4_set_a_periph(AT91_PIO_PORTC, 28, 0);	/* LCDPWM */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTC, 29, 0);	/* LCDDISP */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTC, 30, 0);	/* LCDVSYNC */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTC, 31, 0);	/* LCDHSYNC */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTD,  0, 0);	/* LCDPCK */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTD,  1, 0);	/* LCDDEN */
-
-	/* LCDDAT0 */
-	/* LCDDAT1 */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTC, 10, 0);	/* LCDDAT2 */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTC, 11, 0);	/* LCDDAT3 */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTC, 12, 0);	/* LCDDAT4 */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTC, 13, 0);	/* LCDDAT5 */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTC, 14, 0);	/* LCDDAT6 */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTC, 15, 0);	/* LCDDAT7 */
-
-	/* LCDDAT8 */
-	/* LCDDAT9 */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTC, 16, 0);	/* LCDDAT10 */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTC, 17, 0);	/* LCDDAT11 */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTC, 18, 0);	/* LCDDAT12 */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTC, 19, 0);	/* LCDDAT13 */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTC, 20, 0);	/* LCDDAT14 */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTC, 21, 0);	/* LCDDAT15 */
-
-	/* LCDD16 */
-	/* LCDD17 */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTC, 22, 0);	/* LCDDAT18 */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTC, 23, 0);	/* LCDDAT19 */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTC, 24, 0);	/* LCDDAT20 */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTC, 25, 0);	/* LCDDAT21 */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTC, 26, 0);	/* LCDDAT22 */
-	atmel_pio4_set_a_periph(AT91_PIO_PORTC, 27, 0);	/* LCDDAT23 */
-
-	at91_periph_clk_enable(ATMEL_ID_LCDC);
-}
-
-#ifdef CONFIG_LCD_INFO
-void lcd_show_board_info(void)
+#if defined(CONFIG_DM_VIDEO) && defined(CONFIG_ATMEL_HLCD)
+static int video_show_board_logo_info(void)
 {
 	ulong dram_size;
 	int i;
+	u32 len = 0;
+	char buf[255];
+	char *corp = "2017 Microchip Technology Inc.\n";
 	char temp[32];
+	struct udevice *dev, *con;
+	const char *s;
+	vidinfo_t logo_info;
+	int ret;
 
-	lcd_printf("%s\n", U_BOOT_VERSION);
-	lcd_printf("2015 ATMEL Corp\n");
-	lcd_printf("%s CPU at %s MHz\n", get_cpu_name(),
-		   strmhz(temp, get_cpu_clk_rate()));
+	get_microchip_logo_info(&logo_info);
+
+	len += sprintf(&buf[len], "%s\n", U_BOOT_VERSION);
+	memcpy(&buf[len], corp, strlen(corp));
+	len += strlen(corp);
+	len += sprintf(&buf[len], "%s CPU at %s MHz\n", get_cpu_name(),
+			strmhz(temp, get_cpu_clk_rate()));
 
 	dram_size = 0;
 	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++)
 		dram_size += gd->bd->bi_dram[i].size;
 
-	lcd_printf("%ld MB SDRAM\n", dram_size >> 20);
+	len += sprintf(&buf[len], "%ld MB SDRAM\n", dram_size >> 20);
+
+	ret = uclass_get_device(UCLASS_VIDEO, 0, &dev);
+	if (ret)
+		return ret;
+
+	ret = video_bmp_display(dev, logo_info.logo_addr,
+				logo_info.logo_x_offset,
+				logo_info.logo_y_offset, false);
+	if (ret)
+		return ret;
+
+	ret = uclass_get_device(UCLASS_VIDEO_CONSOLE, 0, &con);
+	if (ret)
+		return ret;
+
+	vidconsole_position_cursor(con, 0, logo_info.logo_height);
+	for (s = buf, i = 0; i < len; s++, i++)
+		vidconsole_put_char(con, *s);
+
+	return 0;
 }
-#endif /* CONFIG_LCD_INFO */
-#endif /* CONFIG_LCD */
+#endif
+
+#ifdef CONFIG_BOARD_LATE_INIT
+int board_late_init(void)
+{
+#ifdef CONFIG_DM_VIDEO
+	video_show_board_logo_info();
+#endif
+	return 0;
+}
+#endif
 
 #ifdef CONFIG_DEBUG_UART_BOARD_INIT
 static void board_uart1_hw_init(void)
@@ -144,9 +120,6 @@ int board_init(void)
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
 
-#ifdef CONFIG_LCD
-	board_lcd_hw_init();
-#endif
 #ifdef CONFIG_CMD_USB
 	board_usb_hw_init();
 #endif

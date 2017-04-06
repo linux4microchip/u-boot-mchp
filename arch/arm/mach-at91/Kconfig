@@ -97,6 +97,7 @@ config TARGET_SAMA5D2_XPLAINED
 	select CPU_V7
 	select SUPPORT_SPL
 	select BOARD_EARLY_INIT_F
+	select BOARD_LATE_INIT
 
 config TARGET_SAMA5D3_XPLAINED
 	bool "SAMA5D3 Xplained board"
