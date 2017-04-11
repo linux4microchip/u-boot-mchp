@@ -6,6 +6,7 @@
  */
 
 #include <common.h>
+#include <dm.h>
 #include <asm/io.h>
 #include <asm/arch/sama5d3_smc.h>
 #include <asm/arch/at91_common.h>
@@ -13,14 +14,17 @@
 #include <asm/arch/gpio.h>
 #include <asm/arch/clk.h>
 #include <debug_uart.h>
-#include <lcd.h>
 #include <linux/ctype.h>
-#include <atmel_hlcdc.h>
 #include <phy.h>
 #include <micrel.h>
 #include <spl.h>
 #include <asm/arch/atmel_mpddrc.h>
 #include <asm/arch/at91_wdt.h>
+#include <atmel_lcd.h>
+#include <nand.h>
+#include <version.h>
+#include <video.h>
+#include <video_console.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -132,64 +136,30 @@ static void sama5d3xek_mci_hw_init(void)
 }
 #endif
 
-#ifdef CONFIG_LCD
-vidinfo_t panel_info = {
-	.vl_col = 800,
-	.vl_row = 480,
-	.vl_clk = 24000000,
-	.vl_bpix = LCD_BPP,
-	.vl_tft = 1,
-	.vl_hsync_len = 128,
-	.vl_left_margin = 64,
-	.vl_right_margin = 64,
-	.vl_vsync_len = 2,
-	.vl_upper_margin = 22,
-	.vl_lower_margin = 21,
-	.mmio = ATMEL_BASE_LCDC,
-};
-
-void lcd_enable(void)
+#ifdef CONFIG_DM_VIDEO
+static int video_show_board_logo_info(void)
 {
-}
-
-void lcd_disable(void)
-{
-}
-
-static void sama5d3xek_lcd_hw_init(void)
-{
-	gd->fb_base = CONFIG_SAMA5D3_LCD_BASE;
-
-	/* The higher 8 bit of LCD is board related */
-	at91_pio3_set_c_periph(AT91_PIO_PORTC, 14, 0);	/* LCDD16 */
-	at91_pio3_set_c_periph(AT91_PIO_PORTC, 13, 0);	/* LCDD17 */
-	at91_pio3_set_c_periph(AT91_PIO_PORTC, 12, 0);	/* LCDD18 */
-	at91_pio3_set_c_periph(AT91_PIO_PORTC, 11, 0);	/* LCDD19 */
-	at91_pio3_set_c_periph(AT91_PIO_PORTC, 10, 0);	/* LCDD20 */
-	at91_pio3_set_c_periph(AT91_PIO_PORTC, 15, 0);	/* LCDD21 */
-	at91_pio3_set_c_periph(AT91_PIO_PORTE, 27, 0);	/* LCDD22 */
-	at91_pio3_set_c_periph(AT91_PIO_PORTE, 28, 0);	/* LCDD23 */
-
-	/* Configure lower 16 bit of LCD and enable clock */
-	at91_lcd_hw_init();
-}
-
-#ifdef CONFIG_LCD_INFO
-#include <nand.h>
-#include <version.h>
-
-void lcd_show_board_info(void)
-{
-	ulong dram_size;
-	uint64_t nand_size;
+	ulong dram_size, nand_size;
 	int i;
+	u32 len = 0;
+	char buf[255];
+	char *corp = "2017 Microchip Technology Inc.\n";
+	char *support = "at91support@atmel.com\n";
 	char temp[32];
+	struct udevice *dev, *con;
+	const char *s;
+	vidinfo_t logo_info;
+	int ret;
 
-	lcd_printf("%s\n", U_BOOT_VERSION);
-	lcd_printf("(C) 2013 ATMEL Corp\n");
-	lcd_printf("at91@atmel.com\n");
-	lcd_printf("%s CPU at %s MHz\n", get_cpu_name(),
-		   strmhz(temp, get_cpu_clk_rate()));
+	get_microchip_logo_info(&logo_info);
+
+	len += sprintf(&buf[len], "%s\n", U_BOOT_VERSION);
+	memcpy(&buf[len], corp, strlen(corp));
+	len += strlen(corp);
+	memcpy(&buf[len], support, strlen(support));
+	len += strlen(support);
+	len += sprintf(&buf[len], "%s CPU at %s MHz\n", get_cpu_name(),
+			strmhz(temp, get_cpu_clk_rate()));
 
 	dram_size = 0;
 	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++)
@@ -200,11 +170,31 @@ void lcd_show_board_info(void)
 	for (i = 0; i < CONFIG_SYS_MAX_NAND_DEVICE; i++)
 		nand_size += nand_info[i]->size;
 #endif
-	lcd_printf("%ld MB SDRAM, %lld MB NAND\n",
-		   dram_size >> 20, nand_size >> 20);
+
+	len += sprintf(&buf[len], "%ld MB SDRAM, %ld MB NAND\n",
+		       dram_size >> 20, nand_size >> 20);
+
+	ret = uclass_get_device(UCLASS_VIDEO, 0, &dev);
+	if (ret)
+		return ret;
+
+	ret = video_bmp_display(dev, logo_info.logo_addr,
+				logo_info.logo_x_offset,
+				logo_info.logo_y_offset, false);
+	if (ret)
+		return ret;
+
+	ret = uclass_get_device(UCLASS_VIDEO_CONSOLE, 0, &con);
+	if (ret)
+		return ret;
+
+	vidconsole_position_cursor(con, 0, logo_info.logo_height);
+	for (s = buf, i = 0; i < len; s++, i++)
+		vidconsole_put_char(con, *s);
+
+	return 0;
 }
-#endif /* CONFIG_LCD_INFO */
-#endif /* CONFIG_LCD */
+#endif
 
 #ifdef CONFIG_DEBUG_UART_BOARD_INIT
 void board_debug_uart_init(void)
@@ -240,10 +230,6 @@ int board_init(void)
 #ifdef CONFIG_GENERIC_ATMEL_MCI
 	sama5d3xek_mci_hw_init();
 #endif
-#ifdef CONFIG_LCD
-	if (has_lcdc())
-		sama5d3xek_lcd_hw_init();
-#endif
 	return 0;
 }
 
@@ -268,6 +254,9 @@ int board_late_init(void)
 
 	strcat(name, "ek.dtb");
 	setenv("dtb_name", name);
+#endif
+#ifdef CONFIG_DM_VIDEO
+	video_show_board_logo_info();
 #endif
 	return 0;
 }
