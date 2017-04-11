@@ -134,6 +134,10 @@ __weak struct serial_device *default_serial_console(void)
 #endif
 
 #ifdef CONFIG_DM_SERIAL
+enum serial_clk_type {
+	CLK_TYPE_NORMAL = 0,
+	CLK_TYPE_DBGU,
+};
 
 struct atmel_serial_priv {
 	atmel_usart3_t *usart;
@@ -226,9 +230,11 @@ static int atmel_serial_enable_clk(struct udevice *dev)
 	if (ret)
 		return -EINVAL;
 
-	ret = clk_enable(&clk);
-	if (ret)
-		return ret;
+	if (dev_get_driver_data(dev) == CLK_TYPE_NORMAL) {
+		ret = clk_enable(&clk);
+		if (ret)
+			return ret;
+	}
 
 	clk_rate = clk_get_rate(&clk);
 	if (!clk_rate)
@@ -268,7 +274,14 @@ static int atmel_serial_probe(struct udevice *dev)
 
 #if CONFIG_IS_ENABLED(OF_CONTROL)
 static const struct udevice_id atmel_serial_ids[] = {
-	{ .compatible = "atmel,at91sam9260-usart" },
+	{
+		.compatible = "atmel,at91sam9260-dbgu",
+		.data = CLK_TYPE_DBGU,
+	},
+	{
+		.compatible = "atmel,at91sam9260-usart",
+		.data = CLK_TYPE_NORMAL,
+	},
 	{ }
 };
 #endif
