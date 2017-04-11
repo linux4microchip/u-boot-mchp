@@ -28,13 +28,7 @@
 #define CONFIG_INITRD_TAG
 #define CONFIG_SKIP_LOWLEVEL_INIT
 
-/* general purpose I/O */
-#define CONFIG_AT91_GPIO
-
 /* serial console */
-#define CONFIG_ATMEL_USART
-#define CONFIG_USART_BASE		ATMEL_BASE_DBGU
-#define CONFIG_USART_ID			ATMEL_ID_SYS
 #define CONFIG_BAUDRATE			115200
 
 /* LCD */
@@ -46,7 +40,6 @@
 #define CONFIG_SYS_WHITE_ON_BLACK
 #define CONFIG_ATMEL_HLCD
 #define CONFIG_ATMEL_LCD_RGB565
-
 
 /*
  * BOOTP options
@@ -71,14 +64,11 @@
  * that address while providing maximum stack area below.
  */
 # define CONFIG_SYS_INIT_SP_ADDR \
-	(ATMEL_BASE_SRAM + 0x1000 - GENERATED_GBL_DATA_SIZE)
+	(ATMEL_BASE_SRAM + 16 * 1024 - GENERATED_GBL_DATA_SIZE)
 
 /* DataFlash */
 #ifdef CONFIG_CMD_SF
-#define CONFIG_ATMEL_SPI
 #define CONFIG_SF_DEFAULT_SPEED		30000000
-#define CONFIG_ENV_SPI_MODE		SPI_MODE_3
-#define CONFIG_SF_DEFAULT_MODE		SPI_MODE_3
 #endif
 
 /* NAND flash */
@@ -116,11 +106,6 @@
 	"mtdparts="MTDPARTS_DEFAULT"\0"					\
 	"bootargs_nand=rootfstype=ubifs ubi.mtd=7 root=ubi0:rootfs rw\0"\
 	"bootargs_mmc=root=/dev/mmcblk0p2 rw rootfstype=ext4 rootwait\0"
-
-/* MMC */
-#ifdef CONFIG_CMD_MMC
-#define CONFIG_GENERIC_ATMEL_MCI
-#endif
 
 /* Ethernet */
 #define CONFIG_KS8851_MLL
