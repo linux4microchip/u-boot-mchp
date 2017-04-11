@@ -117,12 +117,14 @@ config TARGET_SAMA5D4_XPLAINED
 	select CPU_V7
 	select SUPPORT_SPL
 	select BOARD_EARLY_INIT_F
+	select BOARD_LATE_INIT
 
 config TARGET_SAMA5D4EK
 	bool "SAMA5D4 Evaluation Kit"
 	select CPU_V7
 	select SUPPORT_SPL
 	select BOARD_EARLY_INIT_F
+	select BOARD_LATE_INIT
 
 config TARGET_MA5D4EVK
 	bool "DENX MA5D4EVK Evaluation Kit"

@@ -48,14 +48,9 @@
 #endif
 
 /* LCD */
-#define LCD_BPP				LCD_COLOR16
-#define LCD_OUTPUT_BPP                  18
-#define CONFIG_LCD_LOGO
-#define CONFIG_LCD_INFO
-#define CONFIG_LCD_INFO_BELOW_LOGO
+#ifdef CONFIG_ATMEL_HLCD
 #define CONFIG_SYS_WHITE_ON_BLACK
-#define CONFIG_ATMEL_HLCD
-#define CONFIG_ATMEL_LCD_RGB565
+#endif
 
 #ifdef CONFIG_SYS_USE_SERIALFLASH
 /* override the bootcmd, bootargs and other configuration for spi flash env*/
