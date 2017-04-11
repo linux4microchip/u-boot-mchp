@@ -26,23 +26,11 @@
 
 /* general purpose I/O */
 #define CONFIG_ATMEL_LEGACY		/* required until (g)pio is fixed */
-#define CONFIG_AT91_GPIO
-
-/* serial console */
-#define CONFIG_ATMEL_USART
-#define CONFIG_USART_BASE	ATMEL_BASE_DBGU
-#define CONFIG_USART_ID		ATMEL_ID_SYS
 
 /* LCD */
-#define LCD_BPP			LCD_COLOR16
-#define LCD_OUTPUT_BPP		24
-#define CONFIG_LCD_LOGO
-#define CONFIG_LCD_INFO
-#define CONFIG_LCD_INFO_BELOW_LOGO
+#ifdef CONFIG_ATMEL_HLCD
 #define CONFIG_SYS_WHITE_ON_BLACK
-#define CONFIG_ATMEL_HLCD
-#define CONFIG_ATMEL_LCD_RGB565
-
+#endif
 
 /*
  * BOOTP options
@@ -68,11 +56,10 @@
 #define CONFIG_SYS_SDRAM_SIZE		0x08000000	/* 128 megs */
 
 #define CONFIG_SYS_INIT_SP_ADDR \
-	(CONFIG_SYS_SDRAM_BASE + 4 * 1024 - GENERATED_GBL_DATA_SIZE)
+	(CONFIG_SYS_SDRAM_BASE + 16 * 1024 - GENERATED_GBL_DATA_SIZE)
 
 /* DataFlash */
 #ifdef CONFIG_CMD_SF
-#define CONFIG_ATMEL_SPI
 #define CONFIG_SF_DEFAULT_SPEED		30000000
 #endif
 
@@ -105,23 +92,9 @@
 #define CONFIG_CMD_UBIFS
 #endif
 
-/* MMC */
-#ifdef CONFIG_CMD_MMC
-#define CONFIG_GENERIC_ATMEL_MCI
-#endif
-
-/* Ethernet */
-#define CONFIG_MACB
-#define CONFIG_RMII
-#define CONFIG_NET_RETRY_COUNT		20
-#define CONFIG_MACB_SEARCH_PHY
-
 /* USB */
 #ifdef CONFIG_CMD_USB
-#ifdef CONFIG_USB_EHCI
-#define CONFIG_USB_EHCI_ATMEL
-#define CONFIG_SYS_USB_EHCI_MAX_ROOT_PORTS	2
-#else
+#ifndef CONFIG_USB_EHCI
 #define CONFIG_USB_ATMEL
 #define CONFIG_USB_ATMEL_CLK_SEL_UPLL
 #define CONFIG_USB_OHCI_NEW
