@@ -7,6 +7,7 @@
 
 #include <common.h>
 #include <dm.h>
+#include <i2c.h>
 #include <asm/io.h>
 #include <asm/arch/at91_common.h>
 #include <asm/arch/at91_rstc.h>
@@ -163,6 +164,51 @@ int board_early_init_f(void)
 {
 #ifdef CONFIG_DEBUG_UART
 	debug_uart_init();
+#endif
+	return 0;
+}
+#endif
+
+#ifdef CONFIG_DM_I2C
+static int set_ethaddr_from_at24mac(void)
+{
+	const int ETH_ADDR_LEN = 6;
+	unsigned char ethaddr[ETH_ADDR_LEN];
+	const char *ETHADDR_NAME = "ethaddr";
+	struct udevice *bus, *dev;
+
+	if (getenv(ETHADDR_NAME))
+		return 0;
+
+	if (uclass_get_device_by_seq(UCLASS_I2C, AT24MAC_ON_I2C_BUS, &bus)) {
+		printf("Cannot find I2C bus\n");
+		return -1;
+	}
+
+	if (dm_i2c_probe(bus, AT24MAC_ADDR, 0, &dev)) {
+		printf("Failed to probe I2C device chip\n");
+		return -1;
+	}
+
+	if (dm_i2c_read(dev, AT24MAC_REG, ethaddr, ETH_ADDR_LEN)) {
+		printf("Failed to read ethernet address from AT24MAC\n");
+		return -1;
+	}
+
+	if (!is_valid_ethaddr(ethaddr)) {
+		printf("The ethernet address read from AT24MAC is not valid\n");
+		return -1;
+	}
+
+	return eth_setenv_enetaddr(ETHADDR_NAME, ethaddr);
+}
+#endif
+
+#ifdef CONFIG_MISC_INIT_R
+int misc_init_r(void)
+{
+#ifdef CONFIG_DM_I2C
+	set_ethaddr_from_at24mac();
 #endif
 	return 0;
 }
