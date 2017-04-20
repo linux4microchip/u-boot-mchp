@@ -12,6 +12,8 @@
 
 #include "at91-sama5_common.h"
 
+#define CONFIG_MISC_INIT_R
+
 /* SDRAM */
 #define CONFIG_NR_DRAM_BANKS		1
 #define CONFIG_SYS_SDRAM_BASE           ATMEL_BASE_DDRCS
@@ -59,6 +61,11 @@
 #elif CONFIG_SYS_USE_MMC
 /* override the bootcmd, bootargs and other configuration for sd/mmc env */
 #endif
+
+/* I2C */
+#define AT24MAC_ON_I2C_BUS	0
+#define AT24MAC_ADDR		0x5c
+#define AT24MAC_REG		0x9a
 
 /* SPL */
 #define CONFIG_SPL_FRAMEWORK
