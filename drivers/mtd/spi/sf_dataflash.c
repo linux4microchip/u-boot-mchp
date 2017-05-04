@@ -72,7 +72,7 @@ struct dataflash {
 };
 
 /* Return the status of the DataFlash device */
-static inline int dataflash_status(struct spi_slave *spi)
+static inline int dataflash_status(struct spi_flash *spi_flash)
 {
 	int ret;
 	u8 status;
@@ -80,7 +80,7 @@ static inline int dataflash_status(struct spi_slave *spi)
 	 * NOTE:  at45db321c over 25 MHz wants to write
 	 * a dummy byte after the opcode...
 	 */
-	ret = spi_flash_cmd(spi, OP_READ_STATUS, &status, 1);
+	ret = spi_flash_cmd(spi_flash, OP_READ_STATUS, &status, 1);
 	return ret ? -EIO : status;
 }
 
@@ -89,7 +89,7 @@ static inline int dataflash_status(struct spi_slave *spi)
  * This usually takes 5-20 msec or so; more for sector erase.
  * ready: return > 0
  */
-static int dataflash_waitready(struct spi_slave *spi)
+static int dataflash_waitready(struct spi_flash *spi_flash)
 {
 	int status;
 	int timeout = 2 * CONFIG_SYS_HZ;
@@ -97,7 +97,7 @@ static int dataflash_waitready(struct spi_slave *spi)
 
 	timebase = get_timer(0);
 	do {
-		status = dataflash_status(spi);
+		status = dataflash_status(spi_flash);
 		if (status < 0)
 			status = 0;
 
@@ -113,11 +113,11 @@ static int dataflash_waitready(struct spi_slave *spi)
 /* Erase pages of flash */
 static int spi_dataflash_erase(struct udevice *dev, u32 offset, size_t len)
 {
+	struct spi_flash_command	cmd;
 	struct dataflash	*dataflash;
 	struct spi_flash	*spi_flash;
 	struct spi_slave	*spi;
 	unsigned		blocksize;
-	uint8_t			*command;
 	uint32_t		rem;
 	int			status;
 
@@ -126,9 +126,6 @@ static int spi_dataflash_erase(struct udevice *dev, u32 offset, size_t len)
 	spi = spi_flash->spi;
 
 	blocksize = spi_flash->page_size << 3;
-
-	memset(dataflash->command, 0 , sizeof(dataflash->command));
-	command = dataflash->command;
 
 	debug("%s: erase addr=0x%x len 0x%x\n", dev->name, offset, len);
 
@@ -151,6 +148,8 @@ static int spi_dataflash_erase(struct udevice *dev, u32 offset, size_t len)
 		return status;
 	}
 
+	spi_flash_command_init(&cmd, OP_ERASE_BLOCK, SPI_FLASH_3B_ADDR_LEN,
+			       SPI_FCMD_ERASE);
 	while (len > 0) {
 		unsigned int	pageaddr;
 		int		do_block;
@@ -162,23 +161,24 @@ static int spi_dataflash_erase(struct udevice *dev, u32 offset, size_t len)
 		do_block = (pageaddr & 0x7) == 0 && len >= blocksize;
 		pageaddr = pageaddr << dataflash->page_offset;
 
-		command[0] = do_block ? OP_ERASE_BLOCK : OP_ERASE_PAGE;
-		command[1] = (uint8_t)(pageaddr >> 16);
-		command[2] = (uint8_t)(pageaddr >> 8);
-		command[3] = 0;
+		cmd.inst = do_block ? OP_ERASE_BLOCK : OP_ERASE_PAGE;
+		cmd.addr = pageaddr & 0x00FFFF00;
 
 		debug("%s ERASE %s: (%x) %x %x %x [%d]\n",
 		      dev->name, do_block ? "block" : "page",
-		      command[0], command[1], command[2], command[3],
+		      cmd.inst,
+		      (cmd.addr >> 16) & 0xff,
+		      (cmd.addr >>  8) & 0xff,
+		      (cmd.addr >>  0) & 0xff,
 		      pageaddr);
 
-		status = spi_flash_cmd_write(spi, command, 4, NULL, 0);
+		status = spi_flash_cmd_write(spi_flash, &cmd);
 		if (status < 0) {
 			debug("%s: erase send command error!\n", dev->name);
 			return -EIO;
 		}
 
-		status = dataflash_waitready(spi);
+		status = dataflash_waitready(spi_flash);
 		if (status < 0) {
 			debug("%s: erase waitready error!\n", dev->name);
 			return status;
@@ -207,23 +207,18 @@ static int spi_dataflash_erase(struct udevice *dev, u32 offset, size_t len)
 static int spi_dataflash_read(struct udevice *dev, u32 offset, size_t len,
 			      void *buf)
 {
+	struct spi_flash_command	cmd;
 	struct dataflash	*dataflash;
 	struct spi_flash	*spi_flash;
 	struct spi_slave	*spi;
 	unsigned int		addr;
-	uint8_t			*command;
 	int			status;
 
 	dataflash = dev_get_priv(dev);
 	spi_flash = dev_get_uclass_priv(dev);
 	spi = spi_flash->spi;
 
-	memset(dataflash->command, 0 , sizeof(dataflash->command));
-	command = dataflash->command;
-
-	debug("%s: erase addr=0x%x len 0x%x\n", dev->name, offset, len);
-	debug("READ: (%x) %x %x %x\n",
-	      command[0], command[1], command[2], command[3]);
+	debug("%s: read addr=0x%x len 0x%x\n", dev->name, offset, len);
 
 	/* Calculate flash page/byte address */
 	addr = (((unsigned)offset / spi_flash->page_size)
@@ -241,13 +236,15 @@ static int spi_dataflash_read(struct udevice *dev, u32 offset, size_t len,
 	 * the peak rate available.  Some chips support commands with
 	 * fewer "don't care" bytes.  Both buffers stay unchanged.
 	 */
-	command[0] = OP_READ_CONTINUOUS;
-	command[1] = (uint8_t)(addr >> 16);
-	command[2] = (uint8_t)(addr >> 8);
-	command[3] = (uint8_t)(addr >> 0);
+	spi_flash_command_init(&cmd, OP_READ_CONTINUOUS, SPI_FLASH_3B_ADDR_LEN,
+			       SPI_FCMD_READ);
+	cmd.addr = addr;
+	cmd.num_wait_states = 4 * 8; /* 4 "don't care" bytes */
+	cmd.data_len = len;
+	cmd.rx_data = buf;
 
 	/* plus 4 "don't care" bytes, command len: 4 + 4 "don't care" bytes */
-	status = spi_flash_cmd_read(spi, command, 8, buf, len);
+	status = spi_flash_cmd_read(spi_flash, &cmd);
 
 	spi_release_bus(spi);
 
@@ -263,10 +260,10 @@ static int spi_dataflash_read(struct udevice *dev, u32 offset, size_t len,
 int spi_dataflash_write(struct udevice *dev, u32 offset, size_t len,
 			const void *buf)
 {
+	struct spi_flash_command	cmd;
 	struct dataflash	*dataflash;
 	struct spi_flash	*spi_flash;
 	struct spi_slave	*spi;
-	uint8_t			*command;
 	unsigned int		pageaddr, addr, to, writelen;
 	size_t			remaining = len;
 	u_char			*writebuf = (u_char *)buf;
@@ -275,9 +272,6 @@ int spi_dataflash_write(struct udevice *dev, u32 offset, size_t len,
 	dataflash = dev_get_priv(dev);
 	spi_flash = dev_get_uclass_priv(dev);
 	spi = spi_flash->spi;
-
-	memset(dataflash->command, 0 , sizeof(dataflash->command));
-	command = dataflash->command;
 
 	debug("%s: write 0x%x..0x%x\n", dev->name, offset, (offset + len));
 
@@ -294,6 +288,8 @@ int spi_dataflash_write(struct udevice *dev, u32 offset, size_t len,
 		return status;
 	}
 
+	spi_flash_command_init(&cmd, OP_TRANSFER_BUF1, SPI_FLASH_3B_ADDR_LEN,
+			       SPI_FCMD_WRITE);
 	while (remaining > 0) {
 		debug("write @ %d:%d len=%d\n", pageaddr, to, writelen);
 
@@ -318,22 +314,25 @@ int spi_dataflash_write(struct udevice *dev, u32 offset, size_t len,
 
 		/* (1) Maybe transfer partial page to Buffer1 */
 		if (writelen != spi_flash->page_size) {
-			command[0] = OP_TRANSFER_BUF1;
-			command[1] = (addr & 0x00FF0000) >> 16;
-			command[2] = (addr & 0x0000FF00) >> 8;
-			command[3] = 0;
+			cmd.inst = OP_TRANSFER_BUF1;
+			cmd.addr = (addr & 0x00FFFF00);
+			cmd.data_len = 0;
+			cmd.tx_data = NULL;
 
 			debug("TRANSFER: (%x) %x %x %x\n",
-			      command[0], command[1], command[2], command[3]);
+			      cmd.inst,
+			      (cmd.addr >> 16) & 0xff,
+			      (cmd.addr >>  8) & 0xff,
+			      (cmd.addr >>  0) & 0xff);
 
-			status = spi_flash_cmd_write(spi, command, 4, NULL, 0);
+			status = spi_flash_cmd_write(spi_flash, &cmd);
 			if (status < 0) {
 				debug("%s: write(<pagesize) command error!\n",
 				      dev->name);
 				return -EIO;
 			}
 
-			status = dataflash_waitready(spi);
+			status = dataflash_waitready(spi_flash);
 			if (status < 0) {
 				debug("%s: write(<pagesize) waitready error!\n",
 				      dev->name);
@@ -343,22 +342,24 @@ int spi_dataflash_write(struct udevice *dev, u32 offset, size_t len,
 
 		/* (2) Program full page via Buffer1 */
 		addr += to;
-		command[0] = OP_PROGRAM_VIA_BUF1;
-		command[1] = (addr & 0x00FF0000) >> 16;
-		command[2] = (addr & 0x0000FF00) >> 8;
-		command[3] = (addr & 0x000000FF);
+		cmd.inst = OP_PROGRAM_VIA_BUF1;
+		cmd.addr = addr;
+		cmd.data_len = writelen;
+		cmd.tx_data = writebuf;
 
 		debug("PROGRAM: (%x) %x %x %x\n",
-		      command[0], command[1], command[2], command[3]);
+		      cmd.inst,
+		      (cmd.addr >> 16) & 0xff,
+		      (cmd.addr >>  8) & 0xff,
+		      (cmd.addr >>  0) & 0xff);
 
-		status = spi_flash_cmd_write(spi, command,
-					     4, writebuf, writelen);
+		status = spi_flash_cmd_write(spi_flash, &cmd);
 		if (status < 0) {
 			debug("%s: write send command error!\n", dev->name);
 			return -EIO;
 		}
 
-		status = dataflash_waitready(spi);
+		status = dataflash_waitready(spi_flash);
 		if (status < 0) {
 			debug("%s: write waitready error!\n", dev->name);
 			return status;
@@ -367,16 +368,18 @@ int spi_dataflash_write(struct udevice *dev, u32 offset, size_t len,
 #ifdef CONFIG_SPI_DATAFLASH_WRITE_VERIFY
 		/* (3) Compare to Buffer1 */
 		addr = pageaddr << dataflash->page_offset;
-		command[0] = OP_COMPARE_BUF1;
-		command[1] = (addr & 0x00FF0000) >> 16;
-		command[2] = (addr & 0x0000FF00) >> 8;
-		command[3] = 0;
+		cmd.inst = OP_COMPARE_BUF1;
+		cmd.addr = addr & 0x00FFFF00;
+		cmd.data_len = writelen;
+		cmd.tx_data = writebuf;
 
 		debug("COMPARE: (%x) %x %x %x\n",
-		      command[0], command[1], command[2], command[3]);
+		      cmd.inst,
+		      (cmd.addr >> 16) & 0xff,
+		      (cmd.addr >>  8) & 0xff,
+		      (cmd.addr >>  0) & 0xff);
 
-		status = spi_flash_cmd_write(spi, command,
-					     4, writebuf, writelen);
+		status = spi_flash_cmd_write(spi, &cmd);
 		if (status < 0) {
 			debug("%s: write(compare) send command error!\n",
 			      dev->name);
@@ -501,7 +504,7 @@ static struct flash_info dataflash_data[] = {
 	{ "at45db642d",  0x1f2800, 8192, 1024, 10, SUP_POW2PS | IS_POW2PS},
 };
 
-static struct flash_info *jedec_probe(struct spi_slave *spi)
+static struct flash_info *jedec_probe(struct spi_flash *spi_flash)
 {
 	int			tmp;
 	uint8_t			id[5];
@@ -518,7 +521,7 @@ static struct flash_info *jedec_probe(struct spi_slave *spi)
 	 * That's not an error; only rev C and newer chips handle it, and
 	 * only Atmel sells these chips.
 	 */
-	tmp = spi_flash_cmd(spi, CMD_READ_ID, id, sizeof(id));
+	tmp = spi_flash_cmd(spi_flash, CMD_READ_ID, id, sizeof(id));
 	if (tmp < 0) {
 		printf("dataflash: error %d reading JEDEC ID\n", tmp);
 		return ERR_PTR(tmp);
@@ -537,7 +540,7 @@ static struct flash_info *jedec_probe(struct spi_slave *spi)
 			tmp++, info++) {
 		if (info->jedec_id == jedec) {
 			if (info->flags & SUP_POW2PS) {
-				status = dataflash_status(spi);
+				status = dataflash_status(spi_flash);
 				if (status < 0) {
 					debug("dataflash: status error %d\n",
 					      status);
@@ -601,7 +604,7 @@ static int spi_dataflash_probe(struct udevice *dev)
 	 * Both support the security register, though with different
 	 * write procedures.
 	 */
-	info = jedec_probe(spi);
+	info = jedec_probe(spi_flash);
 	if (IS_ERR(info))
 		goto err_jedec_probe;
 	if (info != NULL) {
@@ -616,7 +619,7 @@ static int spi_dataflash_probe(struct udevice *dev)
 	* Older chips support only legacy commands, identifing
 	* capacity using bits in the status byte.
 	*/
-	status = dataflash_status(spi);
+	status = dataflash_status(spi_flash);
 	if (status <= 0 || status == 0xff) {
 		printf("dataflash: read status error %d\n", status);
 		if (status == 0 || status == 0xff)

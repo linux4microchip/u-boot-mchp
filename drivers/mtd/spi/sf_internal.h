@@ -26,7 +26,7 @@ enum spi_nor_option_flags {
 };
 
 #define SPI_FLASH_3B_ADDR_LEN		3
-#define SPI_FLASH_CMD_LEN		(1 + SPI_FLASH_3B_ADDR_LEN)
+#define SPI_FLASH_CMD_LEN		(1 + SPI_FLASH_3B_ADDR_LEN + 16)
 #define SPI_FLASH_16MB_BOUN		0x1000000
 
 /* CFI Manufacture ID's */
@@ -149,21 +149,21 @@ struct spi_flash_info {
 extern const struct spi_flash_info spi_flash_ids[];
 
 /* Send a single-byte command to the device and read the response */
-int spi_flash_cmd(struct spi_slave *spi, u8 cmd, void *response, size_t len);
+int spi_flash_cmd(struct spi_flash *flash, u8 instr, void *response, size_t len);
 
 /*
  * Send a multi-byte command to the device and read the response. Used
  * for flash array reads, etc.
  */
-int spi_flash_cmd_read(struct spi_slave *spi, const u8 *cmd,
-		size_t cmd_len, void *data, size_t data_len);
+int spi_flash_cmd_read(struct spi_flash *flash,
+		       const struct spi_flash_command *cmd);
 
 /*
  * Send a multi-byte command to the device followed by (optional)
  * data. Used for programming the flash array, etc.
  */
-int spi_flash_cmd_write(struct spi_slave *spi, const u8 *cmd, size_t cmd_len,
-		const void *data, size_t data_len);
+int spi_flash_cmd_write(struct spi_flash *flash,
+			const struct spi_flash_command *cmd);
 
 
 /* Flash erase(sectors) operation, support all possible erase commands */
@@ -181,13 +181,13 @@ int stm_is_locked(struct spi_flash *flash, u32 ofs, size_t len);
 /* Enable writing on the SPI flash */
 static inline int spi_flash_cmd_write_enable(struct spi_flash *flash)
 {
-	return spi_flash_cmd(flash->spi, CMD_WRITE_ENABLE, NULL, 0);
+	return spi_flash_cmd(flash, CMD_WRITE_ENABLE, NULL, 0);
 }
 
 /* Disable writing on the SPI flash */
 static inline int spi_flash_cmd_write_disable(struct spi_flash *flash)
 {
-	return spi_flash_cmd(flash->spi, CMD_WRITE_DISABLE, NULL, 0);
+	return spi_flash_cmd(flash, CMD_WRITE_DISABLE, NULL, 0);
 }
 
 /*
@@ -198,8 +198,8 @@ static inline int spi_flash_cmd_write_disable(struct spi_flash *flash)
  * - spi_flash_wait_till_ready
  * - SPI release
  */
-int spi_flash_write_common(struct spi_flash *flash, const u8 *cmd,
-		size_t cmd_len, const void *buf, size_t buf_len);
+int spi_flash_write_common(struct spi_flash *flash,
+			   const struct spi_flash_command *cmd);
 
 /*
  * Flash write operation, support all possible write commands.
@@ -213,8 +213,8 @@ int spi_flash_cmd_write_ops(struct spi_flash *flash, u32 offset,
  * Same as spi_flash_cmd_read() except it also claims/releases the SPI
  * bus. Used as common part of the ->read() operation.
  */
-int spi_flash_read_common(struct spi_flash *flash, const u8 *cmd,
-		size_t cmd_len, void *data, size_t data_len);
+int spi_flash_read_common(struct spi_flash *flash,
+			  const struct spi_flash_command *cmd);
 
 /* Flash read operation, support all possible read commands */
 int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
