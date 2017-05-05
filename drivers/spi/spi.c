@@ -4,6 +4,7 @@
  */
 
 #include <common.h>
+#include <errno.h>
 #include <fdtdec.h>
 #include <malloc.h>
 #include <spi.h>
@@ -37,4 +38,16 @@ void *spi_do_alloc_slave(int offset, int size, unsigned int bus,
 	}
 
 	return ptr;
+}
+
+__weak bool spi_is_flash_command_supported(struct spi_slave *slave,
+					   const struct spi_flash_command *cmd)
+{
+	return false;
+}
+
+__weak int spi_exec_flash_command(struct spi_slave *slave,
+				  const struct spi_flash_command *cmd)
+{
+	return -EINVAL;
 }
