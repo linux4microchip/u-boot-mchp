@@ -47,6 +47,8 @@ struct spi_slave;
  * @read_cmd:		Read cmd - Array Fast, Extn read and quad read.
  * @write_cmd:		Write cmd - page and quad program.
  * @dummy_byte:		Dummy cycles for read operation.
+ * @read_proto:		SPI x-y-z protocol for flash read ops
+ * @write_proto:	SPI x-y-z protocol for flash write ops
  * @memory_map:		Address of read-only SPI flash access
  * @flash_lock:		lock a region of the SPI Flash
  * @flash_unlock:	unlock a region of the SPI Flash
@@ -82,6 +84,8 @@ struct spi_flash {
 	u8 read_cmd;
 	u8 write_cmd;
 	u8 dummy_byte;
+	enum spi_flash_protocol read_proto;
+	enum spi_flash_protocol write_proto;
 
 	void *memory_map;
 

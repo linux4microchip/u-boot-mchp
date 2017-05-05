@@ -411,6 +411,7 @@ int spi_flash_cmd_write_ops(struct spi_flash *flash, u32 offset,
 
 	spi_flash_command_init(&cmd, flash->write_cmd, SPI_FLASH_3B_ADDR_LEN,
 			       SPI_FCMD_WRITE);
+	cmd.proto = flash->write_proto;
 	for (actual = 0; actual < len; actual += chunk_len) {
 		write_addr = offset;
 
@@ -518,6 +519,7 @@ int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
 
 	spi_flash_command_init(&cmd, flash->read_cmd, SPI_FLASH_3B_ADDR_LEN,
 			       SPI_FCMD_READ);
+	cmd.proto = flash->read_proto;
 	cmd.num_wait_states = flash->dummy_byte * 8;
 	while (len) {
 		read_addr = offset;
@@ -1268,24 +1270,30 @@ int spi_flash_scan(struct spi_flash *flash)
 
 	/* Look for read commands */
 	flash->read_cmd = CMD_READ_ARRAY_FAST;
-	if (spi->mode & SPI_RX_SLOW)
+	flash->read_proto = SPI_FPROTO_1_1_1;
+	if (spi->mode & SPI_RX_SLOW) {
 		flash->read_cmd = CMD_READ_ARRAY_SLOW;
-	else if (spi->mode & SPI_RX_QUAD && info->flags & RD_QUAD)
+	} else if (spi->mode & SPI_RX_QUAD && info->flags & RD_QUAD) {
 		flash->read_cmd = CMD_READ_QUAD_OUTPUT_FAST;
-	else if (spi->mode & SPI_RX_DUAL && info->flags & RD_DUAL)
+		flash->read_proto = SPI_FPROTO_1_1_4;
+	} else if (spi->mode & SPI_RX_DUAL && info->flags & RD_DUAL) {
 		flash->read_cmd = CMD_READ_DUAL_OUTPUT_FAST;
+		flash->read_proto = SPI_FPROTO_1_1_2;
+	}
 
 	/* Look for write commands */
-	if (info->flags & WR_QPP && spi->mode & SPI_TX_QUAD)
+	if (info->flags & WR_QPP && spi->mode & SPI_TX_QUAD) {
 		flash->write_cmd = CMD_QUAD_PAGE_PROGRAM;
-	else
+		flash->write_proto = SPI_FPROTO_1_1_4;
+	} else {
 		/* Go for default supported write cmd */
 		flash->write_cmd = CMD_PAGE_PROGRAM;
+		flash->write_proto = SPI_FPROTO_1_1_1;
+	}
 
 	/* Set the quad enable bit - only for quad commands */
-	if ((flash->read_cmd == CMD_READ_QUAD_OUTPUT_FAST) ||
-	    (flash->read_cmd == CMD_READ_QUAD_IO_FAST) ||
-	    (flash->write_cmd == CMD_QUAD_PAGE_PROGRAM)) {
+	if (spi_flash_protocol_get_data_nbits(flash->read_proto) == 4 ||
+	    spi_flash_protocol_get_data_nbits(flash->write_proto) == 4) {
 		ret = set_quad_mode(flash, info);
 		if (ret) {
 			debug("SF: Fail to set QEB for %02x\n",
