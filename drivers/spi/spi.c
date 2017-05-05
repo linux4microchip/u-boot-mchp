@@ -5,6 +5,7 @@
  */
 
 #include <common.h>
+#include <errno.h>
 #include <fdtdec.h>
 #include <malloc.h>
 #include <spi.h>
@@ -58,3 +59,15 @@ struct spi_slave *spi_base_setup_slave_fdt(const void *blob, int busnum,
 	return spi_setup_slave(busnum, cs, max_hz, mode);
 }
 #endif
+
+__weak bool spi_is_flash_command_supported(struct spi_slave *slave,
+					   const struct spi_flash_command *cmd)
+{
+	return false;
+}
+
+__weak int spi_exec_flash_command(struct spi_slave *slave,
+				  const struct spi_flash_command *cmd)
+{
+	return -EINVAL;
+}
