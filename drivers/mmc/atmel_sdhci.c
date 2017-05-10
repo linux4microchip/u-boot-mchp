@@ -74,7 +74,7 @@ static int atmel_sdhci_probe(struct udevice *dev)
 	host->name = dev->name;
 	host->ioaddr = (void *)dev_get_addr(dev);
 
-	host->quirks = 0;
+	host->quirks = SDHCI_QUIRK_WAIT_SEND_CMD;
 	host->bus_width	= fdtdec_get_int(gd->fdt_blob, dev_of_offset(dev),
 					 "bus-width", 4);
 
