@@ -34,13 +34,26 @@ config SPI_FLASH
 
 	  If unsure, say N
 
+choice
+	prompt "Support SPI flash above 16MiB"
+	depends on SPI_FLASH
+	optional
+
 config SPI_FLASH_BAR
 	bool "SPI flash Bank/Extended address register support"
-	depends on SPI_FLASH
 	help
 	  Enable the SPI flash Bank/Extended address register support.
 	  Bank/Extended address registers are used to access the flash
 	  which has size > 16MiB in 3-byte addressing.
+
+config SPI_FLASH_4BAIS
+	bool "SPI flash 4-byte address instruction set support"
+	help
+	  Convert the selected 3-byte address op codes into their associated
+	  4-byte address op codes. Using this instruction set does not change
+	  the internal state of the SPI flash device.
+
+endchoice
 
 config SF_DUAL_FLASH
 	bool "SPI DUAL flash memory support"

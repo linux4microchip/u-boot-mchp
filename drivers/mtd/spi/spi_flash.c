@@ -204,6 +204,67 @@ bar_end:
 }
 #endif
 
+#ifdef CONFIG_SPI_FLASH_4BAIS
+static u8 spi_flash_convert_opcode(u8 opcode, const u8 table[][2], size_t size)
+{
+	size_t i;
+
+	for (i = 0; i < size; i++)
+		if (table[i][0] == opcode)
+			return table[i][1];
+
+	/* No conversion found, keep input op code. */
+	return opcode;
+}
+
+static u8 spi_flash_convert_3to4_read(u8 opcode)
+{
+	static const u8 spi_flash_3to4_read[][2] = {
+		{CMD_READ_ARRAY_SLOW,		CMD_READ_ARRAY_SLOW_4B},
+		{CMD_READ_ARRAY_FAST,		CMD_READ_ARRAY_FAST_4B},
+		{CMD_READ_DUAL_OUTPUT_FAST,	CMD_READ_DUAL_OUTPUT_FAST_4B},
+		{CMD_READ_DUAL_IO_FAST,		CMD_READ_DUAL_IO_FAST_4B},
+		{CMD_READ_QUAD_OUTPUT_FAST,	CMD_READ_QUAD_OUTPUT_FAST_4B},
+		{CMD_READ_QUAD_IO_FAST,		CMD_READ_QUAD_IO_FAST_4B},
+	};
+
+	return spi_flash_convert_opcode(opcode, spi_flash_3to4_read,
+					ARRAY_SIZE(spi_flash_3to4_read));
+}
+
+static u8 spi_flash_convert_3to4_write(u8 opcode)
+{
+	static const u8 spi_flash_3to4_write[][2] = {
+		{CMD_PAGE_PROGRAM,		CMD_PAGE_PROGRAM_4B},
+		{CMD_PAGE_PROGRAM_1_1_4,	CMD_PAGE_PROGRAM_1_1_4_4B},
+		{CMD_PAGE_PROGRAM_1_4_4,	CMD_PAGE_PROGRAM_1_4_4_4B},
+	};
+
+	return spi_flash_convert_opcode(opcode, spi_flash_3to4_write,
+					ARRAY_SIZE(spi_flash_3to4_write));
+}
+
+static u8 spi_flash_convert_3to4_erase(u8 opcode)
+{
+	static const u8 spi_flash_3to4_erase[][2] = {
+		{CMD_ERASE_4K,	CMD_ERASE_4K_4B},
+		{CMD_ERASE_64K,	CMD_ERASE_64K_4B},
+	};
+
+	return spi_flash_convert_opcode(opcode, spi_flash_3to4_erase,
+					ARRAY_SIZE(spi_flash_3to4_erase));
+}
+
+static void spi_flash_set_4byte_addr_opcodes(struct spi_flash *flash,
+					     const struct spi_flash_info *info)
+{
+	flash->read_cmd = spi_flash_convert_3to4_read(flash->read_cmd);
+	flash->write_cmd = spi_flash_convert_3to4_write(flash->write_cmd);
+	flash->erase_cmd = spi_flash_convert_3to4_erase(flash->erase_cmd);
+	flash->addr_len = SPI_FLASH_4B_ADDR_LEN;
+}
+#endif
+
 #ifdef CONFIG_SF_DUAL_FLASH
 static void spi_flash_dual(struct spi_flash *flash, u32 *addr)
 {
@@ -1165,6 +1226,7 @@ int spi_flash_scan(struct spi_flash *flash)
 {
 	struct spi_slave *spi = flash->spi;
 	const struct spi_flash_info *info = NULL;
+	bool above_16MB;
 	int ret;
 
 	info = spi_flash_read_id(flash);
@@ -1329,6 +1391,26 @@ int spi_flash_scan(struct spi_flash *flash)
 	/* Set the address length */
 	flash->addr_len = SPI_FLASH_3B_ADDR_LEN;
 
+	above_16MB = ((flash->dual_flash == SF_SINGLE_FLASH) &&
+		      (flash->size > SPI_FLASH_16MB_BOUN)) ||
+		     ((flash->dual_flash > SF_SINGLE_FLASH) &&
+		      (flash->size > SPI_FLASH_16MB_BOUN << 1));
+
+	/*
+	 * replace the selected 3-byte address op codes with the associated
+	 * 4-byte address op codes, if needed (flash->size > 16 MiB)
+	 */
+#ifdef CONFIG_SPI_FLASH_4BAIS
+	if (above_16MB) {
+		if (info->flags & NO_4BAIS) {
+			puts("SF: Warning - Only lower 16MiB accessible,");
+			puts(" 4-byte address instruction set not supported\n");
+		} else {
+			spi_flash_set_4byte_addr_opcodes(flash, info);
+		}
+	}
+#endif
+
 	/* Configure the BAR - discover bank cmds and read current bank */
 #ifdef CONFIG_SPI_FLASH_BAR
 	ret = read_bar(flash, info);
@@ -1354,13 +1436,11 @@ int spi_flash_scan(struct spi_flash *flash)
 	puts("\n");
 #endif
 
-#ifndef CONFIG_SPI_FLASH_BAR
-	if (((flash->dual_flash == SF_SINGLE_FLASH) &&
-	     (flash->size > SPI_FLASH_16MB_BOUN)) ||
-	     ((flash->dual_flash > SF_SINGLE_FLASH) &&
-	     (flash->size > SPI_FLASH_16MB_BOUN << 1))) {
+#if !defined(CONFIG_SPI_FLASH_BAR) && !defined(CONFIG_SPI_FLASH_4BAIS)
+	if (above_16MB) {
 		puts("SF: Warning - Only lower 16MiB accessible,");
-		puts(" Full access #define CONFIG_SPI_FLASH_BAR\n");
+		puts(" Full access #define CONFIG_SPI_FLASH_BAR");
+		puts(" or CONFIG_SPI_FLASH_4BAIS\n");
 	}
 #endif
 

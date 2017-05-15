@@ -26,6 +26,7 @@ enum spi_nor_option_flags {
 };
 
 #define SPI_FLASH_3B_ADDR_LEN		3
+#define SPI_FLASH_4B_ADDR_LEN		4
 #define SPI_FLASH_CMD_LEN		(1 + SPI_FLASH_3B_ADDR_LEN + 16)
 #define SPI_FLASH_16MB_BOUN		0x1000000
 
@@ -62,6 +63,19 @@ enum spi_nor_option_flags {
 #define CMD_READ_STATUS1		0x35
 #define CMD_READ_CONFIG			0x35
 #define CMD_FLAG_STATUS			0x70
+
+/* 4-byte address instruction set */
+#define CMD_READ_ARRAY_SLOW_4B		0x13
+#define CMD_READ_ARRAY_FAST_4B		0x0c
+#define CMD_READ_DUAL_OUTPUT_FAST_4B	0x3c
+#define CMD_READ_DUAL_IO_FAST_4B	0xbc
+#define CMD_READ_QUAD_OUTPUT_FAST_4B	0x6c
+#define CMD_READ_QUAD_IO_FAST_4B	0xec
+#define CMD_PAGE_PROGRAM_4B		0x12
+#define CMD_PAGE_PROGRAM_1_1_4_4B	0x34
+#define CMD_PAGE_PROGRAM_1_4_4_4B	0x3e
+#define CMD_ERASE_4K_4B			0x21
+#define CMD_ERASE_64K_4B		0xdc
 
 /* Bank addr access commands */
 #ifdef CONFIG_SPI_FLASH_BAR
@@ -145,6 +159,10 @@ struct spi_flash_info {
 #define RD_QUADIO		BIT(6)	/* use Quad IO Read */
 #define RD_DUALIO		BIT(7)	/* use Dual IO Read */
 #define RD_FULL			(RD_QUAD | RD_DUAL | RD_QUADIO | RD_DUALIO)
+#define NO_4BAIS		BIT(8)	/*
+					 * 4-byte address instruction set
+					 * NOT supported
+					 */
 };
 
 extern const struct spi_flash_info spi_flash_ids[];
