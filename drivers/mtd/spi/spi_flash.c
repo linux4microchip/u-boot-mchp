@@ -322,7 +322,7 @@ int spi_flash_cmd_erase_ops(struct spi_flash *flash, u32 offset, size_t len)
 		}
 	}
 
-	spi_flash_command_init(&cmd, flash->erase_cmd, SPI_FLASH_3B_ADDR_LEN,
+	spi_flash_command_init(&cmd, flash->erase_cmd, flash->addr_len,
 			       SPI_FCMD_ERASE);
 	while (len) {
 		erase_addr = offset;
@@ -377,7 +377,7 @@ int spi_flash_cmd_write_ops(struct spi_flash *flash, u32 offset,
 		}
 	}
 
-	spi_flash_command_init(&cmd, flash->write_cmd, SPI_FLASH_3B_ADDR_LEN,
+	spi_flash_command_init(&cmd, flash->write_cmd, flash->addr_len,
 			       SPI_FCMD_WRITE);
 	cmd.proto = flash->write_proto;
 	for (actual = 0; actual < len; actual += chunk_len) {
@@ -481,7 +481,7 @@ int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
 		return 0;
 	}
 
-	spi_flash_command_init(&cmd, flash->read_cmd, SPI_FLASH_3B_ADDR_LEN,
+	spi_flash_command_init(&cmd, flash->read_cmd, flash->addr_len,
 			       SPI_FCMD_READ);
 	cmd.proto = flash->read_proto;
 	cmd.num_wait_states = flash->dummy_byte * 8;
@@ -529,7 +529,7 @@ static int sst_byte_write(struct spi_flash *flash, u32 offset, const void *buf)
 	int ret;
 	u8 sr = 0xFFu;
 
-	spi_flash_command_init(&cmd, CMD_SST_BP, SPI_FLASH_3B_ADDR_LEN,
+	spi_flash_command_init(&cmd, CMD_SST_BP, flash->addr_len,
 			       SPI_FCMD_WRITE);
 	cmd.addr = offset;
 	cmd.data_len = 1;
@@ -580,7 +580,7 @@ int sst_write_wp(struct spi_flash *flash, u32 offset, size_t len,
 	if (ret)
 		goto done;
 
-	spi_flash_command_init(&cmd, CMD_SST_AAI_WP, SPI_FLASH_3B_ADDR_LEN,
+	spi_flash_command_init(&cmd, CMD_SST_AAI_WP, flash->addr_len,
 			       SPI_FCMD_WRITE);
 	cmd.addr = offset;
 	cmd.data_len = 2;
@@ -1102,6 +1102,9 @@ int spi_flash_scan(struct spi_flash *flash)
 	if (info->flags & E_FSR)
 		flash->flags |= SNOR_F_USE_FSR;
 #endif
+
+	/* Set the address length */
+	flash->addr_len = SPI_FLASH_3B_ADDR_LEN;
 
 	/* Configure the BAR - discover bank cmds and read current bank */
 #ifdef CONFIG_SPI_FLASH_BAR
