@@ -1283,7 +1283,7 @@ int spi_flash_scan(struct spi_flash *flash)
 
 	/* Look for write commands */
 	if (info->flags & WR_QPP && spi->mode & SPI_TX_QUAD) {
-		flash->write_cmd = CMD_QUAD_PAGE_PROGRAM;
+		flash->write_cmd = CMD_PAGE_PROGRAM_1_1_4;
 		flash->write_proto = SPI_FPROTO_1_1_4;
 	} else {
 		/* Go for default supported write cmd */
