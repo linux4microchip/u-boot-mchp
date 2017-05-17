@@ -891,6 +891,22 @@ int stm_unlock(struct spi_flash *flash, u32 ofs, size_t len)
 }
 #endif
 
+#ifdef CONFIG_SPI_FLASH_SST
+static int sst26_unlock(struct spi_flash *flash)
+{
+	struct spi_flash_command cmd;
+	int ret;
+
+	spi_flash_command_init(&cmd, CMD_SST_ULBPR, 0, SPI_FCMD_WRITE_REG);
+	ret = spi_flash_write_common(flash, &cmd);
+	if (ret) {
+		debug("SF: SST26 is still locked (read-only)\n");
+		return ret;
+	}
+
+	return 0;
+}
+#endif
 
 #ifdef CONFIG_SPI_FLASH_MACRONIX
 static int macronix_quad_enable(struct spi_flash *flash)
@@ -920,7 +936,8 @@ static int macronix_quad_enable(struct spi_flash *flash)
 }
 #endif
 
-#if defined(CONFIG_SPI_FLASH_SPANSION) || defined(CONFIG_SPI_FLASH_WINBOND)
+#if defined(CONFIG_SPI_FLASH_SPANSION) || defined(CONFIG_SPI_FLASH_WINBOND) ||\
+    defined(CONFIG_SPI_FLASH_SST)
 static int spansion_quad_enable(struct spi_flash *flash)
 {
 	u8 qeb_status;
@@ -981,9 +998,11 @@ static int set_quad_mode(struct spi_flash *flash,
 	case SPI_FLASH_CFI_MFR_MACRONIX:
 		return macronix_quad_enable(flash);
 #endif
-#if defined(CONFIG_SPI_FLASH_SPANSION) || defined(CONFIG_SPI_FLASH_WINBOND)
+#if defined(CONFIG_SPI_FLASH_SPANSION) || defined(CONFIG_SPI_FLASH_WINBOND) ||\
+    defined(CONFIG_SPI_FLASH_SST)
 	case SPI_FLASH_CFI_MFR_SPANSION:
 	case SPI_FLASH_CFI_MFR_WINBOND:
+	case SPI_FLASH_CFI_MFR_SST:
 		return spansion_quad_enable(flash);
 #endif
 #ifdef CONFIG_SPI_FLASH_STMICRO
@@ -1039,6 +1058,11 @@ int spi_flash_scan(struct spi_flash *flash)
 	    JEDEC_MFR(info) == SPI_FLASH_CFI_MFR_MACRONIX ||
 	    JEDEC_MFR(info) == SPI_FLASH_CFI_MFR_SST)
 		write_sr(flash, 0);
+
+#ifdef CONFIG_SPI_FLASH_SST
+	if (info->flags & SST_ULBPR)
+		sst26_unlock(flash);
+#endif
 
 	flash->name = info->name;
 	flash->memory_map = spi->memory_map;
@@ -1099,7 +1123,10 @@ int spi_flash_scan(struct spi_flash *flash)
 		flash->erase_size = 4096 << flash->shift;
 	} else
 #endif
-	{
+	if (info->flags & SECT_4K_ONLY) {
+		flash->erase_cmd = CMD_ERASE_4K;
+		flash->erase_size = 4096 << flash->shift;
+	} else {
 		flash->erase_cmd = CMD_ERASE_64K;
 		flash->erase_size = flash->sector_size;
 	}
