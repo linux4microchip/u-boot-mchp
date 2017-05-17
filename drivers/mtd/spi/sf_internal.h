@@ -116,6 +116,7 @@ enum lock_ctl {
 
 # define CMD_SST_BP		0x02    /* Byte Program */
 # define CMD_SST_AAI_WP		0xAD	/* Auto Address Incr Word Program */
+# define CMD_SST_ULBPR		0x98	/* Global Block Protection Unlock */
 
 int sst_write_wp(struct spi_flash *flash, u32 offset, size_t len,
 		const void *buf);
@@ -163,6 +164,8 @@ struct spi_flash_info {
 					 * 4-byte address instruction set
 					 * NOT supported
 					 */
+#define SECT_4K_ONLY		BIT(9)  /* use only CMD_ERASE_4K */
+#define SST_ULBPR		BIT(10)	/* use SST unlock block protection */
 };
 
 extern const struct spi_flash_info spi_flash_ids[];

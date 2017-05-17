@@ -159,6 +159,11 @@ const struct spi_flash_info spi_flash_ids[] = {
 	{"sst26wf016",	   INFO(0xbf2651, 0x0,	64 * 1024,    32, SECT_4K) },
 	{"sst26wf032",	   INFO(0xbf2622, 0x0,	64 * 1024,    64, SECT_4K) },
 	{"sst26wf064",	   INFO(0xbf2643, 0x0,	64 * 1024,   128, SECT_4K) },
+	{"sst26vf016b",	   INFO(0xbf2641, 0x0,   4 * 1024,   512, SECT_4K_ONLY | SST_ULBPR | RD_FULL) },
+	{"sst26vf032b",	   INFO(0xbf2642, 0x0,   4 * 1024,  1024, SECT_4K_ONLY | SST_ULBPR | RD_FULL) },
+	{"sst26vf064b",	   INFO(0xbf2643, 0x0,   4 * 1024,  2048, SECT_4K_ONLY | SST_ULBPR | RD_FULL) },
+	{"sst26wf040b",	   INFO(0xbf2654, 0x0,   4 * 1024,   128, SECT_4K_ONLY | SST_ULBPR | RD_FULL) },
+	{"sst26wf080b",	   INFO(0xbf2658, 0x0,   4 * 1024,   256, SECT_4K_ONLY | SST_ULBPR | RD_FULL) },
 #endif
 #ifdef CONFIG_SPI_FLASH_WINBOND		/* WINBOND */
 	{"w25p80",	   INFO(0xef2014, 0x0,	64 * 1024,    16, 0) },
