@@ -27,7 +27,8 @@ enum spi_nor_option_flags {
 };
 
 #define SPI_FLASH_3B_ADDR_LEN		3
-#define SPI_FLASH_CMD_LEN		(1 + SPI_FLASH_3B_ADDR_LEN)
+#define SPI_FLASH_4B_ADDR_LEN		4
+#define SPI_FLASH_CMD_LEN		(1 + SPI_FLASH_3B_ADDR_LEN + 16)
 #define SPI_FLASH_16MB_BOUN		0x1000000
 
 /* CFI Manufacture ID's */
@@ -48,7 +49,8 @@ enum spi_nor_option_flags {
 #define CMD_PAGE_PROGRAM		0x02
 #define CMD_WRITE_DISABLE		0x04
 #define CMD_WRITE_ENABLE		0x06
-#define CMD_QUAD_PAGE_PROGRAM		0x32
+#define CMD_PAGE_PROGRAM_1_1_4		0x32
+#define CMD_PAGE_PROGRAM_1_4_4		0x38
 
 /* Read commands */
 #define CMD_READ_ARRAY_SLOW		0x03
@@ -62,6 +64,19 @@ enum spi_nor_option_flags {
 #define CMD_READ_STATUS1		0x35
 #define CMD_READ_CONFIG			0x35
 #define CMD_FLAG_STATUS			0x70
+
+/* 4-byte address instruction set */
+#define CMD_READ_ARRAY_SLOW_4B		0x13
+#define CMD_READ_ARRAY_FAST_4B		0x0c
+#define CMD_READ_DUAL_OUTPUT_FAST_4B	0x3c
+#define CMD_READ_DUAL_IO_FAST_4B	0xbc
+#define CMD_READ_QUAD_OUTPUT_FAST_4B	0x6c
+#define CMD_READ_QUAD_IO_FAST_4B	0xec
+#define CMD_PAGE_PROGRAM_4B		0x12
+#define CMD_PAGE_PROGRAM_1_1_4_4B	0x34
+#define CMD_PAGE_PROGRAM_1_4_4_4B	0x3e
+#define CMD_ERASE_4K_4B			0x21
+#define CMD_ERASE_64K_4B		0xdc
 
 /* Bank addr access commands */
 #ifdef CONFIG_SPI_FLASH_BAR
@@ -89,6 +104,7 @@ enum spi_nor_option_flags {
 #ifdef CONFIG_SPI_FLASH_SST
 # define CMD_SST_BP		0x02    /* Byte Program */
 # define CMD_SST_AAI_WP		0xAD	/* Auto Address Incr Word Program */
+# define CMD_SST_ULBPR		0x98	/* Global Block Protection Unlock */
 
 int sst_write_wp(struct spi_flash *flash, u32 offset, size_t len,
 		const void *buf);
@@ -132,26 +148,32 @@ struct spi_flash_info {
 #define RD_QUADIO		BIT(6)	/* use Quad IO Read */
 #define RD_DUALIO		BIT(7)	/* use Dual IO Read */
 #define RD_FULL			(RD_QUAD | RD_DUAL | RD_QUADIO | RD_DUALIO)
+#define NO_4BAIS		BIT(8)	/*
+					 * 4-byte address instruction set
+					 * NOT supported
+					 */
+#define SECT_4K_ONLY		BIT(9)  /* use only CMD_ERASE_4K */
+#define SST_ULBPR		BIT(10)	/* use SST unlock block protection */
 };
 
 extern const struct spi_flash_info spi_flash_ids[];
 
 /* Send a single-byte command to the device and read the response */
-int spi_flash_cmd(struct spi_slave *spi, u8 cmd, void *response, size_t len);
+int spi_flash_cmd(struct spi_flash *flash, u8 instr, void *response, size_t len);
 
 /*
  * Send a multi-byte command to the device and read the response. Used
  * for flash array reads, etc.
  */
-int spi_flash_cmd_read(struct spi_slave *spi, const u8 *cmd,
-		size_t cmd_len, void *data, size_t data_len);
+int spi_flash_cmd_read(struct spi_flash *flash,
+		       const struct spi_flash_command *cmd);
 
 /*
  * Send a multi-byte command to the device followed by (optional)
  * data. Used for programming the flash array, etc.
  */
-int spi_flash_cmd_write(struct spi_slave *spi, const u8 *cmd, size_t cmd_len,
-		const void *data, size_t data_len);
+int spi_flash_cmd_write(struct spi_flash *flash,
+			const struct spi_flash_command *cmd);
 
 
 /* Flash erase(sectors) operation, support all possible erase commands */
@@ -169,13 +191,13 @@ int stm_is_locked(struct spi_flash *flash, u32 ofs, size_t len);
 /* Enable writing on the SPI flash */
 static inline int spi_flash_cmd_write_enable(struct spi_flash *flash)
 {
-	return spi_flash_cmd(flash->spi, CMD_WRITE_ENABLE, NULL, 0);
+	return spi_flash_cmd(flash, CMD_WRITE_ENABLE, NULL, 0);
 }
 
 /* Disable writing on the SPI flash */
 static inline int spi_flash_cmd_write_disable(struct spi_flash *flash)
 {
-	return spi_flash_cmd(flash->spi, CMD_WRITE_DISABLE, NULL, 0);
+	return spi_flash_cmd(flash, CMD_WRITE_DISABLE, NULL, 0);
 }
 
 /*
@@ -186,8 +208,8 @@ static inline int spi_flash_cmd_write_disable(struct spi_flash *flash)
  * - spi_flash_wait_till_ready
  * - SPI release
  */
-int spi_flash_write_common(struct spi_flash *flash, const u8 *cmd,
-		size_t cmd_len, const void *buf, size_t buf_len);
+int spi_flash_write_common(struct spi_flash *flash,
+			   const struct spi_flash_command *cmd);
 
 /*
  * Flash write operation, support all possible write commands.
@@ -201,8 +223,8 @@ int spi_flash_cmd_write_ops(struct spi_flash *flash, u32 offset,
  * Same as spi_flash_cmd_read() except it also claims/releases the SPI
  * bus. Used as common part of the ->read() operation.
  */
-int spi_flash_read_common(struct spi_flash *flash, const u8 *cmd,
-		size_t cmd_len, void *data, size_t data_len);
+int spi_flash_read_common(struct spi_flash *flash,
+			  const struct spi_flash_command *cmd);
 
 /* Flash read operation, support all possible read commands */
 int spi_flash_cmd_read_ops(struct spi_flash *flash, u32 offset,
