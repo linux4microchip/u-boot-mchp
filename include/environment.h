@@ -162,8 +162,9 @@ typedef struct environment_s {
 #ifdef CONFIG_ENV_AES
 /* Make sure the env is aligned to block size. */
 __attribute__((aligned(16)))
+#else
+__attribute__((aligned(CONFIG_SYS_CACHELINE_SIZE)));
 #endif
-;
 
 #ifdef ENV_IS_EMBEDDED
 extern env_t environment;
