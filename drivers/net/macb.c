@@ -1032,6 +1032,7 @@ static int macb_eth_probe(struct udevice *dev)
 	struct eth_pdata *pdata = dev_get_platdata(dev);
 	struct macb_device *macb = dev_get_priv(dev);
 	const char *phy_mode;
+	int ret;
 
 	phy_mode = fdt_getprop(gd->fdt_blob, dev_of_offset(dev), "phy-mode",
 			       NULL);
@@ -1045,7 +1046,7 @@ static int macb_eth_probe(struct udevice *dev)
 	macb->regs = (void *)pdata->iobase;
 
 #ifdef CONFIG_CLK
-	int ret = macb_enable_clk(dev);
+	ret = macb_enable_clk(dev);
 	if (ret)
 		return ret;
 #endif
