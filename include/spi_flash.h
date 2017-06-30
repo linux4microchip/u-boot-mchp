@@ -11,6 +11,7 @@
 
 #include <dm.h>	/* Because we dereference struct udevice here */
 #include <linux/types.h>
+#include <spi.h>
 
 #ifndef CONFIG_SF_DEFAULT_SPEED
 # define CONFIG_SF_DEFAULT_SPEED	1000000
