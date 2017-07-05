@@ -79,7 +79,8 @@ static int write_sr(struct spi_flash *flash, u8 ws)
 	return 0;
 }
 
-#if defined(CONFIG_SPI_FLASH_SPANSION) || defined(CONFIG_SPI_FLASH_WINBOND)
+#if defined(CONFIG_SPI_FLASH_SPANSION) || defined(CONFIG_SPI_FLASH_WINBOND) || \
+    defined(CONFIG_SPI_FLASH_SST)
 static int read_cr(struct spi_flash *flash, u8 *rc)
 {
 	struct spi_flash_command cmd;
