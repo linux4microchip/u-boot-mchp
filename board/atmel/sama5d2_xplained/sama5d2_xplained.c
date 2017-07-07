@@ -12,7 +12,9 @@
 #include <i2c.h>
 #include <version.h>
 #include <video.h>
+#ifdef CONFIG_DM_VIDEO
 #include <video_console.h>
+#endif
 #include <asm/io.h>
 #include <asm/arch/at91_common.h>
 #include <asm/arch/atmel_pio4.h>

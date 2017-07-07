@@ -21,7 +21,9 @@
 #include <nand.h>
 #include <version.h>
 #include <video.h>
+#ifdef CONFIG_DM_VIDEO
 #include <video_console.h>
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
