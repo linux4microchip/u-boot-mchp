@@ -73,12 +73,12 @@
 					"sf read 0x22000000 0x6c000 0x394000; "	\
 					"bootz 0x22000000 - 0x21000000"
 #elif CONFIG_QSPI_BOOT
-#define CONFIG_ENV_OFFSET		0x10000
+#define CONFIG_ENV_OFFSET		0xb0000
 #define CONFIG_ENV_SIZE			0x10000
 #define CONFIG_ENV_SECT_SIZE		0x10000
 #define CONFIG_BOOTCOMMAND		"sf probe 0; "				\
-					"sf read 0x21000000 0x60000 0x10000; "	\
-					"sf read 0x22000000 0x70000 0x500000; "	\
+					"sf read 0x21000000 0xc0000 0x20000; "	\
+					"sf read 0x22000000 0xe0000 0x400000; "	\
 					"bootz 0x22000000 - 0x21000000"
 #endif
 
