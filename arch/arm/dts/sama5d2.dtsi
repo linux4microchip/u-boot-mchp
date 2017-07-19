@@ -511,11 +511,13 @@
 					qspi0_clk: qspi0_clk@52 {
 						#clock-cells = <0>;
 						reg = <52>;
+						u-boot,dm-pre-reloc;
 					};
 
 					qspi1_clk: qspi1_clk@53 {
 						#clock-cells = <0>;
 						reg = <53>;
+						u-boot,dm-pre-reloc;
 					};
 				};
 

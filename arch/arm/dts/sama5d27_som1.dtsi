@@ -55,6 +55,7 @@
 
 	aliases {
 		spi0 = &qspi1;
+		u-boot,dm-pre-reloc;
 	};
 
 	ahb {
