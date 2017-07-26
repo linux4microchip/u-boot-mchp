@@ -73,10 +73,10 @@
 #else
 #define CONFIG_BOOTARGS							\
 	"console=ttyS0,115200 earlyprintk "				\
-	"mtdparts=atmel_nand:256k(bootstrap)ro,512k(uboot)ro,"		\
-	"256K(env),256k(env_redundant),256k(spare),"			\
+	"mtdparts=atmel_nand:256k(bootstrap)ro,768k(uboot)ro,"		\
+	"256K(env_redundant),256k(env),"				\
 	"512k(dtb),6M(kernel)ro,-(rootfs) "				\
-	"rootfstype=ubifs ubi.mtd=7 root=ubi0:rootfs"
+	"rootfstype=ubifs ubi.mtd=6 root=ubi0:rootfs"
 
 #ifdef CONFIG_SYS_USE_NANDFLASH
 /* u-boot env in nand flash */
