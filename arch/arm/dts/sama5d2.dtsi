@@ -129,6 +129,7 @@
 					compatible = "atmel,at91sam9x5-clk-utmi";
 					#clock-cells = <0>;
 					clocks = <&main>;
+					regmap-sfr = <&sfr>;
 					u-boot,dm-pre-reloc;
 				};
 
@@ -649,6 +650,11 @@
 				#size-cells = <0>;
 				clocks = <&twi0_clk>;
 				status = "disabled";
+			};
+
+			sfr: sfr@f8030000 {
+				compatible = "atmel,sama5d2-sfr", "syscon";
+				reg = <0xf8030000 0x98>;
 			};
 
 			sckc@f8048050 {
