@@ -83,7 +83,7 @@ static ulong generic_clk_set_rate(struct clk *clk, ulong rate)
 	ulong tmp_rate, best_rate = rate, parent_rate;
 	int tmp_diff, best_diff = -1;
 	u32 div, best_div = 0;
-	u8 best_parend_index, best_clock_source = 0;
+	u8 best_parent_index, best_clock_source = 0;
 	u8 i;
 	u32 tmp;
 	int ret;
@@ -107,8 +107,8 @@ static ulong generic_clk_set_rate(struct clk *clk, ulong rate)
 
 				best_div = div - 1;
 				best_parent = parent;
-				best_parend_index = i;
-				best_clock_source = best_parend_index + 1;
+				best_parent_index = i;
+				best_clock_source = best_parent_index + 1;
 			}
 
 			if (!best_diff || tmp_rate < rate)
