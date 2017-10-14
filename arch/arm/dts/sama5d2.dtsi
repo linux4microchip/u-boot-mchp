@@ -315,6 +315,7 @@
 						#clock-cells = <0>;
 						reg = <26>;
 						atmel,clk-output-range = <0 83000000>;
+						u-boot,dm-pre-reloc;
 					};
 
 					uart3_clk: uart3_clk@27 {
@@ -639,6 +640,14 @@
 				compatible = "atmel,at91sam9260-usart";
 				reg = <0xf8020000 0x100>;
 				clocks = <&uart1_clk>;
+				clock-names = "usart";
+				status = "disabled";
+			};
+
+			uart2: serial@f8024000 {
+				compatible = "atmel,at91sam9260-usart";
+				reg = <0xf8024000 0x100>;
+				clocks = <&uart2_clk>;
 				clock-names = "usart";
 				status = "disabled";
 			};
