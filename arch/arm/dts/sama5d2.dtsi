@@ -302,6 +302,7 @@
 						#clock-cells = <0>;
 						reg = <24>;
 						atmel,clk-output-range = <0 83000000>;
+						u-boot,dm-pre-reloc;
 					};
 
 					uart1_clk: uart1_clk@25 {
@@ -633,6 +634,14 @@
 				#size-cells = <0>;
 				clocks = <&macb0_clk>, <&macb0_clk>;
 				clock-names = "hclk", "pclk";
+				status = "disabled";
+			};
+
+			uart0: serial@f801c000 {
+				compatible = "atmel,at91sam9260-usart";
+				reg = <0xf801c000 0x100>;
+				clocks = <&uart0_clk>;
+				clock-names = "usart";
 				status = "disabled";
 			};
 

@@ -71,6 +71,21 @@ static void board_usb_hw_init(void)
 	atmel_pio4_set_pio_output(AT91_PIO_PORTB, 12, 1);
 }
 
+#ifdef CONFIG_DEBUG_UART_BOARD_INIT
+static void board_uart0_hw_init(void)
+{
+	atmel_pio4_set_c_periph(AT91_PIO_PORTB, 26, 1);	/* URXD0 */
+	atmel_pio4_set_c_periph(AT91_PIO_PORTB, 27, 0);	/* UTXD0 */
+
+	at91_periph_clk_enable(ATMEL_ID_UART0);
+}
+
+void board_debug_uart_init(void)
+{
+	board_uart0_hw_init();
+}
+#endif
+
 #ifdef CONFIG_BOARD_EARLY_INIT_F
 int board_early_init_f(void)
 {

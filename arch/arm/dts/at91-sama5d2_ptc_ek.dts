@@ -9,7 +9,7 @@
 
 	chosen {
 		u-boot,dm-pre-reloc;
-		stdout-path = &uart2;
+		stdout-path = &uart0;
 	};
 
 	ahb {
@@ -63,9 +63,9 @@
 				};
 			};
 
-			uart2: serial@f8024000 {
+			uart0: serial@f801c000 {
 				pinctrl-names = "default";
-				pinctrl-0 = <&pinctrl_uart2_default>;
+				pinctrl-0 = <&pinctrl_uart0_default>;
 				status = "okay";
 				u-boot,dm-pre-reloc;
 			};
@@ -143,9 +143,9 @@
 						u-boot,dm-pre-reloc;
 					};
 
-					pinctrl_uart2_default: uart2_default {
-						pinmux = <PIN_PD23__URXD2>,
-							 <PIN_PD24__UTXD2>;
+					pinctrl_uart0_default: uart0_default {
+						pinmux = <PIN_PB26__URXD0>,
+							 <PIN_PB27__UTXD0>;
 						bias-disable;
 						u-boot,dm-pre-reloc;
 					};
