@@ -44,7 +44,7 @@
  * Command line configuration.
  */
 
-#ifdef CONFIG_SYS_USE_MMC
+#if defined(CONFIG_SYS_USE_MMC) || defined(CONFIG_SD_BOOT)
 
 #ifdef CONFIG_ENV_IS_IN_MMC
 /* Use raw reserved sectors to save environment */
@@ -78,7 +78,7 @@
 	"512k(dtb),6M(kernel)ro,-(rootfs) "				\
 	"rootfstype=ubifs ubi.mtd=6 root=ubi0:rootfs"
 
-#ifdef CONFIG_SYS_USE_NANDFLASH
+#if defined(CONFIG_SYS_USE_NANDFLASH) || defined(CONFIG_NAND_BOOT)
 /* u-boot env in nand flash */
 #define CONFIG_ENV_IS_IN_NAND
 #define CONFIG_ENV_OFFSET		0x140000
