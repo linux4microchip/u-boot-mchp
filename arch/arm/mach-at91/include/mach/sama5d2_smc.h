@@ -26,7 +26,6 @@ struct at91_cs {
 };
 
 struct at91_smc {
-	u32 reserved[384];
 	struct at91_cs cs[4];
 };
 #endif /*  __ASSEMBLY__ */
@@ -36,10 +35,10 @@ struct at91_smc {
 #define AT91_SMC_SETUP_NRD(x)		((x & 0x3f) << 16)
 #define AT91_SMC_SETUP_NCS_RD(x)	((x & 0x3f) << 24)
 
-#define AT91_SMC_PULSE_NWE(x)		(x & 0x3f)
-#define AT91_SMC_PULSE_NCS_WR(x)	((x & 0x3f) << 8)
-#define AT91_SMC_PULSE_NRD(x)		((x & 0x3f) << 16)
-#define AT91_SMC_PULSE_NCS_RD(x)	((x & 0x3f) << 24)
+#define AT91_SMC_PULSE_NWE(x)		(x & 0x7f)
+#define AT91_SMC_PULSE_NCS_WR(x)	((x & 0x7f) << 8)
+#define AT91_SMC_PULSE_NRD(x)		((x & 0x7f) << 16)
+#define AT91_SMC_PULSE_NCS_RD(x)	((x & 0x7f) << 24)
 
 #define AT91_SMC_CYCLE_NWE(x)		(x & 0x1ff)
 #define AT91_SMC_CYCLE_NRD(x)		((x & 0x1ff) << 16)
