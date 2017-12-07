@@ -53,6 +53,7 @@
 #define FAT_ENV_FILE		"uboot.env"
 #define CONFIG_ENV_SIZE		0x4000
 /* bootstrap + u-boot + env in sd card */
+#undef CONFIG_BOOTCOMMAND
 #define CONFIG_BOOTCOMMAND	"fatload mmc 0:1 0x21000000 at91-sama5d27_som1_ek.dtb; " \
 				"fatload mmc 0:1 0x22000000 zImage; " \
 				"bootz 0x22000000 - 0x21000000"
