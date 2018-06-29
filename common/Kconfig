@@ -141,11 +141,20 @@ config SATA_BOOT
 	  some not.
 
 config SD_BOOT
-	bool "Support for booting from SD/EMMC"
+	bool "Support for booting from SD"
 	default n
 	help
 	  Enabling this will make a U-Boot binary that is capable of being
-	  booted via SD/EMMC. This is not a must, some SoCs need this,
+	  booted via SD. This is not a must, some SoCs need this,
+	  some not.
+
+config EMMC_BOOT
+	bool "Support for booting from EMMC"
+	default n
+	select SD_BOOT
+	help
+	  Enabling this will make a U-Boot binary that is capable of being
+	  booted via EMMC. This is not a must, some SoCs need this,
 	  some not.
 
 config SPI_BOOT
