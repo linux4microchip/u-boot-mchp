@@ -49,17 +49,30 @@
 #define CONFIG_ENV_IS_IN_FAT
 #define CONFIG_FAT_WRITE
 #define FAT_ENV_INTERFACE	"mmc"
-#define FAT_ENV_DEVICE_AND_PART	"0"
 #define FAT_ENV_FILE		"uboot.env"
 #define CONFIG_ENV_SIZE		0x4000
-/* bootstrap + u-boot + env in sd card */
+#undef FAT_ENV_DEVICE_AND_PART
 #undef CONFIG_BOOTCOMMAND
+#undef CONFIG_BOOTARGS
+
+#ifdef CONFIG_EMMC_BOOT
+/* u-boot + env in micro sd card */
+#define FAT_ENV_DEVICE_AND_PART	"1"
+#define CONFIG_BOOTCOMMAND	"fatload mmc 1:1 0x21000000 at91-sama5d27_som1_ek.dtb; " \
+				"fatload mmc 1:1 0x22000000 zImage; " \
+				"bootz 0x22000000 - 0x21000000"
+#define CONFIG_BOOTARGS \
+	"console=ttyS0,115200 earlyprintk root=/dev/mmcblk1p2 rw rootwait"
+
+#else
+/* bootstrap + u-boot + env in sd card */
+#define FAT_ENV_DEVICE_AND_PART	"0"
 #define CONFIG_BOOTCOMMAND	"fatload mmc 0:1 0x21000000 at91-sama5d27_som1_ek.dtb; " \
 				"fatload mmc 0:1 0x22000000 zImage; " \
 				"bootz 0x22000000 - 0x21000000"
-#undef CONFIG_BOOTARGS
 #define CONFIG_BOOTARGS \
 	"console=ttyS0,115200 earlyprintk root=/dev/mmcblk0p2 rw rootwait"
+#endif
 #endif
 
 #ifdef CONFIG_QSPI_BOOT
