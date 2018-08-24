@@ -20,14 +20,6 @@
 
 #include "sf_internal.h"
 
-static void spi_flash_addr(u32 addr, u8 *cmd)
-{
-	/* cmd[0] is actual command */
-	cmd[1] = addr >> 16;
-	cmd[2] = addr >> 8;
-	cmd[3] = addr >> 0;
-}
-
 static int read_sr(struct spi_flash *flash, u8 *rs)
 {
 	struct spi_flash_command cmd;
@@ -1098,24 +1090,7 @@ int stm_unlock(struct spi_flash *flash, u32 ofs, size_t len)
 	return 0;
 }
 #endif
-/*
-#ifdef CONFIG_SPI_FLASH_SST
-static int sst26_unlock(struct spi_flash *flash)
-{
-	struct spi_flash_command cmd;
-	int ret;
 
-	spi_flash_command_init(&cmd, CMD_SST_ULBPR, 0, SPI_FCMD_WRITE_REG);
-	ret = spi_flash_write_common(flash, &cmd);
-	if (ret) {
-		debug("SF: SST26 is still locked (read-only)\n");
-		return ret;
-	}
-
-	return 0;
-}
-#endif
-*/
 #ifdef CONFIG_SPI_FLASH_MACRONIX
 static int macronix_quad_enable(struct spi_flash *flash)
 {
@@ -1279,13 +1254,6 @@ int spi_flash_scan(struct spi_flash *flash)
 		}
 		write_sr(flash, sr);
 	}
-
-/*
-#ifdef CONFIG_SPI_FLASH_SST
-	if (info->flags & SST_ULBPR)
-		sst26_unlock(flash);
-#endif
-*/
 
 	flash->name = info->name;
 	flash->memory_map = spi->memory_map;
