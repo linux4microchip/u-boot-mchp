@@ -74,5 +74,6 @@ DTC_FLAGS += -Wno-unit_address_format
 DTC_FLAGS += -Wno-pci_bridge
 DTC_FLAGS += -Wno-pci_device_bus_num
 DTC_FLAGS += -Wno-pci_device_reg
+DTC_FLAGS += -Wno-graph_child_address
 
 endif
