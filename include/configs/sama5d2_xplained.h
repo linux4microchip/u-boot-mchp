@@ -57,19 +57,8 @@
 #ifdef CONFIG_QSPI_BOOT
 #undef CONFIG_ENV_SPI_BUS
 #undef CONFIG_ENV_SPI_CS
-#undef CONFIG_ENV_OFFSET
-#undef CONFIG_ENV_SIZE
-#undef CONFIG_ENV_SECT_SIZE
-#undef CONFIG_BOOTCOMMAND
 #define CONFIG_ENV_SPI_BUS		1
 #define CONFIG_ENV_SPI_CS		0
-#define CONFIG_ENV_OFFSET		0xb0000
-#define CONFIG_ENV_SIZE			0x10000
-#define CONFIG_ENV_SECT_SIZE		0x10000
-#define CONFIG_BOOTCOMMAND		"sf probe 1:0; "			\
-					"sf read 0x21000000 0xc0000 0x20000; "	\
-					"sf read 0x22000000 0xe0000 0x400000; "	\
-					"bootz 0x22000000 - 0x21000000"
 #endif
 
 /* SPL */
