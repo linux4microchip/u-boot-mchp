@@ -95,6 +95,22 @@ fail:
 }
 #endif
 
+
+static u32 at91_sam9x60_pll_rate(u32 freq, u32 reg, u32 reg1)
+{
+	unsigned mul, div;
+
+	div = reg & 0xff;
+	mul = (reg1 >> 24) & 0x7f;
+	if (div && mul) {
+		freq /= div;
+		freq *= mul + 1;
+	} else
+		freq = 0;
+
+	return freq;
+}
+
 static u32 at91_pll_rate(u32 freq, u32 reg)
 {
 	unsigned mul, div;
@@ -133,7 +149,11 @@ int at91_clock_init(unsigned long main_clock)
 	gd->arch.main_clk_rate_hz = main_clock;
 
 	/* report if PLLA is more than mildly overclocked */
+#if defined (CONFIG_SAM9X60)
+	gd->arch.plla_rate_hz = at91_sam9x60_pll_rate(main_clock, readl(&pmc->pllctrl0), readl(&pmc->pllctrl1));
+#else
 	gd->arch.plla_rate_hz = at91_pll_rate(main_clock, readl(&pmc->pllar));
+#endif
 
 #ifdef CONFIG_USB_ATMEL
 	/*
@@ -161,7 +181,7 @@ int at91_clock_init(unsigned long main_clock)
 	gd->arch.mck_rate_hz = at91_css_to_rate(mckr & AT91_PMC_MCKR_CSS_MASK);
 	freq = gd->arch.mck_rate_hz;
 
-#if defined(CONFIG_AT91SAM9X5)
+#if defined(CONFIG_AT91SAM9X5) || defined (CONFIG_SAM9X60)
 	/* different in prescale on at91sam9x5 */
 	freq /= (1 << ((mckr & AT91_PMC_MCKR_PRES_MASK) >> 4));
 #else
@@ -175,7 +195,8 @@ int at91_clock_init(unsigned long main_clock)
 	if (mckr & AT91_PMC_MCKR_MDIV_MASK)
 		freq /= 2;			/* processor clock division */
 #elif defined(CONFIG_AT91SAM9G45) || defined(CONFIG_AT91SAM9M10G45) \
-		|| defined(CONFIG_AT91SAM9N12) || defined(CONFIG_AT91SAM9X5)
+		|| defined(CONFIG_AT91SAM9N12) || defined(CONFIG_AT91SAM9X5) \
+		|| defined (CONFIG_SAM9X60)
 	/* mdiv <==> divisor
 	 *  0   <==>   1
 	 *  1   <==>   2
@@ -202,11 +223,14 @@ int at91_clock_init(unsigned long main_clock)
 void at91_plla_init(u32 pllar)
 {
 	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
-
+#if !defined(CONFIG_SAM9X60)
 	writel(pllar, &pmc->pllar);
 	while (!(readl(&pmc->sr) & AT91_PMC_LOCKA))
 		;
+#endif
 }
+
+#if !defined(CPU_NO_PLLB)
 void at91_pllb_init(u32 pllbr)
 {
 	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
@@ -215,6 +239,7 @@ void at91_pllb_init(u32 pllbr)
 	while (!(readl(&pmc->sr) & AT91_PMC_LOCKB))
 		;
 }
+#endif
 
 void at91_mck_init(u32 mckr)
 {
@@ -250,6 +275,7 @@ void at91_mck_init(u32 mckr)
 		;
 }
 
+#if !defined(CPU_NO_PLLB)
 int at91_pllb_clk_enable(u32 pllbr)
 {
 	struct at91_pmc *pmc = (at91_pmc_t *)ATMEL_BASE_PMC;
@@ -284,4 +310,110 @@ int at91_pllb_clk_disable(void)
 	}
 
 	return 0;
+}
+#endif
+
+void pmc_set_mck_prescaler(unsigned int prescaler)
+{
+    unsigned int reg;
+	struct at91_pmc *pmc = (at91_pmc_t *)ATMEL_BASE_PMC;
+    /* Change MCK Prescaler divider in PMC_MCKR register */
+    reg = readl(&pmc->mckr);
+    reg &= (~AT91_PMC_MCKR_PRES_MASK);
+    reg |= prescaler;
+    writel(reg, &pmc->mckr);
+	while (!(readl(&pmc->sr) & AT91_PMC_MCKRDY));
+}
+
+void pmc_set_mck_divider(unsigned int divider)
+{
+    unsigned int reg;
+	struct at91_pmc *pmc = (at91_pmc_t *)ATMEL_BASE_PMC;
+    /* change MCK Prescaler divider in PMC_MCKR register */
+    reg = readl(&pmc->mckr);
+    reg &= (~AT91_PMC_MCKR_MDIV_MASK);
+    reg |= divider;
+	writel(reg, &pmc->mckr);
+	while (!(readl(&pmc->sr) & AT91_PMC_MCKRDY));
+}
+
+void pmc_switch_mck_to_pll(void)
+{
+    unsigned long reg;
+	struct at91_pmc *pmc = (at91_pmc_t *)ATMEL_BASE_PMC;
+    /* Select PLL as input clock for PCK and MCK */
+    reg = readl(&pmc->mckr);
+    reg &= (~AT91_PMC_MCKR_CSS_MASK);
+    reg |= AT91_PMC_MCKR_CSS_PLLA;
+	writel(reg, &pmc->mckr);
+	while (!(readl(&pmc->sr) & AT91_PMC_MCKRDY));
+}
+
+void pmc_sam9x60_cfg_pll(unsigned int pll_id, const struct _pmc_plla_cfg* plla)
+{
+    unsigned int reg;
+    unsigned int i;
+	struct at91_pmc *pmc = (at91_pmc_t *)ATMEL_BASE_PMC;
+
+    if (pll_id == PLL_ID_UPLL){
+        if(plla->div != 1)
+            return;
+    }
+
+    reg = readl(&pmc->pllupdt);
+    reg &= ~(AT91_PLL_UPDT_STUPTIM_MASK
+                | AT91_PLL_UPDT_UPDATE
+                | AT91_PLL_UPDT_ID_MASK);
+    reg |= (AT91_PLL_UPDT_STUPTIM(plla->count)
+            | AT91_PLL_UPDT_ID(pll_id));
+	writel(reg, &pmc->pllupdt);
+
+    reg = readl(&pmc->pllacr);
+    reg &= ~AT91_PLL_ACR_LOOP_FILTER_MASK;
+    reg |= AT91_PLL_ACR_LOOP_FILTER(plla->loop_filter);
+    writel(reg, &pmc->pllacr);
+
+    writel(AT91_PLL_CTRL1_MUL(plla->mul) |
+			AT91_PLL_CTRL1_FRACR(plla->fracr), &pmc->pllctrl1);
+
+    if (pll_id == PLL_ID_UPLL) {
+        reg = readl(&pmc->pllacr);
+        reg |= AT91_PLL_ACR_UTMIBG;
+        writel(reg, &pmc->pllacr);
+
+        udelay(10);
+
+        reg = readl(&pmc->pllacr);
+        reg |= AT91_PLL_ACR_UTMIVR;
+        writel(reg, &pmc->pllacr);
+
+        udelay(10);
+    }
+
+    reg = readl(&pmc->pllupdt);
+    reg |= AT91_PLL_UPDT_UPDATE;
+    writel(reg, &pmc->pllupdt);
+
+    reg = readl(&pmc->pllctrl0);
+    reg &= (~AT91_PLL_CTRL0_DIVPMC_MASK);
+    reg |= (AT91_PLL_CTRL0_ENLOCK
+            | AT91_PLL_CTRL0_ENPLL
+            | AT91_PLL_CTRL0_DIVPMC(plla->div)
+            | AT91_PLL_CTRL0_ENPLLCK);
+    writel(reg, &pmc->pllctrl0);
+
+    reg = readl(&pmc->pllupdt);
+    reg |= AT91_PLL_UPDT_UPDATE;
+    writel(reg, &pmc->pllupdt);
+
+    while ((readl(&pmc->pllisr0) & (AT91_PLL_ISR0_LOCK0 << pll_id))
+             != (AT91_PLL_ISR0_LOCK0 << pll_id));
+
+    /*Enable the unlock interrupt to quickly detect a 
+    failure on the generation of the clock of the PLL. */
+#if 0
+    reg = readl(&pmc->pllier);
+    reg |= (AT91_PLL_IER_UNLOCK0 << pll_id);
+    writel(reg, &pmc->pllier);
+#endif
 }

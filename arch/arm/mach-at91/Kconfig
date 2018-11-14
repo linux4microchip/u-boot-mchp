@@ -43,6 +43,10 @@ config AT91SAM9X5
 	bool
 	select CPU_ARM926EJS
 
+config SAM9X60
+	bool
+	select CPU_ARM926EJS
+
 config SAMA5D2
 	bool
 	select CPU_V7A
@@ -141,6 +145,13 @@ config TARGET_AT91SAM9RLEK
 config TARGET_AT91SAM9X5EK
 	bool "Atmel AT91SAM9X5-EK board"
 	select AT91SAM9X5
+	select SUPPORT_SPL
+	select BOARD_EARLY_INIT_F
+	select BOARD_LATE_INIT
+
+config TARGET_SAM9X60EK
+	bool "SAM9X60-EK board"
+	select SAM9X60
 	select SUPPORT_SPL
 	select BOARD_EARLY_INIT_F
 	select BOARD_LATE_INIT
@@ -265,6 +276,7 @@ source "board/atmel/at91sam9m10g45ek/Kconfig"
 source "board/atmel/at91sam9n12ek/Kconfig"
 source "board/atmel/at91sam9rlek/Kconfig"
 source "board/atmel/at91sam9x5ek/Kconfig"
+source "board/atmel/sam9x60ek/Kconfig"
 source "board/atmel/sama5d2_ptc_ek/Kconfig"
 source "board/atmel/sama5d2_xplained/Kconfig"
 source "board/atmel/sama5d27_som1_ek/Kconfig"

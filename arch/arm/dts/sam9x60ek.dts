@@ -1,0 +1,102 @@
+/*
+ * at91sam9x60ek.dts - Device Tree file for AT91SAM9X60 EK board
+ *
+ *  Copyright (C) 2018 Microchip Technology Inc
+ * 	  2018 Sandeep Sheriker M<Sandeepsheriker.mallikarjun@microchip.com>
+ *
+ * Licensed under GPLv2 or later.
+ */
+/dts-v1/;
+#include "sam9x60.dtsi"
+
+/ {
+	model = "Atmel AT91SAM9X60 Ek";
+	compatible = "atmel,at91sam9x60ek", "atmel,at91sam9x60", "atmel,at91sam9";
+
+    chosen {
+        bootargs = "root=/dev/mtdblock1 rw rootfstype=ubifs ubi.mtd=1 root=ubi0:rootfs";
+		stdout-path = "serial0:115200n8";
+        u-boot,dm-pre-reloc;
+    };
+
+	ahb {
+        sdmmc0: sdio-host@80000000 {
+            bus-width = <4>;
+            pinctrl-names = "default";
+            pinctrl-0 = <&pinctrl_sdmmc0_default>;
+            status = "okay"; 
+			cd-gpios = <&pioA 23 GPIO_ACTIVE_LOW>;
+			disable-wp;
+        };
+
+		apb {
+			macb0: ethernet@f802c000 {
+				phy-mode = "rmii";
+				#address-cells = <1>;
+				#size-cells = <0>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_macb0_rmii>;
+			 	status = "okay";
+
+				ethernet-phy@0 {
+					reg = <0x0>;
+				};
+			};
+
+			dbgu: serial@fffff200 {
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_dbgu>;
+				status = "okay";
+				u-boot,dm-pre-reloc;
+			};
+
+			pinctrl@fffff400 {
+				atmel,mux-mask = <
+					/*    A         B		  C		*/
+					0xFFFFFE7F 0xc0E0381F 0xEF00019D  /* pioA */
+					0x03FFFFFF 0x02FC3E68 0x00780000  /* pioB */
+					0xffffffff 0xF83FFFFF 0xB800F3FC  /* pioC */
+					0x003FFFFF 0x003F8000 0x00000000  /* pioD */
+					>;
+
+				dbgu {
+					u-boot,dm-pre-reloc;
+					pinctrl_dbgu: dbgu-0 {
+						atmel,pins =
+							<AT91_PIOA 9 AT91_PERIPH_A AT91_PINCTRL_PULL_UP
+							 AT91_PIOA 10 AT91_PERIPH_A AT91_PINCTRL_NONE>;
+					};
+				};
+
+                sdmmc0 {
+                    pinctrl_sdmmc0_default: sdmmc0 {
+                        atmel,pins =
+                            <AT91_PIOA 17 AT91_PERIPH_A AT91_PINCTRL_NONE		/* PA17 CK  periph A with pullup */
+                             AT91_PIOA 16 AT91_PERIPH_A AT91_PINCTRL_PULL_UP    /* PA16 CMD periph A with pullup */
+                             AT91_PIOA 15 AT91_PERIPH_A AT91_PINCTRL_PULL_UP   	/* PA15 DAT0 periph A */
+                             AT91_PIOA 18 AT91_PERIPH_A AT91_PINCTRL_PULL_UP	/* PA18 DAT1 periph A with pullup */
+                             AT91_PIOA 19 AT91_PERIPH_A AT91_PINCTRL_PULL_UP	/* PA19 DAT2 periph A with pullup */
+                             AT91_PIOA 20 AT91_PERIPH_A AT91_PINCTRL_PULL_UP>;  /* PA20 DAT3 periph A with pullup */
+                    };
+				};
+
+				macb0 {
+					pinctrl_macb0_rmii: macb0_rmii-0 {
+						atmel,pins =
+							<AT91_PIOB 0 AT91_PERIPH_A AT91_PINCTRL_NONE	/* PB0 periph A */
+							 AT91_PIOB 1 AT91_PERIPH_A AT91_PINCTRL_NONE	/* PB1 periph A */
+							 AT91_PIOB 2 AT91_PERIPH_A AT91_PINCTRL_NONE	/* PB2 periph A */
+							 AT91_PIOB 3 AT91_PERIPH_A AT91_PINCTRL_NONE	/* PB3 periph A */
+							 AT91_PIOB 4 AT91_PERIPH_A AT91_PINCTRL_NONE	/* PB4 periph A */
+							 AT91_PIOB 5 AT91_PERIPH_A AT91_PINCTRL_NONE	/* PB5 periph A */
+							 AT91_PIOB 6 AT91_PERIPH_A AT91_PINCTRL_NONE	/* PB6 periph A */
+							 AT91_PIOB 7 AT91_PERIPH_A AT91_PINCTRL_NONE	/* PB7 periph A */
+							 AT91_PIOB 9 AT91_PERIPH_A AT91_PINCTRL_NONE	/* PB9 periph A */
+							 AT91_PIOB 10 AT91_PERIPH_A AT91_PINCTRL_NONE>;	/* PB10 periph A */
+					};
+				};
+
+			}; /* pinctrl */
+		}; /* apb */
+	}; /*ahb */
+};

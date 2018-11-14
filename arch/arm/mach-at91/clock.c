@@ -68,6 +68,7 @@ void at91_system_clk_disable(int sys_clk)
 
 int at91_upll_clk_enable(void)
 {
+#if !defined(CONFIG_SAM9X60)
 	struct at91_pmc *pmc = (at91_pmc_t *)ATMEL_BASE_PMC;
 	ulong start_time, tmp_time;
 
@@ -83,12 +84,13 @@ int at91_upll_clk_enable(void)
 			return -1;
 		}
 	}
-
+#endif
 	return 0;
 }
 
 int at91_upll_clk_disable(void)
 {
+#if !defined(CONFIG_SAM9X60)
 	struct at91_pmc *pmc = (at91_pmc_t *)ATMEL_BASE_PMC;
 	ulong start_time, tmp_time;
 
@@ -101,7 +103,7 @@ int at91_upll_clk_disable(void)
 			return -1;
 		}
 	}
-
+#endif
 	return 0;
 }
 
@@ -114,7 +116,9 @@ void at91_usb_clk_init(u32 value)
 
 void at91_pllicpr_init(u32 icpr)
 {
+#if !defined(CONFIG_SAM9X60)
 	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
 
 	writel(icpr, &pmc->pllicpr);
+#endif
 }

@@ -25,6 +25,71 @@
 
 #include <asm/types.h>
 
+#if defined(CONFIG_SAM9X60)
+struct _pmc_plla_cfg {
+    /** PLLA MUL value */
+    unsigned int mul;
+
+    /** PLLA DIV value */
+    unsigned int div;
+
+    /** PLLA COUNT value (number of slow clock cycles before the PLLA is locked) */
+    unsigned int count;
+
+    unsigned int fracr;
+    unsigned int loop_filter;
+};
+
+typedef struct at91_pmc {
+	u32	scer;		/* 0x00 System Clock Enable Register */
+	u32	scdr;		/* 0x04 System Clock Disable Register */
+	u32	scsr;		/* 0x08 System Clock Status Register */
+	u32	pllctrl0;	/* 0x0C PLL Control Register 0 */
+	u32	pllctrl1;	/* 0x10 PLL Control Register 1 */
+	u32	pllssr;		/* 0x14 PLL Spread Spectrum Register */
+	u32	pllacr;		/* 0x18 PLL Analog Control Registerr */
+	u32	pllupdt;	/* 0x1C PLL Update Register */
+	u32	mor;		/* 0x20 Main Oscilator Register */
+	u32	mcfr;		/* 0x24 Main Clock Frequency Register */
+	u32	mckr;		/* 0x28 CPU/Master Clock Register */
+	u32	reserved[3];
+	u32	usb;		/* 0x38 USB Clock Register */
+	u32	reserved1;
+	u32	pck;		/* 0x40 Programmable Clock Register 0 - 3 */
+	u32	reserved2[7];
+	u32	ier;		/* 0x60 Interrupt Enable Register */
+	u32	idr;		/* 0x64 Interrupt Disable Register */
+	u32	sr;			/* 0x68 Status Register */
+	u32	imr;		/* 0x6C Interrupt Mask Register */
+	u32 fsmr;       /* 0x70 Fast Startup Mode Register */
+	u32 wcr;        /* 0x74 Wakeup Control Register */
+	u32 focr;		/* 0x78 Fault Output Clear Register */
+	u32 reserved3[1];
+	u32 wpmr;		/* 0x80 Write Protection Mode Register */
+	u32 wpsr;		/* 0x84 Write Protection Status Register */
+	u32 pcr;        /* 0x88 Peripheral Control Register */
+	u32 ocr;        /* 0x8C Oscillator Calibration Register */
+	u32 slpaipr;	/* 0x90 SleepWalking Activity In Progress Register */
+	u32 slpwkcr;    /* 0x94 SleepWalking Control Register */
+	u32 uppst;      /* 0x98 ULP Startup Time Register */
+	u32 mcklim;     /* 0x9C MCK Monitor Limits Register */
+	u32 CSR[4];     /* 0xA0 Peripheral Clock Status Register 0~3 */
+	u32 reserved4[4];
+	u32 gcsr[4];    /* 0xC0 Generic Clock Status Register 0~3 */
+	u32 reserved5[4];
+	u32 pllier;    /* 0xE0 PLL Interrupt Enable Register */
+	u32 pllidr;    /* 0xE4 PLL Interrupt Disable Register */
+	u32 pllimr;    /* 0xE8 PLL Interrupt Mask Register */
+	u32 pllisr0;   /* 0xEC PLL Interrupt Status Register 0 */
+	u32 pllisr1;   /* 0xF0 PLL Interrupt Status Register 1 */
+	u32 reserved7[3];
+	u32 addrsize;   /* 0x100 Address Size Register */
+	u32 name[2];    /* 0x104 IP Name Register */
+	u32 features;   /* 0x010C Features Register */
+	u32 version;    /* 0x110 Version Register */
+} at91_pmc_t;
+
+#else
 typedef struct at91_pmc {
 	u32	scer;		/* 0x00 System Clock Enable Register */
 	u32	scdr;		/* 0x04 System Clock Disable Register */
@@ -61,6 +126,8 @@ typedef struct at91_pmc {
 	u32	ocr;		/* 0x110 Oscillator Calibration Register */
 } at91_pmc_t;
 
+#endif
+ 
 #endif	/* end not assembly */
 
 #define AT91_PMC_MOR_MOSCEN		0x01
@@ -96,8 +163,8 @@ typedef struct at91_pmc {
 #define AT91_PMC_MCKR_CSS_MASK		0x00000003
 
 #if defined(CONFIG_SAMA5D2) || defined(CONFIG_SAMA5D3) || \
-	defined(CONFIG_SAMA5D4) || \
-	defined(CONFIG_AT91SAM9X5) || defined(CONFIG_AT91SAM9N12)
+	defined(CONFIG_SAMA5D4) || defined(CONFIG_AT91SAM9X5) || \
+	defined(CONFIG_SAM9X60) || defined(CONFIG_AT91SAM9N12)
 #define AT91_PMC_MCKR_PRES_1		0x00000000
 #define AT91_PMC_MCKR_PRES_2		0x00000010
 #define AT91_PMC_MCKR_PRES_4		0x00000020
@@ -218,6 +285,14 @@ typedef struct at91_pmc {
 #define			AT91_PMC_PRES_16		(4 << 2)
 #define			AT91_PMC_PRES_32		(5 << 2)
 #define			AT91_PMC_PRES_64		(6 << 2)
+#define     AT91_PMC_ALT_PRES       (7 <<  4)       /* Master Clock Prescaler */
+#define         AT91_PMC_ALT_PRES_1         (0 << 4)
+#define         AT91_PMC_ALT_PRES_2         (1 << 4)
+#define         AT91_PMC_ALT_PRES_4         (2 << 4)
+#define         AT91_PMC_ALT_PRES_8         (3 << 4)
+#define         AT91_PMC_ALT_PRES_16        (4 << 4)
+#define         AT91_PMC_ALT_PRES_32        (5 << 4)
+#define         AT91_PMC_ALT_PRES_64        (6 << 4)
 #define		AT91_PMC_MDIV		(3 <<  8)		/* Master Clock Division */
 #define			AT91RM9200_PMC_MDIV_1		(0 << 8)	/* [AT91RM9200 only] */
 #define			AT91RM9200_PMC_MDIV_2		(1 << 8)
@@ -264,5 +339,54 @@ typedef struct at91_pmc {
 #define AT91_PMC_IPLL_PLLA(x)		(((x) & 0x7) << 8)
 #define AT91_PMC_ICP_PLLU(x)		(((x) & 0x3) << 16)
 #define AT91_PMC_IVCO_PLLU(x)		(((x) & 0x3) << 24)
+
+/* -------- PMC_PLL_CTRL0 : (PMC Offset: 0x000C) PLL Control Register 0 -------- */
+#define AT91_PLL_CTRL0_DIVPMC_Pos 0
+#define AT91_PLL_CTRL0_DIVPMC_MASK (0xffu << AT91_PLL_CTRL0_DIVPMC_Pos) 
+#define AT91_PLL_CTRL0_DIVPMC(value) ((AT91_PLL_CTRL0_DIVPMC_MASK & ((value) << AT91_PLL_CTRL0_DIVPMC_Pos)))
+#define AT91_PLL_CTRL0_DIVIO_Pos 12
+#define AT91_PLL_CTRL0_DIVIO_MASK (0xffu << AT91_PLL_CTRL0_DIVIO_Pos)
+#define AT91_PLL_CTRL0_DIVIO(value) ((AT91_PLL_CTRL0_DIVIO_MASK & ((value) << AT91_PLL_CTRL0_DIVIO_Pos)))
+#define AT91_PLL_CTRL0_ENPLL (0x1u << 28)
+#define AT91_PLL_CTRL0_ENPLLCK (0x1u << 29)
+#define AT91_PLL_CTRL0_ENLOCK (0x1u << 31)
+/* -------- PMC_PLL_CTRL1 : (PMC Offset: 0x0010) PLL Control Register 1 -------- */
+#define AT91_PLL_CTRL1_FRACR_Pos 0
+#define AT91_PLL_CTRL1_FRACR_MASK (0x3fffffu << AT91_PLL_CTRL1_FRACR_Pos)
+#define AT91_PLL_CTRL1_FRACR(value) ((AT91_PLL_CTRL1_FRACR_MASK & ((value) << AT91_PLL_CTRL1_FRACR_Pos)))
+#define AT91_PLL_CTRL1_MUL_Pos 24
+#define AT91_PLL_CTRL1_MUL_MASK (0x7fu << AT91_PLL_CTRL1_MUL_Pos)
+#define AT91_PLL_CTRL1_MUL(value) ((AT91_PLL_CTRL1_MUL_MASK & ((value) << AT91_PLL_CTRL1_MUL_Pos)))
+/* -------- PMC_PLL_SSR : (PMC Offset: 0x0014) PLL Spread Spectrum Register -------- */
+#define AT91_PLL_SSR_STEP_Pos 0
+#define AT91_PLL_SSR_STEP_MASK (0xffffu << AT91_PLL_SSR_STEP_Pos)
+#define AT91_PLL_SSR_STEP(value) ((AT91_PLL_SSR_STEP_MASK & ((value) << PMC_PLL_SSR_STEP_Pos)))
+#define AT91_PLL_SSR_NSTEP_Pos 16
+#define AT91_PLL_SSR_NSTEP_MASK (0xffu << AT91_PLL_SSR_NSTEP_Pos)
+#define AT91_PLL_SSR_NSTEP(value) ((AT91_PLL_SSR_NSTEP_MASK & ((value) << AT91_PLL_SSR_NSTEP_Pos)))
+#define AT91_PLL_SSR_ENSPREAD (0x1u << 28)
+/* -------- PMC_PLL_ACR : (PMC Offset: 0x0018) PLL Analog Control Register -------- */
+#define AT91_PLL_ACR_CONTROL_Pos 0
+#define AT91_PLL_ACR_CONTROL_MASK (0xfffu << AT91_PLL_ACR_CONTROL_Pos)
+#define AT91_PLL_ACR_CONTROL(value) ((AT91_PLL_ACR_CONTROL_MASK & ((value) << AT91_PLL_ACR_CONTROL_Pos)))
+#define AT91_PLL_ACR_UTMIVR (0x1u << 12)
+#define AT91_PLL_ACR_UTMIBG (0x1u << 13)
+#define AT91_PLL_ACR_LOCK_THR_Pos 16
+#define AT91_PLL_ACR_LOCK_THR_MASK (0xffu << AT91_PLL_ACR_LOCK_THR_Pos)
+#define AT91_PLL_ACR_LOCK_THR(value) ((AT91_PLL_ACR_LOCK_THR_MASK & ((value) << AT91_PLL_ACR_LOCK_THR_Pos)))
+#define AT91_PLL_ACR_LOOP_FILTER_Pos 24
+#define AT91_PLL_ACR_LOOP_FILTER_MASK (0xffu << AT91_PLL_ACR_LOOP_FILTER_Pos)
+#define AT91_PLL_ACR_LOOP_FILTER(value) ((AT91_PLL_ACR_LOOP_FILTER_MASK & ((value) << AT91_PLL_ACR_LOOP_FILTER_Pos)))
+/* -------- PMC_PLL_UPDT : (PMC Offset: 0x001C) PLL Update Register -------- */
+#define AT91_PLL_UPDT_ID_Pos 0
+#define AT91_PLL_UPDT_ID_MASK (0xfu << AT91_PLL_UPDT_ID_Pos)
+#define AT91_PLL_UPDT_ID(value) ((AT91_PLL_UPDT_ID_MASK & ((value) << AT91_PLL_UPDT_ID_Pos)))
+#define AT91_PLL_UPDT_UPDATE (0x1u << 8)
+#define AT91_PLL_UPDT_STUPTIM_Pos 16
+#define AT91_PLL_UPDT_STUPTIM_MASK (0xffu << AT91_PLL_UPDT_STUPTIM_Pos)
+#define AT91_PLL_UPDT_STUPTIM(value) ((AT91_PLL_UPDT_STUPTIM_MASK & ((value) << AT91_PLL_UPDT_STUPTIM_Pos)))
+
+#define AT91_PLL_ISR0_LOCK0 (0x1u << 0)
+#define AT91_PLL_IER_UNLOCK0 (0x1u << 16)
 
 #endif

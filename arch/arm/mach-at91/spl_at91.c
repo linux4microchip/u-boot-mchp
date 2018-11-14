@@ -75,11 +75,30 @@ void __weak spl_board_init(void)
 
 void board_init_f(ulong dummy)
 {
+#if defined(CONFIG_SAM9X60)
+    struct _pmc_plla_cfg plla_config;
+#endif
 	lowlevel_clock_init();
 #if !defined(CONFIG_AT91SAM9_WATCHDOG)
 	at91_disable_wdt();
 #endif
 
+#if defined(CONFIG_SAM9X60)
+    /* Configure & Enable PLLA */
+    plla_config.mul = 49;
+    plla_config.div = PLLA_DIV;
+    plla_config.count = PLLA_COUNT;
+    plla_config.fracr = 0;
+    plla_config.loop_filter = PLLA_LOOP_FILTER;
+    pmc_sam9x60_cfg_pll(PLL_ID_PLLA, &plla_config);
+
+    pmc_set_mck_divider(AT91_PMC_MCKR_MDIV_3);
+    pmc_set_mck_prescaler(AT91_PMC_MCKR_PRES_1);
+
+    /* switch mck to plla */
+    pmc_switch_mck_to_pll();
+
+#else
 	/*
 	 * At this stage the main oscillator is supposed to be enabled
 	 * PCK = MCK = MOSC
@@ -94,6 +113,7 @@ void board_init_f(ulong dummy)
 
 	/* Switch MCK on PLLA output */
 	at91_mck_init(CONFIG_SYS_MCKR_CSS);
+#endif
 
 #if defined(CONFIG_SYS_AT91_PLLB)
 	/* Configure PLLB */
@@ -120,6 +140,9 @@ void board_init_f(ulong dummy)
 	at91_periph_clk_enable(ATMEL_ID_PIOA);
 	at91_periph_clk_enable(ATMEL_ID_PIOB);
 	at91_periph_clk_enable(ATMEL_ID_PIOC);
+#if defined(CONFIG_SAM9X60)
+	at91_periph_clk_enable(ATMEL_ID_PIOA);
+#endif
 #endif
 
 #if defined(CONFIG_SPL_SERIAL_SUPPORT)
