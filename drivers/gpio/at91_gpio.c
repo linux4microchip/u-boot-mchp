@@ -130,6 +130,7 @@ int at91_pio3_set_a_periph(unsigned port, unsigned pin, int use_pullup)
 	u32 mask;
 
 	if (at91_port && (pin < GPIO_PER_BANK)) {
+		puts("at91_pio3_set_a_periph \n");
 		mask = 1 << pin;
 		writel(mask, &at91_port->idr);
 		at91_set_pio_pullup(port, pin, use_pullup);

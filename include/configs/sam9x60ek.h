@@ -17,6 +17,9 @@
 #define CONFIG_INITRD_TAG
 #define CONFIG_SKIP_LOWLEVEL_INIT
 
+#define CONFIG_USART_BASE   ATMEL_BASE_DBGU
+#define CONFIG_USART_ID     0/* ignored in arm */
+
 /* general purpose I/O */
 #define CONFIG_ATMEL_LEGACY		/* required until (g)pio is fixed */
 
@@ -87,6 +90,7 @@
 #define CONFIG_SYS_MEMTEST_END		0x26e00000
 
 #ifdef CONFIG_NAND_BOOT
+
 /* bootstrap + u-boot + env + linux in nandflash */
 #define CONFIG_ENV_OFFSET		0x140000
 #define CONFIG_ENV_OFFSET_REDUND	0x100000
@@ -95,6 +99,7 @@
 				"0x22000000 0x200000 0x600000; " \
 				"nand read 0x21000000 0x180000 0x20000; " \
 				"bootz 0x22000000 - 0x21000000"
+
 #elif defined(CONFIG_SPI_BOOT)
 /* bootstrap + u-boot + env + linux in spi flash */
 #define CONFIG_ENV_OFFSET	0x5000
@@ -104,6 +109,7 @@
 #define CONFIG_BOOTCOMMAND	"sf probe 0; " \
 				"sf read 0x22000000 0x100000 0x300000; " \
 				"bootm 0x22000000"
+
 #elif defined(CONFIG_SYS_USE_DATAFLASH)
 /* bootstrap + u-boot + env + linux in data flash */
 #define CONFIG_ENV_OFFSET	0x4200
@@ -113,8 +119,17 @@
 #define CONFIG_BOOTCOMMAND	"sf probe 0; " \
 				"sf read 0x22000000 0x84000 0x294000; " \
 				"bootm 0x22000000"
-#else /* CONFIG_SD_BOOT */
-/* bootstrap + u-boot + env + linux in mmc */
+
+#elif defined(CONFIG_SD_BOOT)
+/* bootstrap + u-boot + env + linux in sd card */
+#define CONFIG_ENV_SIZE		0x4000
+#define CONFIG_BOOTCOMMAND  \
+				"fatload mmc 0:1 0x21000000 sam9x60ek.dtb;" \
+                "fatload mmc 0:1 0x22000000 zImage;" \
+                "bootz 0x22000000 - 0x21000000"
+
+#else 
+/* bootstrap + u-boot + env + linux in emmc */
 #define CONFIG_ENV_SIZE		0x4000
 #endif
 

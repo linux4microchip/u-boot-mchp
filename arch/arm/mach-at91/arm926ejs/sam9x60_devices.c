@@ -54,93 +54,27 @@ char *get_cpu_name()
 
 void at91_seriald_hw_init(void)
 {
-	at91_pio3_set_a_periph(AT91_PIO_PORTA, 9, 0);	/* DRXD */
+	at91_pio3_set_a_periph(AT91_PIO_PORTA, 9, 1);	/* DRXD */
 	at91_pio3_set_a_periph(AT91_PIO_PORTA, 10, 1);	/* DTXD */
 
 	at91_periph_clk_enable(ATMEL_ID_DBGU);
 }
 
-void at91_sdmmc0_hw_init(void)
+void at91_mci_hw_init(void)
 {
-	/* Initialize the MCI0 */
-	at91_pio3_set_a_periph(AT91_PIO_PORTA, 17, 1);	/* MCCK */
-	at91_pio3_set_a_periph(AT91_PIO_PORTA, 16, 1);	/* MCCDA */
-	at91_pio3_set_a_periph(AT91_PIO_PORTA, 15, 1);	/* MCDA0 */
-	at91_pio3_set_a_periph(AT91_PIO_PORTA, 18, 1);	/* MCDA1 */
-	at91_pio3_set_a_periph(AT91_PIO_PORTA, 19, 1);	/* MCDA2 */
-	at91_pio3_set_a_periph(AT91_PIO_PORTA, 20, 1);	/* MCDA3 */
+	/* Initialize the SDMMC0 */
+	puts("at91_sdmmc0_hw_init \n");
+	at91_pio3_set_a_periph(AT91_PIO_PORTA, 17, 1);	/* CLK */
+	at91_pio3_set_a_periph(AT91_PIO_PORTA, 16, 1);	/* CMD */
+	at91_pio3_set_a_periph(AT91_PIO_PORTA, 15, 1);	/* DAT0 */
+	at91_pio3_set_a_periph(AT91_PIO_PORTA, 18, 1);	/* DAT1 */
+	at91_pio3_set_a_periph(AT91_PIO_PORTA, 19, 1);	/* DAT2 */
+	at91_pio3_set_a_periph(AT91_PIO_PORTA, 20, 1);	/* DAT3 */
 
 	at91_periph_clk_enable(ATMEL_ID_SDMMC0);
+	puts("at91_sdmmc0_hw_init done\n");
 }
 
-#if 0
-#ifdef CONFIG_ATMEL_SPI
-void at91_spi0_hw_init(unsigned long cs_mask)
-{
-	at91_pio3_set_a_periph(AT91_PIO_PORTA, 11, 0);	/* SPI0_MISO */
-	at91_pio3_set_a_periph(AT91_PIO_PORTA, 12, 0);	/* SPI0_MOSI */
-	at91_pio3_set_a_periph(AT91_PIO_PORTA, 13, 0);	/* SPI0_SPCK */
-
-	at91_periph_clk_enable(ATMEL_ID_SPI0);
-
-	if (cs_mask & (1 << 0))
-		at91_pio3_set_a_periph(AT91_PIO_PORTA, 14, 0);
-	if (cs_mask & (1 << 1))
-		at91_pio3_set_b_periph(AT91_PIO_PORTA, 7, 0);
-	if (cs_mask & (1 << 2))
-		at91_pio3_set_b_periph(AT91_PIO_PORTA, 1, 0);
-	if (cs_mask & (1 << 3))
-		at91_pio3_set_b_periph(AT91_PIO_PORTB, 3, 0);
-	if (cs_mask & (1 << 4))
-		at91_set_pio_output(AT91_PIO_PORTA, 14, 0);
-	if (cs_mask & (1 << 5))
-		at91_set_pio_output(AT91_PIO_PORTA, 7, 0);
-	if (cs_mask & (1 << 6))
-		at91_set_pio_output(AT91_PIO_PORTA, 1, 0);
-	if (cs_mask & (1 << 7))
-		at91_set_pio_output(AT91_PIO_PORTB, 3, 0);
-}
-
-void at91_spi1_hw_init(unsigned long cs_mask)
-{
-	at91_pio3_set_b_periph(AT91_PIO_PORTA, 21, 0);	/* SPI1_MISO */
-	at91_pio3_set_b_periph(AT91_PIO_PORTA, 22, 0);	/* SPI1_MOSI */
-	at91_pio3_set_b_periph(AT91_PIO_PORTA, 23, 0);	/* SPI1_SPCK */
-
-	at91_periph_clk_enable(ATMEL_ID_SPI1);
-
-	if (cs_mask & (1 << 0))
-		at91_pio3_set_b_periph(AT91_PIO_PORTA, 8, 0);
-	if (cs_mask & (1 << 1))
-		at91_pio3_set_b_periph(AT91_PIO_PORTA, 0, 0);
-	if (cs_mask & (1 << 2))
-		at91_pio3_set_b_periph(AT91_PIO_PORTA, 31, 0);
-	if (cs_mask & (1 << 3))
-		at91_pio3_set_b_periph(AT91_PIO_PORTA, 30, 0);
-	if (cs_mask & (1 << 4))
-		at91_set_pio_output(AT91_PIO_PORTA, 8, 0);
-	if (cs_mask & (1 << 5))
-		at91_set_pio_output(AT91_PIO_PORTA, 0, 0);
-	if (cs_mask & (1 << 6))
-		at91_set_pio_output(AT91_PIO_PORTA, 31, 0);
-	if (cs_mask & (1 << 7))
-		at91_set_pio_output(AT91_PIO_PORTA, 30, 0);
-}
-#endif
-#endif
-
-#if defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI_HCD)
-void at91_uhp_hw_init(void)
-{
-	/* Enable VBus on UHP ports */
-	at91_set_pio_output(AT91_PIO_PORTD, 18, 0); /* port A */
-	at91_set_pio_output(AT91_PIO_PORTD, 19, 0); /* port B */
-#if defined(CONFIG_USB_OHCI_NEW)
-	/* port C is OHCI only */
-	at91_set_pio_output(AT91_PIO_PORTD, 20, 0); /* port C */
-#endif
-}
-#endif
 
 #ifdef CONFIG_MACB
 void at91_macb_hw_init(void)

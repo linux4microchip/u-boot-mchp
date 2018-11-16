@@ -35,7 +35,8 @@ U_BOOT_DRIVER(at91_pmc) = {
 int at91_pmc_core_probe(struct udevice *dev)
 {
 	struct pmc_platdata *plat = dev_get_platdata(dev);
-
+	
+	puts(" at91_pmc_core_probe \n");
 	dev = dev_get_parent(dev);
 
 	plat->reg_base = (struct at91_pmc *)devfdt_get_addr_ptr(dev);
@@ -57,6 +58,7 @@ int at91_clk_sub_device_bind(struct udevice *dev, const char *drv_name)
 	const char *name;
 	int ret;
 
+	puts(" at91_clk_sub_device_bind \n");
 	for (offset = fdt_first_subnode(fdt, offset);
 	     offset > 0;
 	     offset = fdt_next_subnode(fdt, offset)) {
@@ -90,6 +92,7 @@ int at91_clk_of_xlate(struct clk *clk, struct ofnode_phandle_args *args)
 {
 	int periph;
 
+	puts("at91_clk_of_xlate \n");
 	if (args->args_count) {
 		debug("Invalid args_count: %d\n", args->args_count);
 		return -EINVAL;
@@ -110,6 +113,7 @@ int at91_clk_probe(struct udevice *dev)
 	struct udevice *dev_periph_container, *dev_pmc;
 	struct pmc_platdata *plat = dev_get_platdata(dev);
 
+	puts("at91_clk_probe \n");
 	dev_periph_container = dev_get_parent(dev);
 	dev_pmc = dev_get_parent(dev_periph_container);
 

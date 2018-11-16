@@ -18,14 +18,21 @@ static int plla_clk_enable(struct clk *clk)
 	struct pmc_platdata *plat = dev_get_platdata(clk->dev);
 	struct at91_pmc *pmc = plat->reg_base;
 
+#if defined(CONFIG_SAM9X60)
+	if(readl(&pmc->pllisr0) & AT91_PLL_ISR0_LOCK0) {
+		puts("plla_clk_enabled");
+		return 0;
+	}
+#else
 	if (readl(&pmc->sr) & AT91_PMC_LOCKA)
 		return 0;
-
+#endif
 	return -EINVAL;
 }
 
 static ulong plla_clk_get_rate(struct clk *clk)
 {
+	 debug(" %s: clk_rate=%ld \n",__func__,gd->arch.plla_rate_hz);
 	return gd->arch.plla_rate_hz;
 }
 
@@ -41,6 +48,7 @@ static int plla_clk_probe(struct udevice *dev)
 
 static const struct udevice_id plla_clk_match[] = {
 	{ .compatible = "atmel,sama5d3-clk-pll" },
+	{ .compatible = "atmel,sam9x60-clk-pll" },
 	{}
 };
 

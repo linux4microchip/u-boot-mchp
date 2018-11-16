@@ -17,9 +17,8 @@
 #define ATMEL_ID_SYS	1	/* System Controller Interrupt */
 #define ATMEL_ID_PIOA	2	/* Parallel I/O Controller A */
 #define ATMEL_ID_PIOB	3	/* Parallel I/O Controller B */
-#define ATMEL_ID_PIOC	3	/* Parallel I/O Controller C */
+#define ATMEL_ID_PIOC	4	/* Parallel I/O Controller C */
 #define ATMEL_ID_PIOD	44	/* Parallel I/O Controller D */
-#define ATMEL_ID_FUSE	4	/* FUSE Controller, only for AT91SAM9N12 */
 #define ATMEL_ID_FLEXCOM0	5	/* USART 0 */
 #define ATMEL_ID_FLEXCOM1	6	/* USART 1 */
 #define ATMEL_ID_FLEXCOM2	7	/* USART 2 */
@@ -123,6 +122,9 @@
 #define ATMEL_BASE_CS3		0x40000000
 #define ATMEL_BASE_CS4		0x50000000
 #define ATMEL_BASE_CS5		0x60000000
+#define ATMEL_BASE_SDMMC0	0x80000000
+#define ATMEL_BASE_SDMMC1	0x90000000
+
 
 /* 9x5 series chip id definitions */
 #define ARCH_ID_SAM9X60			0x819b35a0 

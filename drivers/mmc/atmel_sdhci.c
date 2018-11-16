@@ -12,17 +12,17 @@
 #include <asm/arch/clk.h>
 
 #define ATMEL_SDHC_MIN_FREQ	400000
-#define ATMEL_SDHC_GCK_RATE	240000000
+#define ATMEL_SDHC_GCK_RATE	100000000
 
 #ifndef CONFIG_DM_MMC
 int atmel_sdhci_init(void *regbase, u32 id)
 {
 	struct sdhci_host *host;
 	u32 max_clk, min_clk = ATMEL_SDHC_MIN_FREQ;
-
+	puts("atmel_sdhci_init \n");
 	host = (struct sdhci_host *)calloc(1, sizeof(struct sdhci_host));
 	if (!host) {
-		printf("%s: sdhci_host calloc failed\n", __func__);
+		pr_err("%s: sdhci_host calloc failed\n", __func__);
 		return -ENOMEM;
 	}
 
@@ -31,7 +31,7 @@ int atmel_sdhci_init(void *regbase, u32 id)
 	host->quirks = SDHCI_QUIRK_WAIT_SEND_CMD;
 	max_clk = at91_get_periph_generated_clk(id);
 	if (!max_clk) {
-		printf("%s: Failed to get the proper clock\n", __func__);
+		pr_err("%s: Failed to get the proper clock\n", __func__);
 		free(host);
 		return -ENODEV;
 	}
@@ -39,6 +39,7 @@ int atmel_sdhci_init(void *regbase, u32 id)
 
 	add_sdhci(host, 0, min_clk);
 
+	puts("atmel_sdhci_init end\n");
 	return 0;
 }
 
@@ -60,13 +61,17 @@ static int atmel_sdhci_probe(struct udevice *dev)
 	struct clk clk;
 	int ret;
 
+	puts("atmel_sdhci_probe \n");
 	ret = clk_get_by_index(dev, 0, &clk);
-	if (ret)
+	if (ret) {
+		puts("atmel_sdhci_probe 1\n");
 		return ret;
-
+	}
 	ret = clk_enable(&clk);
-	if (ret)
+	if (ret) {
+		puts("atmel_sdhci_probe 2\n");
 		return ret;
+	}
 
 	host->name = dev->name;
 	host->ioaddr = (void *)devfdt_get_addr(dev);
@@ -76,22 +81,30 @@ static int atmel_sdhci_probe(struct udevice *dev)
 					 "bus-width", 4);
 
 	ret = clk_get_by_index(dev, 1, &clk);
-	if (ret)
+	if (ret) {
+		puts("atmel_sdhci_probe 3\n");
 		return ret;
+	}
 
 	ret = clk_set_rate(&clk, ATMEL_SDHC_GCK_RATE);
-	if (ret)
+	if (ret) {
+		puts("atmel_sdhci_probe 4\n");
 		return ret;
+	}
 
 	max_clk = clk_get_rate(&clk);
-	if (!max_clk)
+	if (!max_clk) {
+		puts("atmel_sdhci_probe 5\n");
 		return -EINVAL;
+	}
 
 	host->max_clk = max_clk;
 
 	ret = sdhci_setup_cfg(&plat->cfg, host, 0, ATMEL_SDHC_MIN_FREQ);
-	if (ret)
+	if (ret) {
+		puts("atmel_sdhci_probe 6\n");
 		return ret;
+	}
 
 	host->mmc = &plat->mmc;
 	host->mmc->dev = dev;
@@ -100,6 +113,7 @@ static int atmel_sdhci_probe(struct udevice *dev)
 
 	clk_free(&clk);
 
+	puts("atmel_sdhci_probe End \n");
 	return sdhci_probe(dev);
 }
 

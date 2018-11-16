@@ -96,21 +96,23 @@ fail:
 #endif
 
 
-static u32 at91_sam9x60_pll_rate(u32 freq, u32 reg, u32 reg1)
+#if defined (CONFIG_SAM9X60)
+static u32 at91_pll_rate(u32 freq, u32 reg, u32 reg1)
 {
 	unsigned mul, div;
+	u32 clk_divisors[4] = {1, 2, 4, 6};
 
 	div = reg & 0xff;
 	mul = (reg1 >> 24) & 0x7f;
 	if (div && mul) {
-		freq /= div;
+		freq /= clk_divisors[div];
 		freq *= mul + 1;
 	} else
 		freq = 0;
 
 	return freq;
 }
-
+#else
 static u32 at91_pll_rate(u32 freq, u32 reg)
 {
 	unsigned mul, div;
@@ -125,6 +127,7 @@ static u32 at91_pll_rate(u32 freq, u32 reg)
 
 	return freq;
 }
+#endif
 
 int at91_clock_init(unsigned long main_clock)
 {
@@ -150,7 +153,7 @@ int at91_clock_init(unsigned long main_clock)
 
 	/* report if PLLA is more than mildly overclocked */
 #if defined (CONFIG_SAM9X60)
-	gd->arch.plla_rate_hz = at91_sam9x60_pll_rate(main_clock, readl(&pmc->pllctrl0), readl(&pmc->pllctrl1));
+	gd->arch.plla_rate_hz = at91_pll_rate(main_clock, readl(&pmc->pllctrl0), readl(&pmc->pllctrl1));
 #else
 	gd->arch.plla_rate_hz = at91_pll_rate(main_clock, readl(&pmc->pllar));
 #endif
@@ -212,7 +215,8 @@ int at91_clock_init(unsigned long main_clock)
 			(1 << ((mckr & AT91_PMC_MCKR_MDIV_MASK) >> 8));
 #endif
 	gd->arch.cpu_clk_rate_hz = freq;
-
+	debug("%s cpu_clk_rate_hz=%ld mck_rate_hz=%ld plla_rate_hz=%ld \n",
+			__func__, gd->arch.cpu_clk_rate_hz, gd->arch.mck_rate_hz, gd->arch.plla_rate_hz);
 	return 0;
 }
 
@@ -222,8 +226,8 @@ int at91_clock_init(unsigned long main_clock)
 
 void at91_plla_init(u32 pllar)
 {
-	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
 #if !defined(CONFIG_SAM9X60)
+	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
 	writel(pllar, &pmc->pllar);
 	while (!(readl(&pmc->sr) & AT91_PMC_LOCKA))
 		;
@@ -313,6 +317,7 @@ int at91_pllb_clk_disable(void)
 }
 #endif
 
+#if defined(CONFIG_SAM9X60)
 void pmc_set_mck_prescaler(unsigned int prescaler)
 {
     unsigned int reg;
@@ -352,7 +357,6 @@ void pmc_switch_mck_to_pll(void)
 void pmc_sam9x60_cfg_pll(unsigned int pll_id, const struct _pmc_plla_cfg* plla)
 {
     unsigned int reg;
-    unsigned int i;
 	struct at91_pmc *pmc = (at91_pmc_t *)ATMEL_BASE_PMC;
 
     if (pll_id == PLL_ID_UPLL){
@@ -417,3 +421,4 @@ void pmc_sam9x60_cfg_pll(unsigned int pll_id, const struct _pmc_plla_cfg* plla)
     writel(reg, &pmc->pllier);
 #endif
 }
+#endif
