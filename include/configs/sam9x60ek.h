@@ -124,7 +124,7 @@
 /* bootstrap + u-boot + env + linux in sd card */
 #define CONFIG_ENV_SIZE		0x4000
 #define CONFIG_BOOTCOMMAND  \
-				"fatload mmc 0:1 0x21000000 sam9x60ek.dtb;" \
+				"fatload mmc 0:1 0x21000000 at91sam9x60ek.dtb;" \
                 "fatload mmc 0:1 0x22000000 zImage;" \
                 "bootz 0x22000000 - 0x21000000"
 
