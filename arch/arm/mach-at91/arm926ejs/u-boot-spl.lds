@@ -50,7 +50,7 @@ SECTIONS
 }
 
 #if defined(CONFIG_SPL_MAX_SIZE)
-ASSERT(__image_copy_end - __image_copy_start < (CONFIG_SPL_MAX_SIZE), \
+ASSERT(__image_copy_end - __start < (CONFIG_SPL_MAX_SIZE), \
 	"SPL image too big");
 #endif
 
