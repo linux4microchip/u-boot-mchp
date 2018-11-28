@@ -93,6 +93,10 @@ static ulong generic_clk_set_rate(struct clk *clk, ulong rate)
 			return ret;
 
 		parent_rate = clk_get_rate(&parent);
+
+		debug("GCK: testing parent: %s, parent_rate = %ld\n",
+		      parent.dev->name, parent_rate);
+
 		if (IS_ERR_VALUE(parent_rate))
 			return parent_rate;
 
@@ -132,10 +136,16 @@ static ulong generic_clk_set_rate(struct clk *clk, ulong rate)
 	       AT91_PMC_PCR_CMD_WRITE |
 	       AT91_PMC_PCR_GCKDIV_(best_div) |
 	       AT91_PMC_PCR_GCKEN;
+
+#if defined(CONFIG_SAM9X60)
+	while (!(readl(&pmc->gcsr[0]) & (1 << ((clk->id & AT91_PMC_PCR_PID_MASK) % 32))))
+		;
+#else
 	writel(tmp, &pmc->pcr);
 
 	while (!(readl(&pmc->sr) & AT91_PMC_GCKRDY))
 		;
+#endif
 
 	return 0;
 }

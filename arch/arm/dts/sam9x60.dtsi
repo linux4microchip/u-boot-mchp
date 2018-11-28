@@ -7,6 +7,7 @@
  *
  * Licensed under GPLv2 or later.
  */
+
 #include "skeleton.dtsi"
 #include <dt-bindings/dma/at91.h>
 #include <dt-bindings/pinctrl/at91.h>
@@ -75,7 +76,7 @@
 			pinctrl@fffff400 {
 				#address-cells = <1>;
 				#size-cells = <1>;
-				compatible = "atmel,at91sam9x5-pinctrl", "atmel,at91rm9200-pinctrl","simple-bus";
+				compatible = "atmel,at91sam9x5-pinctrl", "atmel,at91rm9200-pinctrl", "simple-bus";
 				ranges = <0xfffff400 0xfffff400 0x200>;
 				reg = <0xfffff400 0x200>;
 				atmel,mux-mask = <0xFFFFFE7F 0xc0E0381F 0xEF00019D>;
@@ -176,7 +177,7 @@
 					compatible = "microchip,sam9x60-clk-generated";
 					#address-cells = <1>;
 					#size-cells = <0>;
-					clocks = <&md_slck>, <&main>, <&mck>;
+                    clocks = <&md_slck>, <&td_slck>, <&main>, <&mck>, <&plla>;
 					u-boot,dm-pre-reloc;
 
 					sdhci0_gclk: sdhci0_gclk {

@@ -17,14 +17,16 @@ void at91_periph_clk_enable(int id)
 
 #ifdef CPU_HAS_PCR
 	u32 regval;
-	u32 div_value;
+	u32 div_value = 0;
 
 	if (id > AT91_PMC_PCR_PID_MASK)
 		return;
 
 	writel(id, &pmc->pcr);
 
+#if !defined(CONFIG_SAM9X60)
 	div_value = readl(&pmc->pcr) & AT91_PMC_PCR_DIV;
+#endif
 
 	regval = AT91_PMC_PCR_EN | AT91_PMC_PCR_CMD_WRITE | id | div_value;
 
