@@ -77,10 +77,14 @@
 				#address-cells = <1>;
 				#size-cells = <1>;
 				compatible = "atmel,at91sam9x5-pinctrl", "atmel,at91rm9200-pinctrl", "simple-bus";
-				ranges = <0xfffff400 0xfffff400 0x200>;
-				reg = <0xfffff400 0x200>;
-				atmel,mux-mask = <0xFFFFFE7F 0xc0E0381F 0xEF00019D>;
+				ranges = <0xfffff400 0xfffff400 0x800>;
+				reg = <0xfffff400 0x200		/* pioA */
+				       0xfffff600 0x200		/* pioB */
+				       0xfffff800 0x200		/* pioC */
+				       0xfffffa00 0x200		/* pioD */
+				       >;
 				u-boot,dm-pre-reloc;
+
 				/* shared pinctrl settings */
 				dbgu {
 					u-boot,dm-pre-reloc;
@@ -177,7 +181,7 @@
 					compatible = "microchip,sam9x60-clk-generated";
 					#address-cells = <1>;
 					#size-cells = <0>;
-                    clocks = <&md_slck>, <&td_slck>, <&main>, <&mck>, <&plla>;
+					clocks = <&md_slck>, <&td_slck>, <&main>, <&mck>, <&plla>;
 					u-boot,dm-pre-reloc;
 
 					sdhci0_gclk: sdhci0_gclk {
