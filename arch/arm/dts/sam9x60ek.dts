@@ -20,3 +20,8 @@
 		u-boot,dm-pre-reloc;
 	};
 };
+
+&macb0 {
+	phy-mode = "rmii";
+	status = "okay";
+};
