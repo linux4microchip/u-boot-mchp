@@ -52,24 +52,33 @@ U_BOOT_DRIVER(sam9x5_periph_clk) = {
 
 /*---------------------------------------------------------*/
 
+#if !defined(CONFIG_SAM9X60)
+static void periph_at91rm9200_clk_pcer(struct at91_pmc *pmc, unsigned long id)
+{
+	void *addr;
+
+	addr = &pmc->pcer;
+	if (id > PERIPHERAL_ID_MAX)
+		addr = &pmc->pcer1;
+
+	setbits_le32(addr, PERIPHERAL_MASK(id));
+}
+#else
+#define periph_at91rm9200_clk_pcer(pmc, id) do { } while (0)
+#endif
+
 static int periph_clk_enable(struct clk *clk)
 {
 	struct pmc_platdata *plat = dev_get_platdata(clk->dev);
 	struct at91_pmc *pmc = plat->reg_base;
 	enum periph_clk_type clk_type;
-	void *addr;
 
 	if (clk->id < PERIPHERAL_ID_MIN)
 		return -1;
 
 	clk_type = dev_get_driver_data(dev_get_parent(clk->dev));
 	if (clk_type == CLK_PERIPH_AT91RM9200) {
-#if !defined(CONFIG_SAM9X60)
-		addr = &pmc->pcer;
-		if (clk->id > PERIPHERAL_ID_MAX)
-			addr = &pmc->pcer1;
-#endif
-		setbits_le32(addr, PERIPHERAL_MASK(clk->id));
+		periph_at91rm9200_clk_pcer(pmc, clk->id);
 	} else {
 		writel(clk->id & AT91_PMC_PCR_PID_MASK, &pmc->pcr);
 		setbits_le32(&pmc->pcr,
