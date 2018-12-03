@@ -1,0 +1,231 @@
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * sam9x60.dtsi - Device Tree Include file for SAM9X60 family SoC
+ *
+ *  Copyright (C) 2018 Microchip Technology Inc,
+ *  Sandeep Sheriker M<sandeepsheriker.mallikarjun@microchip.com>
+ *
+ * Licensed under GPLv2 or later.
+ */
+#include "skeleton.dtsi"
+#include <dt-bindings/dma/at91.h>
+#include <dt-bindings/pinctrl/at91.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/clock/at91.h>
+
+/{
+	model = "Microchip SAM9X60 SoC";
+	compatible = "microchip,sam9x60";
+
+	aliases {
+		serial0 = &dbgu;
+		gpio0 = &pioA;
+	};
+
+	clocks {
+		slow_xtal: slow_xtal {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <0>;
+		};
+
+		 main_xtal: main_xtal {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <0>;
+		};
+	};
+
+	ahb {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+		u-boot,dm-pre-reloc;
+
+		sdhci0: sdhci-host@80000000 {
+			compatible = "microchip,sam9x60-sdhci";
+			reg = <0x80000000 0x300>;
+			clocks = <&sdhci0_clk>, <&sdhci0_gclk>, <&main>;
+			clock-names = "hclock", "multclk", "baseclk";
+			bus-width = <4>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_sdhci0>;
+			u-boot,dm-pre-reloc;
+		};
+
+		apb {
+			compatible = "simple-bus";
+			#address-cells = <1>;
+			#size-cells = <1>;
+			ranges;
+			u-boot,dm-pre-reloc;
+
+			dbgu: serial@fffff200 {
+				compatible = "atmel,at91sam9260-dbgu", "atmel,at91sam9260-usart";
+				reg = <0xfffff200 0x200>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_dbgu>;
+				clocks = <&dbgu_clk>;
+				clock-names = "usart";
+				u-boot,dm-pre-reloc;
+			};
+
+			pinctrl@fffff400 {
+				#address-cells = <1>;
+				#size-cells = <1>;
+				compatible = "atmel,at91sam9x5-pinctrl", "atmel,at91rm9200-pinctrl","simple-bus";
+				ranges = <0xfffff400 0xfffff400 0x200>;
+				reg = <0xfffff400 0x200>;
+				atmel,mux-mask = <0xFFFFFE7F 0xc0E0381F 0xEF00019D>;
+				u-boot,dm-pre-reloc;
+				/* shared pinctrl settings */
+				dbgu {
+					u-boot,dm-pre-reloc;
+					pinctrl_dbgu: dbgu-0 {
+						atmel,pins =
+							<AT91_PIOA 9 AT91_PERIPH_A AT91_PINCTRL_PULL_UP
+							AT91_PIOA 10 AT91_PERIPH_A AT91_PINCTRL_NONE>;
+					};
+				};
+
+				sdhci0 {
+					u-boot,dm-pre-reloc;
+					pinctrl_sdhci0: sdhci0 {
+						atmel,pins =
+							<AT91_PIOA 17 AT91_PERIPH_A AT91_PINCTRL_NONE      /* PA17 CK  periph A with pullup */
+							AT91_PIOA 16 AT91_PERIPH_A AT91_PINCTRL_PULL_UP    /* PA16 CMD periph A with pullup */
+							AT91_PIOA 15 AT91_PERIPH_A AT91_PINCTRL_PULL_UP    /* PA15 DAT0 periph A */
+							AT91_PIOA 18 AT91_PERIPH_A AT91_PINCTRL_PULL_UP    /* PA18 DAT1 periph A with pullup */
+							AT91_PIOA 19 AT91_PERIPH_A AT91_PINCTRL_PULL_UP    /* PA19 DAT2 periph A with pullup */
+							AT91_PIOA 20 AT91_PERIPH_A AT91_PINCTRL_PULL_UP>;  /* PA20 DAT3 periph A with pullup */
+					};
+				};
+			};
+
+			pioA: gpio@fffff400 {
+				compatible = "atmel,at91sam9x5-gpio", "atmel,at91rm9200-gpio";
+				reg = <0xfffff400 0x200>;
+				#gpio-cells = <2>;
+				gpio-controller;
+				clocks = <&pioA_clk>;
+				u-boot,dm-pre-reloc;
+			};
+
+			pmc: pmc@fffffc00 {
+				compatible = "atmel,at91sam9x5-pmc";
+				reg = <0xfffffc00 0x200>;
+				#address-cells = <1>;
+				#size-cells = <0>;
+				u-boot,dm-pre-reloc;
+
+				main: mainck {
+					compatible = "atmel,at91sam9x5-clk-main";
+					#clock-cells = <0>;
+					u-boot,dm-pre-reloc;
+				};
+
+				plla: pllack {
+					compatible = "microchip,sam9x60-clk-pll";
+					#clock-cells = <0>;
+					clocks = <&main>;
+					reg = <0>;
+					atmel,clk-input-range = <8000000 24000000>;
+					#atmel,pll-clk-output-range-cells = <4>;
+					atmel,pll-clk-output-ranges = <140000000 1200000000 0 0>;
+					u-boot,dm-pre-reloc;
+				};
+
+				mck: masterck {
+					compatible = "atmel,at91sam9x5-clk-master";
+					#clock-cells = <0>;
+					clocks = <&md_slck>, <&main>, <&plla>;
+					atmel,clk-output-range = <140000000 200000000>;
+					atmel,clk-divisors = <1 2 4 6>;
+					u-boot,dm-pre-reloc;
+				};
+
+				periphck {
+					compatible = "microchip,sam9x60-clk-peripheral";
+					#address-cells = <1>;
+					#size-cells = <0>;
+					clocks = <&mck>;
+					u-boot,dm-pre-reloc;
+
+					pioA_clk: pioA_clk {
+						#clock-cells = <0>;
+						reg = <2>;
+						u-boot,dm-pre-reloc;
+					};
+
+					sdhci0_clk: sdhci0_clk {
+						#clock-cells = <0>;
+						reg = <12>;
+						u-boot,dm-pre-reloc;
+					};
+
+					dbgu_clk: dbgu_clk {
+						#clock-cells = <0>;
+						reg = <47>;
+						u-boot,dm-pre-reloc;
+					};
+				};
+
+				gck {
+					compatible = "microchip,sam9x60-clk-generated";
+					#address-cells = <1>;
+					#size-cells = <0>;
+					clocks = <&md_slck>, <&main>, <&mck>;
+					u-boot,dm-pre-reloc;
+
+					sdhci0_gclk: sdhci0_gclk {
+						#clock-cells = <0>;
+						reg = <12>;
+						u-boot,dm-pre-reloc;
+					};
+				};
+			};
+
+			pit: timer@fffffe40 {
+				compatible = "atmel,at91sam9260-pit";
+				reg = <0xfffffe40 0xf>;
+				clocks = <&mck>;
+			};
+
+			sckc@fffffe50 {
+				compatible = "atmel,at91sam9x5-sckc";
+				reg = <0xfffffe50 0x4>;
+				u-boot,dm-pre-reloc;
+
+				slow_osc: slow_osc {
+					compatible = "atmel,at91sam9x5-clk-slow-osc";
+					#clock-cells = <0>;
+					clocks = <&slow_xtal>;
+					u-boot,dm-pre-reloc;
+				};
+
+				slow_rc_osc: slow_rc_osc {
+					compatible = "atmel,at91sam9x5-clk-slow-rc-osc";
+					#clock-cells = <0>;
+					clock-frequency = <32768>;
+					u-boot,dm-pre-reloc;
+				};
+
+				td_slck: td_slck {
+					compatible = "atmel,at91sam9x5-clk-slow";
+					#clock-cells = <0>;
+					clocks = <&slow_rc_osc>, <&slow_osc>;
+					u-boot,dm-pre-reloc;
+				};
+
+				md_slck: md_slck {
+					compatible = "atmel,at91sam9x5-clk-slow";
+					#clock-cells = <0>;
+					clocks = <&slow_rc_osc>;
+					u-boot,dm-pre-reloc;
+				};
+			};
+		};
+	};
+};

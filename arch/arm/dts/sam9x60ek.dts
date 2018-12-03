@@ -1,0 +1,22 @@
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * sam9x60ek.dts - Device Tree file for SAM9X60 EK board
+ *
+ *  Copyright (C) 2018 Microchip Technology Inc
+ *	2018 Sandeep Sheriker M<Sandeepsheriker.mallikarjun@microchip.com>
+ *
+ * Licensed under GPLv2 or later.
+ */
+/dts-v1/;
+#include "sam9x60.dtsi"
+
+/ {
+	model = "Microchip SAM9X60-Ek";
+	compatible = "microchip,sam9x60ek", "microchip,sam9x60", "atmel,at91sam9";
+
+	chosen {
+		bootargs = "root=/dev/mtdblock1 rw rootfstype=ubifs ubi.mtd=1 root=ubi0:rootfs";
+		stdout-path = &dbgu;
+		u-boot,dm-pre-reloc;
+	};
+};
