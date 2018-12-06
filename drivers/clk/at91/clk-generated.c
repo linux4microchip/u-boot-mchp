@@ -120,11 +120,11 @@ static ulong generic_clk_set_rate(struct clk *clk, ulong rate)
 
 	debug("GCK: best parent: %s, best_rate = %ld, best_div = %d\n",
 	      best_parent.dev->name, best_rate, best_div);
-
+/*
 	ret = clk_enable(&best_parent);
 	if (ret)
 		return ret;
-
+*/
 	writel(clk->id & AT91_PMC_PCR_PID_MASK, &pmc->pcr);
 	tmp = readl(&pmc->pcr);
 	tmp &= ~(AT91_PMC_PCR_GCKDIV | AT91_PMC_PCR_GCKCSS);
@@ -140,8 +140,15 @@ static ulong generic_clk_set_rate(struct clk *clk, ulong rate)
 	return 0;
 }
 
+static int generic_clk_enable(struct clk *clk)
+{
+	/* already enabled in generic_clk_set_rate */
+	return 0;
+}
+
 static struct clk_ops generic_clk_ops = {
 	.of_xlate = at91_clk_of_xlate,
+	.enable = generic_clk_enable,
 	.get_rate = generic_clk_get_rate,
 	.set_rate = generic_clk_set_rate,
 };
