@@ -41,6 +41,7 @@ static int plla_clk_probe(struct udevice *dev)
 
 static const struct udevice_id plla_clk_match[] = {
 	{ .compatible = "atmel,sama5d3-clk-pll" },
+	{ .compatible = "microchip,sam9x60-clk-pll" },
 	{}
 };
 
