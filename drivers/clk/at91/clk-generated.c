@@ -29,6 +29,7 @@ static int generated_clk_bind(struct udevice *dev)
 
 static const struct udevice_id generated_clk_match[] = {
 	{ .compatible = "atmel,sama5d2-clk-generated" },
+	{ .compatible = "microchip,sam9x60-clk-generated" },
 	{}
 };
 
