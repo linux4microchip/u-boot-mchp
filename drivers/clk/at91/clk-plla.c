@@ -18,9 +18,13 @@ static int plla_clk_enable(struct clk *clk)
 	struct pmc_platdata *plat = dev_get_platdata(clk->dev);
 	struct at91_pmc *pmc = plat->reg_base;
 
+#if defined(CONFIG_SAM9X60)
+	if (readl(&pmc->pllisr0) & AT91_PLL_ISR0_LOCK0)
+		return 0;
+#else
 	if (readl(&pmc->sr) & AT91_PMC_LOCKA)
 		return 0;
-
+#endif
 	return -EINVAL;
 }
 
