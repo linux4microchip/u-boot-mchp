@@ -19,6 +19,7 @@ enum periph_clk_type {
 	CLK_PERIPH_AT91RM9200 = 0,
 	CLK_PERIPH_AT91SAM9X5,
 };
+
 /**
  * sam9x5_periph_clk_bind() - for the periph clock driver
  * Recursively bind its children as clk devices.
@@ -63,10 +64,11 @@ static int periph_clk_enable(struct clk *clk)
 
 	clk_type = dev_get_driver_data(dev_get_parent(clk->dev));
 	if (clk_type == CLK_PERIPH_AT91RM9200) {
+#if !defined(CONFIG_SAM9X60)
 		addr = &pmc->pcer;
 		if (clk->id > PERIPHERAL_ID_MAX)
 			addr = &pmc->pcer1;
-
+#endif
 		setbits_le32(addr, PERIPHERAL_MASK(clk->id));
 	} else {
 		writel(clk->id & AT91_PMC_PCR_PID_MASK, &pmc->pcr);

@@ -227,12 +227,16 @@ int at91_clock_init(unsigned long main_clock)
 
 void at91_plla_init(u32 pllar)
 {
+#if !defined(CONFIG_SAM9X60)
 	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
 
 	writel(pllar, &pmc->pllar);
 	while (!(readl(&pmc->sr) & AT91_PMC_LOCKA))
 		;
+#endif
 }
+
+#if !defined(CPU_NO_PLLB)
 void at91_pllb_init(u32 pllbr)
 {
 	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
@@ -241,6 +245,7 @@ void at91_pllb_init(u32 pllbr)
 	while (!(readl(&pmc->sr) & AT91_PMC_LOCKB))
 		;
 }
+#endif
 
 void at91_mck_init(u32 mckr)
 {
@@ -276,6 +281,7 @@ void at91_mck_init(u32 mckr)
 		;
 }
 
+#if !defined(CPU_NO_PLLB)
 int at91_pllb_clk_enable(u32 pllbr)
 {
 	struct at91_pmc *pmc = (at91_pmc_t *)ATMEL_BASE_PMC;
@@ -311,3 +317,4 @@ int at91_pllb_clk_disable(void)
 
 	return 0;
 }
+#endif
