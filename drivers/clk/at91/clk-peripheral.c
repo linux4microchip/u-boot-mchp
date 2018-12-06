@@ -40,6 +40,10 @@ static const struct udevice_id sam9x5_periph_clk_match[] = {
 		.compatible = "atmel,at91sam9x5-clk-peripheral",
 		.data = CLK_PERIPH_AT91SAM9X5,
 	},
+	{
+		.compatible = "microchip,sam9x60-clk-peripheral",
+		.data = CLK_PERIPH_AT91SAM9X5,
+	},
 	{}
 };
 
