@@ -95,25 +95,45 @@ fail:
 }
 #endif
 
-static u32 at91_pll_rate(u32 freq, u32 reg)
+#if defined(CONFIG_SAM9X60)
+static u32 at91_pll_rate(u32 freq, u32 reg, u32 reg1)
 {
 	unsigned mul, div;
+	u32 clk_divisors[4] = {1, 2, 4, 6};
+
+	div = reg & 0xff;
+	mul = (reg1 >> 24) & 0x7f;
+	if (div && mul) {
+		freq /= clk_divisors[div];
+		freq *= mul + 1;
+	} else {
+		freq = 0;
+	}
+
+	return freq;
+}
+#else
+static u32 at91_pll_rate(u32 freq, u32 reg)
+{
+	unsigned int mul, div;
 
 	div = reg & 0xff;
 	mul = (reg >> 16) & 0x7ff;
 	if (div && mul) {
 		freq /= div;
 		freq *= mul + 1;
-	} else
+	} else {
 		freq = 0;
+	}
 
 	return freq;
 }
+#endif
 
 int at91_clock_init(unsigned long main_clock)
 {
 	unsigned freq, mckr;
-	at91_pmc_t *pmc = (at91_pmc_t *) ATMEL_BASE_PMC;
+	at91_pmc_t *pmc = (at91_pmc_t *)ATMEL_BASE_PMC;
 #ifndef CONFIG_SYS_AT91_MAIN_CLOCK
 	unsigned tmp;
 	/*
@@ -133,7 +153,12 @@ int at91_clock_init(unsigned long main_clock)
 	gd->arch.main_clk_rate_hz = main_clock;
 
 	/* report if PLLA is more than mildly overclocked */
+#if defined(CONFIG_SAM9X60)
+	gd->arch.plla_rate_hz = at91_pll_rate(main_clock,
+				readl(&pmc->pllctrl0), readl(&pmc->pllctrl1));
+#else
 	gd->arch.plla_rate_hz = at91_pll_rate(main_clock, readl(&pmc->pllar));
+#endif
 
 #ifdef CONFIG_USB_ATMEL
 	/*
@@ -153,15 +178,15 @@ int at91_clock_init(unsigned long main_clock)
 	 * For now, assume this parentage won't change.
 	 */
 	mckr = readl(&pmc->mckr);
-#if defined(CONFIG_AT91SAM9G45) || defined(CONFIG_AT91SAM9M10G45) \
-		|| defined(CONFIG_AT91SAM9N12) || defined(CONFIG_AT91SAM9X5)
+#if defined(CONFIG_AT91SAM9G45) || defined(CONFIG_AT91SAM9M10G45) || \
+	defined(CONFIG_AT91SAM9N12) || defined(CONFIG_AT91SAM9X5)
 	/* plla divisor by 2 */
 	gd->arch.plla_rate_hz /= (1 << ((mckr & 1 << 12) >> 12));
 #endif
 	gd->arch.mck_rate_hz = at91_css_to_rate(mckr & AT91_PMC_MCKR_CSS_MASK);
 	freq = gd->arch.mck_rate_hz;
 
-#if defined(CONFIG_AT91SAM9X5)
+#if defined(CONFIG_AT91SAM9X5) || defined(CONFIG_SAM9X60)
 	/* different in prescale on at91sam9x5 */
 	freq /= (1 << ((mckr & AT91_PMC_MCKR_PRES_MASK) >> 4));
 #else
@@ -174,8 +199,9 @@ int at91_clock_init(unsigned long main_clock)
 		freq / ((mckr & AT91_PMC_MCKR_MDIV_MASK) >> 7) : freq;
 	if (mckr & AT91_PMC_MCKR_MDIV_MASK)
 		freq /= 2;			/* processor clock division */
-#elif defined(CONFIG_AT91SAM9G45) || defined(CONFIG_AT91SAM9M10G45) \
-		|| defined(CONFIG_AT91SAM9N12) || defined(CONFIG_AT91SAM9X5)
+#elif defined(CONFIG_AT91SAM9G45) || defined(CONFIG_AT91SAM9M10G45) || \
+	defined(CONFIG_AT91SAM9N12) || defined(CONFIG_AT91SAM9X5) || \
+	defined(CONFIG_SAM9X60)
 	/* mdiv <==> divisor
 	 *  0   <==>   1
 	 *  1   <==>   2
