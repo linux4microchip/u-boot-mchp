@@ -5,6 +5,7 @@
  * Copyright (C) 2005 Ivan Kokshaysky
  * Copyright (C) SAN People
  * Copyright (C) 2009 Jens Scharsig (js_at_ng@scharsoft.de)
+ * Copyright (C) 2018 Microchip Technology Inc
  *
  * Power Management Controller (PMC) - System peripherals registers.
  * Based on AT91RM9200 datasheet revision E.
@@ -25,6 +26,57 @@
 
 #include <asm/types.h>
 
+#if defined(CONFIG_SAM9X60)
+typedef struct at91_pmc {
+	u32	scer;		/* 0x00 System Clock Enable Register */
+	u32	scdr;		/* 0x04 System Clock Disable Register */
+	u32	scsr;		/* 0x08 System Clock Status Register */
+	u32	pllctrl0;	/* 0x0C PLL Control Register 0 */
+	u32	pllctrl1;	/* 0x10 PLL Control Register 1 */
+	u32	pllssr;		/* 0x14 PLL Spread Spectrum Register */
+	u32	pllacr;		/* 0x18 PLL Analog Control Registerr */
+	u32	pllupdt;	/* 0x1C PLL Update Register */
+	u32	mor;		/* 0x20 Main Oscilator Register */
+	u32	mcfr;		/* 0x24 Main Clock Frequency Register */
+	u32	mckr;		/* 0x28 CPU/Master Clock Register */
+	u32	reserved[3];
+	u32	usb;		/* 0x38 USB Clock Register */
+	u32	reserved1;
+	u32	pck;		/* 0x40 Programmable Clock Register 0 - 3 */
+	u32	reserved2[7];
+	u32	ier;		/* 0x60 Interrupt Enable Register */
+	u32	idr;		/* 0x64 Interrupt Disable Register */
+	u32	sr;		/* 0x68 Status Register */
+	u32	imr;		/* 0x6C Interrupt Mask Register */
+	u32	fsmr;       	/* 0x70 Fast Startup Mode Register */
+	u32	wcr;        	/* 0x74 Wakeup Control Register */
+	u32	focr;		/* 0x78 Fault Output Clear Register */
+	u32	reserved3[1];
+	u32	wpmr;		/* 0x80 Write Protection Mode Register */
+	u32	wpsr;		/* 0x84 Write Protection Status Register */
+	u32	pcr;		/* 0x88 Peripheral Control Register */
+	u32	ocr;		/* 0x8C Oscillator Calibration Register */
+	u32	slpaipr;	/* 0x90 SleepWalking Activity In Progress Register */
+	u32	slpwkcr;	/* 0x94 SleepWalking Control Register */
+	u32	uppst;		/* 0x98 ULP Startup Time Register */
+	u32	mcklim;		/* 0x9C MCK Monitor Limits Register */
+	u32	CSR[4];		/* 0xA0 Peripheral Clock Status Register 0~3 */
+	u32	reserved4[4];
+	u32	gcsr[4];	/* 0xC0 Generic Clock Status Register 0~3 */
+	u32	reserved5[4];
+	u32	pllier;		/* 0xE0 PLL Interrupt Enable Register */
+	u32	pllidr;		/* 0xE4 PLL Interrupt Disable Register */
+	u32	pllimr;		/* 0xE8 PLL Interrupt Mask Register */
+	u32	pllisr0;	/* 0xEC PLL Interrupt Status Register 0 */
+	u32	pllisr1;	/* 0xF0 PLL Interrupt Status Register 1 */
+	u32	reserved7[3];
+	u32	addrsize;	/* 0x100 Address Size Register */
+	u32	name[2];	/* 0x104 IP Name Register */
+	u32	features;	/* 0x010C Features Register */
+	u32	version;	/* 0x110 Version Register */
+} at91_pmc_t;
+
+#else
 typedef struct at91_pmc {
 	u32	scer;		/* 0x00 System Clock Enable Register */
 	u32	scdr;		/* 0x04 System Clock Disable Register */
@@ -60,6 +112,8 @@ typedef struct at91_pmc {
 	u32	pcr;		/* 0x10c Periperial Control Register */
 	u32	ocr;		/* 0x110 Oscillator Calibration Register */
 } at91_pmc_t;
+
+#endif
 
 #endif	/* end not assembly */
 
@@ -97,7 +151,8 @@ typedef struct at91_pmc {
 
 #if defined(CONFIG_SAMA5D2) || defined(CONFIG_SAMA5D3) || \
 	defined(CONFIG_SAMA5D4) || \
-	defined(CONFIG_AT91SAM9X5) || defined(CONFIG_AT91SAM9N12)
+	defined(CONFIG_AT91SAM9X5) || defined(CONFIG_AT91SAM9N12) || \
+	defined(CONFIG_SAM9X60)
 #define AT91_PMC_MCKR_PRES_1		0x00000000
 #define AT91_PMC_MCKR_PRES_2		0x00000010
 #define AT91_PMC_MCKR_PRES_4		0x00000020
@@ -149,6 +204,19 @@ typedef struct at91_pmc {
 #define AT91_PMC_IXR_MOSCSELS		0x00010000
 
 #define AT91_PMC_PCR_PID_MASK		(0x3f)
+#if defined(CONFIG_SAM9X60)
+#define AT91_PMC_PCR_GCKCSS		(0x1f << 8)
+#define AT91_PMC_PCR_GCKCSS_MASK	0x1f
+#define AT91_PMC_PCR_GCKCSS_OFFSET	8
+#define AT91_PMC_PCR_GCKCSS_(x)		((x & 0x1f) << 8)
+#define		AT91_PMC_PCR_GCKCSS_SLOW_CLK	(0x0 << 8)
+#define		AT91_PMC_PCR_GCKCSS_TD_SLOW_CLK	(0x1 << 8)
+#define		AT91_PMC_PCR_GCKCSS_MAIN_CLK	(0x2 << 8)
+#define		AT91_PMC_PCR_GCKCSS_MCK_CLK	(0x3 << 8)
+#define		AT91_PMC_PCR_GCKCSS_PLLA_CLK	(0x4 << 8)
+#define		AT91_PMC_PCR_GCKCSS_UPLL_CLK	(0x5 << 8)
+#define AT91_PMC_PCR_CMD_WRITE		(0x1 << 31)
+#else
 #define AT91_PMC_PCR_GCKCSS		(0x7 << 8)
 #define AT91_PMC_PCR_GCKCSS_MASK	0x07
 #define AT91_PMC_PCR_GCKCSS_OFFSET	8
@@ -161,6 +229,7 @@ typedef struct at91_pmc {
 #define		AT91_PMC_PCR_GCKCSS_AUDIO_CLK	(0x5 << 8)
 #define AT91_PMC_PCR_CMD_WRITE		(0x1 << 12)
 #define AT91_PMC_PCR_DIV		(0x3 << 16)
+#endif
 #define AT91_PMC_PCR_GCKDIV		(0xff << 20)
 #define AT91_PMC_PCR_GCKDIV_MASK	0xff
 #define AT91_PMC_PCR_GCKDIV_OFFSET	20
@@ -265,4 +334,5 @@ typedef struct at91_pmc {
 #define AT91_PMC_ICP_PLLU(x)		(((x) & 0x3) << 16)
 #define AT91_PMC_IVCO_PLLU(x)		(((x) & 0x3) << 24)
 
+#define AT91_PLL_ISR0_LOCK0 (0x1u << 0)
 #endif
