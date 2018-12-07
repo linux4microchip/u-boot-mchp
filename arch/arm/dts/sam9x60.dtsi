@@ -84,7 +84,7 @@
 				u-boot,dm-pre-reloc;
 			};
 
-			pinctrl@fffff400 {
+			pinctrl {
 				#address-cells = <1>;
 				#size-cells = <1>;
 				compatible = "atmel,at91sam9x5-pinctrl", "atmel,at91rm9200-pinctrl", "simple-bus";
