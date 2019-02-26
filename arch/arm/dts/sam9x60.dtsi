@@ -241,7 +241,7 @@
 
 			pit: timer@fffffe40 {
 				compatible = "atmel,at91sam9260-pit";
-				reg = <0xfffffe40 0xf>;
+				reg = <0xfffffe40 0x10>;
 				clocks = <&mck>;
 			};
 
