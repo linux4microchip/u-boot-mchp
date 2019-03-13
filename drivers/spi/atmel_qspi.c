@@ -269,7 +269,15 @@ static int atmel_qspi_exec_flash_command(struct udevice *dev,
 
 	/* Set QSPI Instruction Frame registers. */
 	qspi_writel(aq, QSPI_IAR, iar);
-	qspi_writel(aq, QSPI_ICR, icr);
+	if (aq->caps->has_ricr) {
+		if ((cmd->flags & SPI_FCMD_TYPE) == SPI_FCMD_READ ||
+		    (cmd->flags & SPI_FCMD_TYPE) == SPI_FCMD_READ_REG)
+			qspi_writel(aq, QSPI_RICR, icr);
+		else
+			qspi_writel(aq, QSPI_WICR, icr);
+	} else {
+		qspi_writel(aq, QSPI_ICR, icr);
+	}
 	qspi_writel(aq, QSPI_IFR, ifr);
 
 	/* Skip to the final steps if there is no data. */
@@ -313,28 +321,48 @@ static const struct dm_spi_ops atmel_qspi_ops = {
 static int atmel_qspi_enable_clk(struct udevice *bus)
 {
 	struct atmel_qspi_priv *aq = dev_get_priv(bus);
-	struct clk clk;
+	struct clk pclk, qspick;
 	ulong clk_rate;
 	int ret;
 
-	ret = clk_get_by_index(bus, 0, &clk);
-	if (ret)
-		return -EINVAL;
+	/* Get the peripheral clock */
+	ret = clk_get_by_index(bus, 0, &pclk);
+	if (ret) {
+		dev_err(bus, "Missing QSPI peripheral clock\n");
+		return ret;
+	}
 
-	ret = clk_enable(&clk);
-	if (ret)
-		goto free_clock;
+	ret = clk_enable(&pclk);
+	if (ret) {
+		dev_err(bus, "Failed to enable QSPI peripheral clock\n");
+		goto free_pclk;
+	}
 
-	clk_rate = clk_get_rate(&clk);
+	clk_rate = clk_get_rate(&pclk);
 	if (!clk_rate) {
 		ret = -EINVAL;
-		goto free_clock;
+		goto free_pclk;
 	}
 
 	aq->bus_clk_rate = clk_rate;
 
-free_clock:
-	clk_free(&clk);
+	if (aq->caps->has_qspick) {
+		/* Get the QSPI system clock */
+		ret = clk_get_by_index(bus, 1, &qspick);
+		if (ret) {
+			dev_err(bus, "Missing QSPI peripheral clock\n");
+			goto free_pclk;
+		}
+
+		ret = clk_enable(&qspick);
+		if (ret)
+			dev_err(bus, "Failed to enable QSPI system clock\n");
+
+		clk_free(&qspick);
+	}
+
+free_pclk:
+	clk_free(&pclk);
 
 	return ret;
 }
@@ -345,6 +373,12 @@ static int atmel_qspi_probe(struct udevice *bus)
 	struct atmel_qspi_priv *aq = dev_get_priv(bus);
 	u32 mr;
 	int ret;
+
+	aq->caps = (struct atmel_qspi_caps *)dev_get_driver_data(bus);
+	if (!aq->caps) {
+		dev_err(bus, "Could not retrieve QSPI caps\n");
+		return -EINVAL;
+	}
 
 	ret = atmel_qspi_enable_clk(bus);
 	if (ret)
@@ -387,8 +421,22 @@ static int atmel_qspi_ofdata_to_platdata(struct udevice *bus)
 	return 0;
 }
 
+static const struct atmel_qspi_caps atmel_sama5d2_qspi_caps = {};
+
+static const struct atmel_qspi_caps atmel_sam9x60_qspi_caps = {
+	.has_qspick = true,
+	.has_ricr = true,
+};
+
 static const struct udevice_id atmel_qspi_ids[] = {
-	{ .compatible = "atmel,sama5d2-qspi" },
+	{
+		.compatible = "atmel,sama5d2-qspi",
+		.data = (ulong)&atmel_sama5d2_qspi_caps,
+	},
+	{
+		.compatible = "microchip,sam9x60-qspi",
+		.data = (ulong)&atmel_sam9x60_qspi_caps,
+	},
 	{ }
 };
 

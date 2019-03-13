@@ -21,7 +21,9 @@
 #define	QSPI_SCR	0x20	/* Serial Clock Register */
 #define	QSPI_IAR	0x30	/* Instruction Address Register */
 #define	QSPI_ICR	0x34	/* Instruction Code Register */
+#define	QSPI_WICR	0x34	/* Write Instruction Code Register */
 #define	QSPI_IFR	0x38	/* Instruction Frame Register */
+#define	QSPI_RICR	0x3C	/* Read Instruction Code Register */
 /* 0x3c Reserved */
 #define	QSPI_SMR	0x40	/* Scrambling Mode Register */
 #define	QSPI_SKR	0x44	/* Scrambling Key Register */
@@ -148,10 +150,16 @@ struct atmel_qspi_platdata {
 	void		*membase;
 };
 
+struct atmel_qspi_caps {
+	bool has_qspick;
+	bool has_ricr;
+};
+
 struct atmel_qspi_priv {
 	ulong		bus_clk_rate;
 	void		*regbase;
 	void		*membase;
+	const struct atmel_qspi_caps *caps;
 };
 
 #include <asm/io.h>
