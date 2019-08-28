@@ -22,14 +22,16 @@ void at91_periph_clk_enable(int id)
 
 #ifdef CPU_HAS_PCR
 	u32 regval;
-	u32 div_value;
+	u32 div_value = 0;
 
 	if (id > AT91_PMC_PCR_PID_MASK)
 		return;
 
 	writel(id, &pmc->pcr);
 
+#if !defined(CONFIG_SAM9X60)
 	div_value = readl(&pmc->pcr) & AT91_PMC_PCR_DIV;
+#endif
 
 	regval = AT91_PMC_PCR_EN | AT91_PMC_PCR_CMD_WRITE | id | div_value;
 
@@ -71,6 +73,7 @@ void at91_system_clk_disable(int sys_clk)
 	writel(sys_clk, &pmc->scdr);
 }
 
+#if !defined(CONFIG_SAM9X60)
 int at91_upll_clk_enable(void)
 {
 	struct at91_pmc *pmc = (at91_pmc_t *)ATMEL_BASE_PMC;
@@ -109,6 +112,7 @@ int at91_upll_clk_disable(void)
 
 	return 0;
 }
+#endif
 
 void at91_usb_clk_init(u32 value)
 {
@@ -117,12 +121,14 @@ void at91_usb_clk_init(u32 value)
 	writel(value, &pmc->usb);
 }
 
+#if !defined(CONFIG_SAM9X60)
 void at91_pllicpr_init(u32 icpr)
 {
 	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
 
 	writel(icpr, &pmc->pllicpr);
 }
+#endif
 
 /* Called by macro WATCHDOG_RESET */
 void watchdog_reset(void)
