@@ -20,14 +20,16 @@ void at91_periph_clk_enable(int id)
 
 #ifdef CPU_HAS_PCR
 	u32 regval;
-	u32 div_value;
+	u32 div_value = 0;
 
 	if (id > AT91_PMC_PCR_PID_MASK)
 		return;
 
 	writel(id, &pmc->pcr);
 
+#if !defined(CONFIG_SAM9X60)
 	div_value = readl(&pmc->pcr) & AT91_PMC_PCR_DIV;
+#endif
 
 	regval = AT91_PMC_PCR_EN | AT91_PMC_PCR_CMD_WRITE | id | div_value;
 
@@ -69,6 +71,7 @@ void at91_system_clk_disable(int sys_clk)
 	writel(sys_clk, &pmc->scdr);
 }
 
+#if !defined(CONFIG_SAM9X60)
 int at91_upll_clk_enable(void)
 {
 	struct at91_pmc *pmc = (at91_pmc_t *)ATMEL_BASE_PMC;
@@ -107,6 +110,7 @@ int at91_upll_clk_disable(void)
 
 	return 0;
 }
+#endif
 
 void at91_usb_clk_init(u32 value)
 {
@@ -115,9 +119,54 @@ void at91_usb_clk_init(u32 value)
 	writel(value, &pmc->usb);
 }
 
+#if !defined(CONFIG_SAM9X60)
 void at91_pllicpr_init(u32 icpr)
 {
 	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
 
 	writel(icpr, &pmc->pllicpr);
+}
+#endif
+
+/* Called by macro WATCHDOG_RESET */
+void watchdog_reset(void)
+{
+	static ulong next_reset;
+	ulong now;
+
+	if (!watchdog_dev)
+		return;
+
+	now = get_timer(0);
+
+	/* Do not reset the watchdog too often */
+	if (now > next_reset) {
+		next_reset = now + 1000;	/* reset every 1000ms */
+		wdt_reset(watchdog_dev);
+	}
+}
+
+int arch_early_init_r(void)
+{
+	struct at91_wdt_priv *priv;
+
+	/* Init watchdog */
+	if (uclass_get_device_by_seq(UCLASS_WDT, 0, &watchdog_dev)) {
+		debug("Watchdog: Not found by seq!\n");
+		if (uclass_get_device(UCLASS_WDT, 0, &watchdog_dev)) {
+			puts("Watchdog: Not found!\n");
+			return 0;
+		}
+	}
+
+	priv = dev_get_priv(watchdog_dev);
+	if (!priv) {
+		printf("Watchdog: priv not available!\n");
+		return 0;
+	}
+
+	wdt_start(watchdog_dev, priv->timeout * 1000, 0);
+	printf("Watchdog: Started\n");
+
+	return 0;
 }
