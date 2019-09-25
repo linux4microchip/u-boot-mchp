@@ -141,8 +141,15 @@ static ulong generic_clk_set_rate(struct clk *clk, ulong rate)
 	return 0;
 }
 
+static int generic_clk_enable(struct clk *clk)
+{
+	/* already enabled in generic_clk_set_rate */
+	return 0;
+}
+
 static struct clk_ops generic_clk_ops = {
 	.of_xlate = at91_clk_of_xlate,
+	.enable = generic_clk_enable,
 	.get_rate = generic_clk_get_rate,
 	.set_rate = generic_clk_set_rate,
 };
