@@ -16,6 +16,15 @@ DECLARE_GLOBAL_DATA_PTR;
 #define GENERATED_SOURCE_MAX	6
 #define GENERATED_MAX_DIV	255
 
+#ifdef CONFIG_SAMA5D2
+#define GCK_STATUS_REG_PTR(_pmc, _p)	(&(_pmc)->sr)
+#define GCK_READY(_s, _p)		((_s) & AT91_PMC_GCKRDY)
+#else
+#define GCK_STATUS_REG_PTR(_pmc, _p)	(((_p) < 32) ? &(_pmc)->gcsr[0] : \
+						       &(_pmc)->gcsr[1])
+#define GCK_READY(_s, _p)		((_s) & (1 << ((_p) % 32)))
+#endif
+
 /**
  * generated_clk_bind() - for the generated clock driver
  * Recursively bind its children as clk devices.
@@ -85,7 +94,7 @@ static ulong generic_clk_set_rate(struct clk *clk, ulong rate)
 	u32 div, best_div = 0;
 	u8 best_parent_index, best_clock_source = 0;
 	u8 i;
-	u32 tmp;
+	u32 tmp, status;
 	int ret;
 
 	for (i = 0; i < priv->num_parents; i++) {
@@ -135,8 +144,9 @@ static ulong generic_clk_set_rate(struct clk *clk, ulong rate)
 	       AT91_PMC_PCR_GCKEN;
 	writel(tmp, &pmc->pcr);
 
-	while (!(readl(&pmc->sr) & AT91_PMC_GCKRDY))
-		;
+	do {
+		status = readl(GCK_STATUS_REG_PTR(pmc, clk->id));
+	} while (!GCK_READY(status, clk->id));
 
 	return 0;
 }
