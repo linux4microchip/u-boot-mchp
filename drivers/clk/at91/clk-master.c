@@ -15,8 +15,14 @@ static ulong at91_master_clk_get_rate(struct clk *clk)
 	return gd->arch.mck_rate_hz;
 }
 
+static int at91_master_clk_enable(struct clk *clk)
+{
+	return 0;
+}
+
 static struct clk_ops at91_master_clk_ops = {
 	.get_rate = at91_master_clk_get_rate,
+	.enable = at91_master_clk_enable,
 };
 
 static const struct udevice_id at91_master_clk_match[] = {
