@@ -1430,6 +1430,7 @@ struct sfdp_parameter_header {
 
 #define SFDP_BFPT_ID		0xff00	/* Basic Flash Parameter Table */
 #define SFDP_SECTOR_MAP_ID	0xff81	/* Sector Map Table */
+#define SFDP_MICROCHIP_ID	0x01bf	/* Manufacturer specific Table */
 
 #define SFDP_SIGNATURE		0x50444653U
 #define SFDP_JESD216_MAJOR	1
@@ -1810,6 +1811,34 @@ static int spi_nor_parse_bfpt(struct spi_nor *nor,
 }
 
 /**
+ * spi_nor_parse_microchip_sfdp() - parse the Microchip manufacturer specific
+ * SFDP table.
+ * @nor:		pointer to a 'struct spi_nor'.
+ * @param_header:	pointer to the SFDP parameter header.
+ *
+ * Return: 0 on success, -errno otherwise.
+ */
+static int
+spi_nor_parse_microchip_sfdp(struct spi_nor *nor,
+			     const struct sfdp_parameter_header *param_header)
+{
+	size_t size;
+	u32 addr;
+	int ret;
+
+	size = param_header->length * sizeof(u32);
+	addr = SFDP_PARAM_HEADER_PTP(param_header);
+
+	nor->manufacturer_sfdp = devm_kmalloc(nor->dev, size, GFP_KERNEL);
+	if (!nor->manufacturer_sfdp)
+		return -ENOMEM;
+
+	ret = spi_nor_read_sfdp(nor, addr, size, nor->manufacturer_sfdp);
+
+	return ret;
+}
+
+/**
  * spi_nor_parse_sfdp() - parse the Serial Flash Discoverable Parameters.
  * @nor:		pointer to a 'struct spi_nor'
  * @params:		pointer to the 'struct spi_nor_flash_parameter' to be
@@ -1903,6 +1932,12 @@ static int spi_nor_parse_sfdp(struct spi_nor *nor,
 		switch (SFDP_PARAM_HEADER_ID(param_header)) {
 		case SFDP_SECTOR_MAP_ID:
 			dev_info(dev, "non-uniform erase sector maps are not supported yet.\n");
+			break;
+
+		case SFDP_MICROCHIP_ID:
+			err = spi_nor_parse_microchip_sfdp(nor, param_header);
+			if (err)
+				goto exit;
 			break;
 
 		default:
