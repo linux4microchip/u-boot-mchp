@@ -106,6 +106,22 @@ int board_early_init_f(void)
 }
 #endif
 
+#define MAC24AA_MAC_OFFSET     0xfa
+
+#ifdef CONFIG_MISC_INIT_R
+int misc_init_r(void)
+{
+	/* TODO : move to flexcom uclass driver. */
+	unsigned int *flx0_set = 0xf801c000;
+	*flx0_set = 3;
+#ifdef CONFIG_I2C_EEPROM
+	at91_set_ethaddr(MAC24AA_MAC_OFFSET);
+#endif
+printf(" misc init r\n");
+	return 0;
+}
+#endif
+
 int board_init(void)
 {
 	/* address of boot parameters */
