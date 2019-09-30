@@ -24,6 +24,7 @@
 		gpio1 = &pioB;
 		gpio3 = &pioD;
 		spi0 = &qspi;
+		i2c0 = &flx0;
 	};
 
 	clocks {
@@ -68,6 +69,15 @@
 				reg-names = "qspi_base", "qspi_mmap";
 				clocks =  <&qspi_clk>, <&qspick>;
 				clock-names = "pclk", "qspick";
+				#address-cells = <1>;
+				#size-cells = <0>;
+				status = "disabled";
+			};
+
+			flx0: flexcom@f801c600 {
+				compatible = "atmel,sama5d2-i2c";
+				reg = <0xf801c600 0x200>;
+				clocks = <&flx0_clk>;
 				#address-cells = <1>;
 				#size-cells = <0>;
 				status = "disabled";
@@ -220,6 +230,11 @@
 					pioB_clk: pioB_clk {
 						#clock-cells = <0>;
 						reg = <3>;
+					};
+
+					flx0_clk: flx0_clk {
+						#clock-cells = <0>;
+						reg = <5>;
 					};
 
 					pioD_clk: pioD_clk {
