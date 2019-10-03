@@ -117,7 +117,6 @@ int misc_init_r(void)
 #ifdef CONFIG_I2C_EEPROM
 	at91_set_ethaddr(MAC24AA_MAC_OFFSET);
 #endif
-printf(" misc init r\n");
 	return 0;
 }
 #endif
