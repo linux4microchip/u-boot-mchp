@@ -2370,7 +2370,10 @@ static int spi_nor_select_erase(struct spi_nor *nor,
 		mtd->erasesize = 4096;
 	} else
 #endif
-	{
+	if (info->flags & SECT_4K_ONLY) {
+		nor->erase_opcode = SPINOR_OP_BE_4K;
+		mtd->erasesize = 4096;
+	} else {
 		nor->erase_opcode = SPINOR_OP_SE;
 		mtd->erasesize = info->sector_size;
 	}
@@ -2438,9 +2441,31 @@ static int spi_nor_setup(struct spi_nor *nor, const struct flash_info *info,
 	return 0;
 }
 
+static int spi_nor_unlock_global_block_protection(struct spi_nor *nor)
+{
+	int ret;
+
+	write_enable(nor);
+
+	ret = nor->write_reg(nor, SPINOR_OP_GBULK, NULL, 0);
+	if (ret < 0)
+		return ret;
+
+	return spi_nor_wait_till_ready(nor);
+}
+
 static int spi_nor_init(struct spi_nor *nor)
 {
 	int err;
+
+	if (nor->info->flags & UNLOCK_GLOBAL_BLOCK) {
+		err = spi_nor_unlock_global_block_protection(nor);
+		if (err) {
+			dev_err(nor->dev,
+				"Cannot unlock the global block protection\n");
+			return err;
+		}
+	}
 
 	/*
 	 * Atmel, SST, Intel/Numonyx, and others serial NOR tend to power up
