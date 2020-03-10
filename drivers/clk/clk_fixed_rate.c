@@ -19,9 +19,16 @@ static int dummy_enable(struct clk *clk)
 	return 0;
 }
 
+/* avoid clk_set_rate() failing */
+static ulong dummy_set(struct clk *clk, ulong rate)
+{
+	return 0;
+}
+
 const struct clk_ops clk_fixed_rate_ops = {
 	.get_rate = clk_fixed_rate_get_rate,
 	.enable = dummy_enable,
+	.set_rate = dummy_set,
 };
 
 static int clk_fixed_rate_ofdata_to_platdata(struct udevice *dev)
