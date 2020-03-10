@@ -16,7 +16,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #define GENERATED_SOURCE_MAX	6
 #define GENERATED_MAX_DIV	255
 
-#ifdef CONFIG_SAMA5D2
+#if !defined(CONFIG_SAM9X60)
 #define GCK_STATUS_REG_PTR(_pmc, _p)	(&(_pmc)->sr)
 #define GCK_READY(_s, _p)		((_s) & AT91_PMC_GCKRDY)
 #else
