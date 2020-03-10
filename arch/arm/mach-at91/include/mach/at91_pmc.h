@@ -26,7 +26,7 @@
 
 #include <asm/types.h>
 
-#if defined(CONFIG_SAM9X60)
+#if defined(CONFIG_SAM9X60) || defined(SAMA7G5)
 typedef struct at91_pmc {
 	u32	scer;		/* 0x00 System Clock Enable Register */
 	u32	scdr;		/* 0x04 System Clock Disable Register */
