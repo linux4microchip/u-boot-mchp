@@ -11,6 +11,13 @@
 #include <i2c.h>
 #include <i2c_eeprom.h>
 
+/* These macros are used to encode/decode the starting EEPROM offset into the
+ * udevice_id structure's data field 3rd byte.
+ * Lower 2 bytes of the data field are used for pagewidth.
+ */
+#define I2C_EEPROM_OFFSET_TO_DATA(v) ((v) << 16)
+#define I2C_EEPROM_DATA_TO_OFFSET(v) ((v) >> 16)
+
 int i2c_eeprom_read(struct udevice *dev, int offset, uint8_t *buf, int size)
 {
 	const struct i2c_eeprom_ops *ops = device_get_ops(dev);
@@ -85,11 +92,17 @@ static int i2c_eeprom_std_ofdata_to_platdata(struct udevice *dev)
 
 static int i2c_eeprom_std_probe(struct udevice *dev)
 {
+	u64 data = dev_get_driver_data(dev);
 	u8 test_byte;
 	int ret;
 
 	/* Verify that the chip is functional */
-	ret = i2c_eeprom_read(dev, 0, &test_byte, 1);
+	/*
+	 * Not all eeproms start from offset 0. Valid offset is encoded in
+	 * upper bits of the data (byte 3).
+	 */
+	ret = i2c_eeprom_read(dev, I2C_EEPROM_DATA_TO_OFFSET(data) & 0xFF,
+			      &test_byte, 1);
 	if (ret)
 		return -ENODEV;
 
@@ -105,7 +118,8 @@ static const struct udevice_id i2c_eeprom_std_ids[] = {
 	{ .compatible = "atmel,24c08", .data = 4 },
 	{ .compatible = "atmel,24c08a", .data = 4 },
 	{ .compatible = "atmel,24c16a", .data = 4 },
-	{ .compatible = "atmel,24mac402", .data = 4 },
+	{ .compatible = "atmel,24mac402",
+		.data = (4 | I2C_EEPROM_OFFSET_TO_DATA(0x80))},
 	{ .compatible = "atmel,24c32", .data = 5 },
 	{ .compatible = "atmel,24c64", .data = 5 },
 	{ .compatible = "atmel,24c128", .data = 6 },
