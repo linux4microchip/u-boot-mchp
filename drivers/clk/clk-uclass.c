@@ -11,6 +11,7 @@
 #include <clk-uclass.h>
 #include <dm.h>
 #include <dm/read.h>
+#include <dm/device-internal.h>
 #include <dt-structs.h>
 #include <errno.h>
 #include <linux/clk-provider.h>
@@ -478,6 +479,8 @@ ulong clk_set_rate(struct clk *clk, ulong rate)
 int clk_set_parent(struct clk *clk, struct clk *parent)
 {
 	const struct clk_ops *ops;
+	struct clk *pclk;
+	int ret;
 
 	debug("%s(clk=%p, parent=%p)\n", __func__, clk, parent);
 	if (!clk)
@@ -487,7 +490,23 @@ int clk_set_parent(struct clk *clk, struct clk *parent)
 	if (!ops->set_parent)
 		return -ENOSYS;
 
-	return ops->set_parent(clk, parent);
+	pclk = clk_get_parent(clk);
+	if (IS_ERR(pclk))
+		return -ENODEV;
+
+	ret = ops->set_parent(clk, parent);
+	if (ret)
+		return ret;
+
+	if (CONFIG_IS_ENABLED(CLK_CCF)) {
+		ret = device_bind(parent->dev, clk->dev->driver,
+				  clk_hw_get_name(clk), NULL, -1, &clk->dev);
+		if (ret)
+			/* Restore previous parent. */
+			ops->set_parent(clk, pclk);
+	}
+
+	return ret;
 }
 
 int clk_enable(struct clk *clk)
