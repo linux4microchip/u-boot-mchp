@@ -54,6 +54,9 @@ ulong clk_generic_get_rate(struct clk *clk)
 
 const char *clk_hw_get_name(const struct clk *hw)
 {
+	if (!hw || !hw->dev)
+		return NULL;
+
 	return hw->dev->name;
 }
 
