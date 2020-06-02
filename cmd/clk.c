@@ -110,9 +110,213 @@ static int do_clk(cmd_tbl_t *cmdtp, int flag, int argc,
 		return CMD_RET_USAGE;
 }
 
+static int do_clk_enable(cmd_tbl_t *cmdtp, int flag, int argc,
+			 char *const argv[])
+{
+	struct clk *clk;
+	unsigned int clkid;
+	long ret;
+
+	if (!argv[1])
+		return -EINVAL;
+
+	clkid = simple_strtoul(argv[1], NULL, 10);
+
+	ret = clk_get_by_id(clkid, &clk);
+	if (ret < 0)
+		return ret;
+
+	ret = clk_enable(clk);
+
+	return ret;
+}
+
+static int do_clk_disable(cmd_tbl_t *cmdtp, int flag, int argc,
+			  char *const argv[])
+{
+	struct clk *clk;
+	unsigned int clkid;
+	long ret;
+
+	if (!argv[1])
+		return -EINVAL;
+
+	clkid = simple_strtoul(argv[1], NULL, 10);
+
+	ret = clk_get_by_id(clkid, &clk);
+	if (ret < 0)
+		return ret;
+
+	ret = clk_disable(clk);
+
+	return ret;
+}
+
+static int do_clk_status(cmd_tbl_t *cmdtp, int flag, int argc,
+			 char *const argv[])
+{
+	struct clk *clk;
+	unsigned int clkid;
+	long ret;
+
+	if (!argv[1])
+		return -EINVAL;
+
+	clkid = simple_strtoul(argv[1], NULL, 10);
+
+	ret = clk_get_by_id(clkid, &clk);
+	if (ret < 0)
+		return ret;
+
+	printf("enable: %d\n", clk->enable_count);
+
+	return 0;
+}
+
+static int do_clk_get_rate(cmd_tbl_t *cmdtp, int flag, int argc,
+			   char *const argv[])
+{
+	struct clk *clk;
+	unsigned int clkid;
+	long ret;
+
+	if (!argv[1])
+		return -EINVAL;
+
+	clkid = simple_strtoul(argv[1], NULL, 10);
+
+	ret = clk_get_by_id(clkid, &clk);
+	if (ret < 0)
+		return ret;
+
+	ret = clk_get_rate(clk);
+	if (ret < 0)
+		return ret;
+
+	printf("rate: %lu\n", (ulong)ret);
+
+	return ret;
+}
+
+static int do_clk_set_rate(cmd_tbl_t *cmdtp, int flag, int argc,
+			   char *const argv[])
+{
+	struct clk *clk;
+	unsigned int clkid;
+	unsigned long rate;
+	long ret = 0;
+
+	if (!argv[1] || !argv[2])
+		return -EINVAL;
+
+	clkid = simple_strtoul(argv[1], NULL, 10);
+	rate = simple_strtoul(argv[2], NULL, 10);
+
+	ret = clk_get_by_id(clkid, &clk);
+	if (ret < 0)
+		return ret;
+
+	ret = clk_set_rate(clk, rate);
+
+	return ret;
+}
+
+static int do_clk_get_parent(cmd_tbl_t *cmdtp, int flag, int argc,
+			     char *const argv[])
+{
+	struct clk *clk, *pclk;
+	unsigned int clkid;
+	int ret;
+
+	if (!argv[1])
+		return -EINVAL;
+
+	clkid = simple_strtoul(argv[1], NULL, 10);
+
+	ret = clk_get_by_id(clkid, &clk);
+	if (ret < 0)
+		return ret;
+
+	pclk = clk_get_parent(clk);
+	if (IS_ERR(pclk))
+		return PTR_ERR(pclk);
+
+	printf("clkid: %d, name: %s\n", clkid, clk_hw_get_name(pclk));
+
+	return 0;
+}
+
+static int do_clk_set_parent(cmd_tbl_t *cmdtp, int flag, int argc,
+			     char *const argv[])
+{
+	struct clk *clk, *pclk;
+	unsigned int clkid;
+	unsigned int pclkid;
+	int ret;
+
+	if (!argv[1] || !argv[2])
+		return -EINVAL;
+
+	clkid = simple_strtoul(argv[1], NULL, 10);
+	pclkid = simple_strtoul(argv[2], NULL, 10);
+
+	ret = clk_get_by_id(clkid, &clk);
+	if (ret < 0)
+		return ret;
+
+	ret = clk_get_by_id(pclkid, &pclk);
+	if (ret < 0)
+		return ret;
+
+	ret = clk_set_parent(clk, pclk);
+	if (ret < 0)
+		return ret;
+
+	return 0;
+}
+
+static cmd_tbl_t cmd_clk_test_sub[] = {
+	U_BOOT_CMD_MKENT(ena, 1, 1, do_clk_enable, "", ""),
+	U_BOOT_CMD_MKENT(dis, 1, 1, do_clk_disable, "", ""),
+	U_BOOT_CMD_MKENT(status, 1, 1, do_clk_status, "", ""),
+	U_BOOT_CMD_MKENT(grate, 1, 1, do_clk_get_rate, "", ""),
+	U_BOOT_CMD_MKENT(srate, 2, 1, do_clk_set_rate, "", ""),
+	U_BOOT_CMD_MKENT(gparent, 1, 1, do_clk_get_parent, "", ""),
+	U_BOOT_CMD_MKENT(sparent, 2, 1, do_clk_set_parent, "", ""),
+};
+
+static int clk_test(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
+{
+	cmd_tbl_t *c;
+
+	if (argc < 2)
+		return CMD_RET_USAGE;
+
+	argc--;
+	argv++;
+
+	c = find_cmd_tbl(argv[0], &cmd_clk_test_sub[0],
+			 ARRAY_SIZE(cmd_clk_test_sub));
+	if (c)
+		return c->cmd(cmdtp, flag, argc, argv);
+	else
+		return CMD_RET_USAGE;
+}
+
 #ifdef CONFIG_SYS_LONGHELP
 static char clk_help_text[] =
 	"dump - Print clock frequencies";
+
+static char clk_test_help_text[] =
+	"\n"
+	"ena - enable clock\n"
+	"dis - disable clock\n"
+	"status - get clock status\n"
+	"grate - get clock rate\n"
+	"srate - set clock rate\n"
+	"gparent - get clock parent\n"
+	"sparent - set clock parent\n";
 #endif
 
 U_BOOT_CMD(clk, 2, 1, do_clk, "CLK sub-system", clk_help_text);
+U_BOOT_CMD(clktest, 4, 1, clk_test, "Test clock", clk_test_help_text);
