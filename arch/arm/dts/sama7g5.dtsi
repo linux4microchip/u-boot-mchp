@@ -31,11 +31,13 @@
 		slow_xtal: slow_xtal {
 			compatible = "fixed-clock";
 			#clock-cells = <0>;
+			u-boot,dm-pre-reloc;
 		};
 
 		main_xtal: main_xtal {
 			compatible = "fixed-clock";
 			#clock-cells = <0>;
+			u-boot,dm-pre-reloc;
 		};
 
 		mck: mck {
