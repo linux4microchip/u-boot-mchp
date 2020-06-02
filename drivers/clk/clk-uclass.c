@@ -422,7 +422,7 @@ struct clk *clk_get_parent(struct clk *clk)
 	struct clk *pclk;
 
 	debug("%s(clk=%p)\n", __func__, clk);
-	if (!clk)
+	if (!clk || !clk->dev)
 		return NULL;
 
 	pdev = dev_get_parent(clk->dev);
