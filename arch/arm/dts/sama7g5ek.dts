@@ -5,6 +5,8 @@
  *
  *  Copyright (c) 2020, Microchip Technology Inc.
  *                2020, Eugen Hristev <eugen.hristev@microchip.com>
+ *                2020, Claudiu Beznea <claudiu.beznea@microchip.com>
+ *
  */
 /dts-v1/;
 #include "sama7g5.dtsi"

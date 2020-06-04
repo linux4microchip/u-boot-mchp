@@ -5,6 +5,8 @@
  * Copyright (C) 2020 Microchip Technology Inc. and its subsidiaries
  *
  * Author: Eugen Hristev <eugen.hristev@microchip.com>
+ * Author: Claudiu Beznea <claudiu.beznea@microchip.com>
+ *
  */
 
 #include "skeleton.dtsi"
