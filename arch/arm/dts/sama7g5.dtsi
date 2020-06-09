@@ -140,6 +140,15 @@
 				u-boot,dm-pre-reloc;
 				status = "disabled";
 			};
+
+			gmac1: ethernet@e2804000 {
+				compatible = "cdns,sama7g5-emac";
+				reg = <0xe2804000 0x1000>;
+				clocks = <&pmc PMC_TYPE_PERIPHERAL 52>, <&pmc PMC_TYPE_PERIPHERAL 52>;
+				clock-names = "pclk", "hclk";
+				u-boot,dm-pre-reloc;
+				status = "disabled";
+			};
 		};
 	};
 };
