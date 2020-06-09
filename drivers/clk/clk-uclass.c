@@ -181,7 +181,7 @@ bulk_get_err:
 
 static int clk_set_default_parents(struct udevice *dev, int stage)
 {
-	struct clk clk, parent_clk;
+	struct clk clk, parent_clk, *c, *p;
 	int index;
 	int num_parents;
 	int ret;
@@ -207,6 +207,18 @@ static int clk_set_default_parents(struct udevice *dev, int stage)
 			return ret;
 		}
 
+		if (CONFIG_IS_ENABLED(CLK_CCF)) {
+			ret = clk_get_by_id(parent_clk.id, &p);
+			if (ret) {
+				debug("%s(): could not get parent clock pointer, "
+				      "id %lu, for %s\n", __func__, parent_clk.id,
+				      dev_read_name(dev));
+				return ret;
+			}
+		} else {
+			p = &parent_clk;
+		}
+
 		ret = clk_get_by_indexed_prop(dev, "assigned-clocks",
 					      index, &clk);
 		if (ret) {
@@ -226,7 +238,19 @@ static int clk_set_default_parents(struct udevice *dev, int stage)
 			/* do not setup twice the parent clocks */
 			continue;
 
-		ret = clk_set_parent(&clk, &parent_clk);
+		if (CONFIG_IS_ENABLED(CLK_CCF)) {
+			ret = clk_get_by_id(clk.id, &c);
+			if (ret) {
+				debug("%s(): could not get parent clock pointer, "
+				      "id %lu, for %s\n", __func__, clk.id,
+				      dev_read_name(dev));
+				return ret;
+			}
+		} else {
+			c = &clk;
+		}
+
+		ret = clk_set_parent(c, p);
 		/*
 		 * Not all drivers may support clock-reparenting (as of now).
 		 * Ignore errors due to this.
