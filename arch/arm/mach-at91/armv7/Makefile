@@ -13,4 +13,6 @@ obj-$(CONFIG_SAMA7G5)	+= sama7g5_devices.o
 obj-y += clock.o
 obj-y += cpu.o
 obj-y += reset.o
+ifndef CONFIG_TIMER
 obj-$(CONFIG_ATMEL_PIT_TIMER)	+= timer.o
+endif
