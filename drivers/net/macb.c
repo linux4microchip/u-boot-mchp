@@ -1374,12 +1374,20 @@ static const struct macb_config sama7g5_gmac_config = {
 	.usrio = &sama7g5_usrio,
 };
 
+static const struct macb_config sama7g5_emac_config = {
+	.caps = MACB_CAPS_USRIO_HAS_CLKEN,
+	.dma_burst_length = 16,
+	.usrio = &sama7g5_usrio,
+};
+
 static const struct udevice_id macb_eth_ids[] = {
 	{ .compatible = "cdns,macb" },
 	{ .compatible = "cdns,at91sam9260-macb" },
 	{ .compatible = "cdns,sam9x60-macb" },
 	{ .compatible = "cdns,sama7g5-gem",
 	  .data = (ulong)&sama7g5_gmac_config },
+	{ .compatible = "cdns,sama7g5-emac",
+	  .data = (ulong)&sama7g5_emac_config },
 	{ .compatible = "atmel,sama5d2-gem" },
 	{ .compatible = "atmel,sama5d3-gem" },
 	{ .compatible = "atmel,sama5d4-gem", .data = (ulong)&sama5d4_config },
