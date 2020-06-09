@@ -1151,6 +1151,16 @@ static const struct pmc_clk_setup {
 		.pid = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_MCK0),
 		.rate = 200000000,
 	},
+#else
+	{
+		.cid = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_ETH_FRAC),
+		.rate = 625000000,
+	},
+
+	{
+		.cid = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_ETH_DIV),
+		.rate = 625000000,
+	},
 #endif
 };
 
@@ -1449,7 +1459,6 @@ static int sama7g5_clk_probe(struct udevice *dev)
 	}
 
 	/* Setup clocks. */
-	/* TODO: test this! */
 	for (i = 0; i < ARRAY_SIZE(sama7g5_clk_setup); i++) {
 		ret = clk_get_by_id(sama7g5_clk_setup[i].cid, &c);
 		if (ret)
