@@ -1436,14 +1436,14 @@ static int sama7g5_clk_probe(struct udevice *dev)
 			if (sama7g5_restore_clk_setup[i].prate) {
 				ret = clk_set_rate(parent,
 					sama7g5_restore_clk_setup[i].prate);
-				if (ret)
+				if (ret < 0)
 					goto fail;
 			}
 		}
 
 		if (sama7g5_restore_clk_setup[i].rate) {
 			ret = clk_set_rate(c, sama7g5_restore_clk_setup[i].rate);
-			if (ret)
+			if (ret < 0)
 				goto fail;
 		}
 	}
@@ -1467,14 +1467,14 @@ static int sama7g5_clk_probe(struct udevice *dev)
 			if (sama7g5_clk_setup[i].prate) {
 				ret = clk_set_rate(parent,
 					sama7g5_clk_setup[i].prate);
-				if (ret)
+				if (ret < 0)
 					goto fail;
 			}
 		}
 
 		if (sama7g5_clk_setup[i].rate) {
 			ret = clk_set_rate(c, sama7g5_clk_setup[i].rate);
-			if (ret)
+			if (ret < 0)
 				goto fail;
 		}
 	}
