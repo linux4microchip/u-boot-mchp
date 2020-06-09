@@ -768,5 +768,7 @@
 #define GEM_RX_CSUM_CHECKED_MASK		2
 #define gem_writel_queue_TBQP(port, value, queue_num)	\
 	writel((value), (port)->regs + GEM_TBQP(queue_num))
+#define gem_writel_queue_RBQP(port, value, queue_num)	\
+	writel((value), (port)->regs + GEM_RBQP(queue_num))
 
 #endif /* __DRIVERS_MACB_H__ */

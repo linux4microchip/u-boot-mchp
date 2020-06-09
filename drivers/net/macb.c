@@ -732,8 +732,10 @@ static int gmac_init_multi_queues(struct macb_device *macb)
 	flush_dcache_range(macb->dummy_desc_dma, macb->dummy_desc_dma +
 			ALIGN(MACB_TX_DUMMY_DMA_DESC_SIZE, PKTALIGN));
 
-	for (i = 1; i < num_queues; i++)
+	for (i = 1; i < num_queues; i++) {
 		gem_writel_queue_TBQP(macb, macb->dummy_desc_dma, i - 1);
+		gem_writel_queue_RBQP(macb, macb->dummy_desc_dma, i - 1);
+	}
 
 	return 0;
 }
