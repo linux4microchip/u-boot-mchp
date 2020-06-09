@@ -99,6 +99,7 @@
 				reg = <0xe001d050 0x4>;
 				clocks = <&slow_rc_osc>, <&slow_xtal>;
 				#clock-cells = <1>;
+				u-boot,dm-pre-reloc;
 			};
 
 			sdmmc1: sdio-host@e1208000 {
@@ -106,6 +107,7 @@
 				reg = <0xe1208000 0x300>;
 				clocks = <&pmc PMC_TYPE_PERIPHERAL 81>, <&pmc PMC_TYPE_GCK 81>;
 				clock-names = "hclock", "multclk";
+				u-boot,dm-pre-reloc;
 				status = "disabled";
 			};
 
@@ -114,6 +116,7 @@
 				reg = <0xe1800000 0x4000>;
 				clocks = <&pmc PMC_TYPE_PERIPHERAL 70>, <&pmc PMC_TYPE_GCK 70>;
 				clock-names = "pclk", "gclk";
+				u-boot,dm-pre-reloc;
 				status = "okay";
 			};
 
