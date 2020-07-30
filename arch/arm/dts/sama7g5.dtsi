@@ -103,7 +103,7 @@
 			};
 
 			sdmmc1: sdio-host@e1208000 {
-				compatible = "atmel,sama5d2-sdhci";
+				compatible = "microchip,sama7g5-sdhci";
 				reg = <0xe1208000 0x300>;
 				clocks = <&pmc PMC_TYPE_PERIPHERAL 81>, <&pmc PMC_TYPE_GCK 81>;
 				clock-names = "hclock", "multclk";
