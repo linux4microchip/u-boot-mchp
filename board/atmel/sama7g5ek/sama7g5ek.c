@@ -48,6 +48,19 @@ int board_early_init_f(void)
 	return 0;
 }
 
+#define MAC24AA_MAC_OFFSET     0xfa
+
+#ifdef CONFIG_MISC_INIT_R
+int misc_init_r(void)
+{
+#ifdef CONFIG_I2C_EEPROM
+	at91_set_ethaddr(MAC24AA_MAC_OFFSET);
+	at91_set_eth1addr(MAC24AA_MAC_OFFSET);
+#endif
+	return 0;
+}
+#endif
+
 int board_init(void)
 {
 	/* address of boot parameters */
@@ -60,11 +73,6 @@ int dram_init(void)
 {
 	gd->ram_size = get_ram_size((void *)CONFIG_SYS_SDRAM_BASE,
 				    CONFIG_SYS_SDRAM_SIZE);
-	return 0;
-}
-
-int misc_init_r(void)
-{
 	return 0;
 }
 
