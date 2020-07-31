@@ -18,6 +18,7 @@
 
 	aliases {
 		serial0 = &uart0;
+		i2c0 = &i2c1;
 	};
 
 	chosen {
@@ -63,6 +64,29 @@
 	};
 };
 
+&flx1 {
+	atmel,flexcom-mode = <3>;
+	status = "okay";
+};
+
+&i2c1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_flx1_default>;
+	status = "okay";
+
+	eeprom@52 {
+		compatible = "atmel,24c32";
+		reg = <0x52>;
+		pagesize = <16>;
+	};
+
+	eeprom@53 {
+		compatible = "atmel,24c32";
+		reg = <0x53>;
+		pagesize = <16>;
+	};
+};
+
 &gmac0 {
 	#address-cells = <1>;
 	#size-cells = <0>;
@@ -95,6 +119,13 @@
 };
 
 &pinctrl {
+	pinctrl_flx1_default: flx1_default {
+		pinmux = <PIN_PC9__FLEXCOM1_IO0>,
+			 <PIN_PC10__FLEXCOM1_IO1>;
+		bias-disable;
+		u-boot,dm-pre-reloc;
+	};
+
 	pinctrl_flx3_default: flx3_default {
 		pinmux = <PIN_PD16__FLEXCOM3_IO0>,
 			 <PIN_PD17__FLEXCOM3_IO1>;
