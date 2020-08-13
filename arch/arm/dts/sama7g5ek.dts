@@ -181,7 +181,6 @@
 			 <PIN_PA29__G0_RX3>,
 			 <PIN_PA15__G0_TXEN>,
 			 <PIN_PA24__G0_TXCK>,
-			 <PIN_PA21__G0_RXER>,
 			 <PIN_PA30__G0_RXCK>,
 			 <PIN_PA18__G0_RXDV>,
 			 <PIN_PA22__G0_MDC>,
