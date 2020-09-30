@@ -24,7 +24,7 @@ const char *at91_cpu_get_name(void)
 	return get_cpu_name();
 }
 
-int at91_cpu_get_desc(const struct udevice *dev, char *buf, int size)
+int at91_cpu_get_desc(struct udevice *dev, char *buf, int size)
 {
 	struct at91_cpu_platdata *plat = dev_get_platdata(dev);
 
@@ -38,7 +38,7 @@ int at91_cpu_get_desc(const struct udevice *dev, char *buf, int size)
 	return 0;
 }
 
-static int at91_cpu_get_info(const struct udevice *dev, struct cpu_info *info)
+static int at91_cpu_get_info(struct udevice *dev, struct cpu_info *info)
 {
 	struct at91_cpu_platdata *plat = dev_get_platdata(dev);
 
@@ -48,12 +48,12 @@ static int at91_cpu_get_info(const struct udevice *dev, struct cpu_info *info)
 	return 0;
 }
 
-static int at91_cpu_get_count(const struct udevice *dev)
+static int at91_cpu_get_count(struct udevice *dev)
 {
 	return 1;
 }
 
-static int at91_cpu_get_vendor(const struct udevice *dev,  char *buf, int size)
+static int at91_cpu_get_vendor(struct udevice *dev,  char *buf, int size)
 {
 	snprintf(buf, size, "Microchip Technology Inc.");
 
