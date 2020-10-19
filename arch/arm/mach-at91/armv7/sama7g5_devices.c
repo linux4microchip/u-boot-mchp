@@ -76,12 +76,3 @@ return "SAMA7G5";
 	return "Unknown CPU type";
 #endif
 }
-
-#ifdef CONFIG_USB_GADGET_ATMEL_USBA
-void at91_udp_hw_init(void)
-{
-	at91_upll_clk_enable();
-
-	at91_periph_clk_enable(ATMEL_ID_UDPHS);
-}
-#endif
