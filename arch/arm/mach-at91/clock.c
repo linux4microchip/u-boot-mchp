@@ -27,7 +27,7 @@ void at91_periph_clk_enable(int id)
 
 	writel(id, &pmc->pcr);
 
-#if !defined(CONFIG_SAM9X60)
+#if !defined(CONFIG_SAM9X60) && !defined(CONFIG_SAMA7G5)
 	div_value = readl(&pmc->pcr) & AT91_PMC_PCR_DIV;
 #endif
 
@@ -71,7 +71,7 @@ void at91_system_clk_disable(int sys_clk)
 	writel(sys_clk, &pmc->scdr);
 }
 
-#if !defined(CONFIG_SAM9X60)
+#if !defined(CONFIG_SAM9X60) && !defined(CONFIG_SAMA7G5)
 int at91_upll_clk_enable(void)
 {
 	struct at91_pmc *pmc = (at91_pmc_t *)ATMEL_BASE_PMC;
@@ -112,14 +112,16 @@ int at91_upll_clk_disable(void)
 }
 #endif
 
+#if !defined(CONFIG_SAMA7G5)
 void at91_usb_clk_init(u32 value)
 {
 	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
 
 	writel(value, &pmc->usb);
 }
+#endif
 
-#if !defined(CONFIG_SAM9X60)
+#if !defined(CONFIG_SAM9X60) && !defined(CONFIG_SAMA7G5)
 void at91_pllicpr_init(u32 icpr)
 {
 	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;

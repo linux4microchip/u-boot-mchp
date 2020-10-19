@@ -26,7 +26,7 @@
 
 #include <asm/types.h>
 
-#if defined(CONFIG_SAM9X60) || defined(SAMA7G5)
+#if defined(CONFIG_SAM9X60) || defined(CONFIG_SAMA7G5)
 typedef struct at91_pmc {
 	u32	scer;		/* 0x00 System Clock Enable Register */
 	u32	scdr;		/* 0x04 System Clock Disable Register */
@@ -40,7 +40,11 @@ typedef struct at91_pmc {
 	u32	mcfr;		/* 0x24 Main Clock Frequency Register */
 	u32	mckr;		/* 0x28 CPU/Master Clock Register */
 	u32	reserved[3];
+#if defined(CONFIG_SAM9X60)
 	u32	usb;		/* 0x38 USB Clock Register */
+#else
+	u32	reserved10;
+#endif
 	u32	reserved1;
 	u32	pck;		/* 0x40 Programmable Clock Register 0 - 3 */
 	u32	reserved2[7];
@@ -57,7 +61,11 @@ typedef struct at91_pmc {
 	u32	pcr;		/* 0x88 Peripheral Control Register */
 	u32	ocr;		/* 0x8C Oscillator Calibration Register */
 	u32	reserved4[3];
+#if defined(CONFIG_SAM9X60)
 	u32	mcklim;		/* 0x9C MCK Monitor Limits Register */
+#else
+	u32	reserved11;
+#endif
 	u32	CSR[2];		/* 0xA0 Peripheral Clock Status Register 0~2 */
 	u32	reserved5[6];
 	u32	gcsr[2];	/* 0xC0 Generic Clock Status Register 0~3 */
@@ -196,7 +204,7 @@ typedef struct at91_pmc {
 #define AT91_PMC_IXR_PCKRDY3		0x00000800
 #define AT91_PMC_IXR_MOSCSELS		0x00010000
 
-#if defined(CONFIG_SAM9X60)
+#if defined(CONFIG_SAM9X60) || defined(CONFIG_SAMA7G5)
 #define AT91_PMC_PCR_PID_MASK		(0x7f)
 #define AT91_PMC_PCR_GCKCSS		(0x1f << 8)
 #define AT91_PMC_PCR_GCKCSS_MASK	0x1f
@@ -206,8 +214,10 @@ typedef struct at91_pmc {
 #define		AT91_PMC_PCR_GCKCSS_TD_SLOW_CLK	(0x1 << 8)
 #define		AT91_PMC_PCR_GCKCSS_MAIN_CLK	(0x2 << 8)
 #define		AT91_PMC_PCR_GCKCSS_MCK_CLK	(0x3 << 8)
+#if defined(CONFIG_SAM9X60)
 #define		AT91_PMC_PCR_GCKCSS_PLLA_CLK	(0x4 << 8)
 #define		AT91_PMC_PCR_GCKCSS_UPLL_CLK	(0x5 << 8)
+#endif
 #define AT91_PMC_PCR_CMD_WRITE		(0x1 << 31)
 #else
 #define AT91_PMC_PCR_PID_MASK		(0x3f)
