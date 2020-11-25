@@ -93,7 +93,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_gmac0_default>;
 	phy-mode = "rgmii-id";
-	status = "disabled";
+	status = "okay";
 
 	ethernet-phy@7 {
 		reg = <0x7>;
