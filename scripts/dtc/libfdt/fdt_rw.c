@@ -13,6 +13,8 @@
 static int fdt_blocks_misordered_(const void *fdt,
 				  int mem_rsv_size, int struct_size)
 {
+	if (!fdt_chk_basic())
+		return false;
 	return (fdt_off_mem_rsvmap(fdt) < FDT_ALIGN(sizeof(struct fdt_header), 8))
 		|| (fdt_off_dt_struct(fdt) <
 		    (fdt_off_mem_rsvmap(fdt) + mem_rsv_size))
@@ -24,16 +26,16 @@ static int fdt_blocks_misordered_(const void *fdt,
 
 static int fdt_rw_probe_(void *fdt)
 {
-	if (can_assume(VALID_DTB))
+	if (!fdt_chk_basic())
 		return 0;
 	FDT_RO_PROBE(fdt);
 
-	if (!can_assume(LATEST) && fdt_version(fdt) < 17)
+	if (fdt_chk_version() && fdt_version(fdt) < 17)
 		return -FDT_ERR_BADVERSION;
 	if (fdt_blocks_misordered_(fdt, sizeof(struct fdt_reserve_entry),
 				   fdt_size_dt_struct(fdt)))
 		return -FDT_ERR_BADLAYOUT;
-	if (!can_assume(LATEST) && fdt_version(fdt) > 17)
+	if (fdt_chk_version() && fdt_version(fdt) > 17)
 		fdt_set_version(fdt, 17);
 
 	return 0;
@@ -42,11 +44,11 @@ static int fdt_rw_probe_(void *fdt)
 #define FDT_RW_PROBE(fdt) \
 	{ \
 		int err_; \
-		if ((err_ = fdt_rw_probe_(fdt)) != 0) \
+		if (fdt_chk_extra() && (err_ = fdt_rw_probe_(fdt)) != 0) \
 			return err_; \
 	}
 
-static inline unsigned int fdt_data_size_(void *fdt)
+static inline int fdt_data_size_(void *fdt)
 {
 	return fdt_off_dt_strings(fdt) + fdt_size_dt_strings(fdt);
 }
@@ -54,16 +56,15 @@ static inline unsigned int fdt_data_size_(void *fdt)
 static int fdt_splice_(void *fdt, void *splicepoint, int oldlen, int newlen)
 {
 	char *p = splicepoint;
-	unsigned int dsize = fdt_data_size_(fdt);
-	size_t soff = p - (char *)fdt;
+	char *end = (char *)fdt + fdt_data_size_(fdt);
 
-	if ((oldlen < 0) || (soff + oldlen < soff) || (soff + oldlen > dsize))
+	if (((p + oldlen) < p) || ((p + oldlen) > end))
 		return -FDT_ERR_BADOFFSET;
-	if ((p < (char *)fdt) || (dsize + newlen < (unsigned)oldlen))
+	if ((p < (char *)fdt) || ((end - oldlen + newlen) < (char *)fdt))
 		return -FDT_ERR_BADOFFSET;
-	if (dsize - oldlen + newlen > fdt_totalsize(fdt))
+	if ((end - oldlen + newlen) > ((char *)fdt + fdt_totalsize(fdt)))
 		return -FDT_ERR_NOSPACE;
-	memmove(p + newlen, p + oldlen, ((char *)fdt + dsize) - (p + oldlen));
+	memmove(p + newlen, p + oldlen, end - p - oldlen);
 	return 0;
 }
 
@@ -121,7 +122,7 @@ static int fdt_splice_string_(void *fdt, int newlen)
  * @fdt: pointer to the device tree to check/adjust
  * @s: string to find/add
  * @allocated: Set to 0 if the string was found, 1 if not found and so
- *	allocated. Ignored if can_assume(NO_ROLLBACK)
+ *	allocated. Ignored if !fdt_chk_basic()
  * @return offset of string in the string table (whether found or added)
  */
 static int fdt_find_add_string_(void *fdt, const char *s, int *allocated)
@@ -132,7 +133,7 @@ static int fdt_find_add_string_(void *fdt, const char *s, int *allocated)
 	int len = strlen(s) + 1;
 	int err;
 
-	if (!can_assume(NO_ROLLBACK))
+	if (fdt_chk_basic())
 		*allocated = 0;
 
 	p = fdt_find_string_(strtab, fdt_size_dt_strings(fdt), s);
@@ -145,7 +146,7 @@ static int fdt_find_add_string_(void *fdt, const char *s, int *allocated)
 	if (err)
 		return err;
 
-	if (!can_assume(NO_ROLLBACK))
+	if (fdt_chk_basic())
 		*allocated = 1;
 
 	memcpy(new, s, len);
@@ -221,7 +222,7 @@ static int fdt_add_property_(void *fdt, int nodeoffset, const char *name,
 	err = fdt_splice_struct_(fdt, *prop, 0, proplen);
 	if (err) {
 		/* Delete the string if we failed to add it */
-		if (!can_assume(NO_ROLLBACK) && allocated)
+		if (fdt_chk_basic() && allocated)
 			fdt_del_last_string_(fdt, name);
 		return err;
 	}
@@ -426,7 +427,7 @@ int fdt_open_into(const void *fdt, void *buf, int bufsize)
 	mem_rsv_size = (fdt_num_mem_rsv(fdt)+1)
 		* sizeof(struct fdt_reserve_entry);
 
-	if (can_assume(LATEST) || fdt_version(fdt) >= 17) {
+	if (!fdt_chk_version() || fdt_version(fdt) >= 17) {
 		struct_size = fdt_size_dt_struct(fdt);
 	} else {
 		struct_size = 0;
@@ -436,8 +437,7 @@ int fdt_open_into(const void *fdt, void *buf, int bufsize)
 			return struct_size;
 	}
 
-	if (can_assume(LIBFDT_ORDER) ||
-	    !fdt_blocks_misordered_(fdt, mem_rsv_size, struct_size)) {
+	if (!fdt_blocks_misordered_(fdt, mem_rsv_size, struct_size)) {
 		/* no further work necessary */
 		err = fdt_move(fdt, buf, bufsize);
 		if (err)
