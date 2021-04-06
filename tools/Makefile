@@ -64,7 +64,7 @@ FIT_CIPHER_OBJS-$(CONFIG_FIT_CIPHER) := common/image-cipher.o
 # The following files are synced with upstream DTC.
 # Use synced versions from scripts/dtc/libfdt/.
 LIBFDT_OBJS := $(addprefix libfdt/, fdt.o fdt_ro.o fdt_wip.o fdt_sw.o fdt_rw.o \
-		fdt_strerror.o fdt_empty_tree.o fdt_addresses.o fdt_overlay.o)
+		fdt_strerror.o fdt_empty_tree.o fdt_addresses.o fdt_overlay.o fdt_check.o)
 
 RSA_OBJS-$(CONFIG_FIT_SIGNATURE) := $(addprefix lib/rsa/, \
 					rsa-sign.o rsa-verify.o rsa-checksum.o \
