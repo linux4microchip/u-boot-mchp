@@ -753,12 +753,12 @@ static int overlay_symbol_update(void *fdt, void *fdto)
 		if ((e - s) > len && (memcmp(s, "/__overlay__/", len) == 0)) {
 			/* /<fragment-name>/__overlay__/<relative-subnode-path> */
 			rel_path = s + len;
-			rel_path_len = e - rel_path;
+			rel_path_len = e - rel_path - 1;
 		} else if ((e - s) == len
 			   && (memcmp(s, "/__overlay__", len - 1) == 0)) {
 			/* /<fragment-name>/__overlay__ */
 			rel_path = "";
-			rel_path_len = 1; /* Include NUL character */
+			rel_path_len = 0;
 		} else {
 			/* Symbol refers to something that won't end
 			 * up in the target tree */
@@ -795,7 +795,7 @@ static int overlay_symbol_update(void *fdt, void *fdto)
 		}
 
 		ret = fdt_setprop_placeholder(fdt, root_sym, name,
-				len + (len > 1) + rel_path_len, &p);
+				len + (len > 1) + rel_path_len + 1, &p);
 		if (ret < 0)
 			return ret;
 
@@ -821,6 +821,7 @@ static int overlay_symbol_update(void *fdt, void *fdto)
 
 		buf[len] = '/';
 		memcpy(buf + len + 1, rel_path, rel_path_len);
+		buf[len + 1 + rel_path_len] = '\0';
 	}
 
 	return 0;
@@ -878,9 +879,4 @@ err:
 	fdt_set_magic(fdt, ~0);
 
 	return ret;
-}
-
-int fdt_overlay_apply_node(void *fdt, int target, void *fdto, int node)
-{
-	return overlay_apply_node(fdt, target, fdto, node);
 }
