@@ -11,6 +11,7 @@ obj-y += \
 	fdt_sw.o \
 	fdt_rw.o \
 	fdt_empty_tree.o \
+	fdt_check.o \
 	fdt_addresses.o
 
 obj-$(CONFIG_OF_LIBFDT_OVERLAY) += fdt_overlay.o
