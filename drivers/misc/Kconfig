@@ -645,4 +645,10 @@ config SL28CPLD
 	  the base driver which provides common access methods for the
 	  sub-drivers.
 
+config MICROCHIP_SFR
+	bool "Enable Microchip SFR"
+	depends on MISC
+	help
+	  test
+
 endmenu
