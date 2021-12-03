@@ -1,0 +1,10 @@
+SAM9X7EK BOARD
+M:	Balamanikandan Gunasundar <Balamanikandan.Gunasundar@microchip.com>
+M:	Varshini Rajendran <Varshini.Rajendran@microchip.com>
+M:	Dan Sneddon <Dan.Sneddon@microchip.com>
+S:	Maintained
+F:	board/atmel/sam9x7eb/
+F:	include/configs/sam9x7eb.h
+F:	configs/sam9x7eb_mmc_defconfig
+F:	configs/sam9x7eb_nandflash_defconfig
+F:	configs/sam9x7eb_qspiflash_defconfig
