@@ -47,6 +47,10 @@ config SAM9X60
 	bool
 	select CPU_ARM926EJS
 
+config SAM9X7
+	bool
+	select CPU_ARM926EJS
+
 config SAMA7G5
 	bool
 	select CPU_V7A
@@ -340,6 +344,7 @@ source "board/atmel/at91sam9n12ek/Kconfig"
 source "board/atmel/at91sam9rlek/Kconfig"
 source "board/atmel/at91sam9x5ek/Kconfig"
 source "board/atmel/sam9x60ek/Kconfig"
+source "board/atmel/sam9x7eb/Kconfig"
 source "board/atmel/sama7g5ek/Kconfig"
 source "board/atmel/sama5d2_ptc_ek/Kconfig"
 source "board/atmel/sama5d2_xplained/Kconfig"
