@@ -346,6 +346,19 @@ static struct at91_pinctrl_mux_ops sam9x60_ops = {
 	.set_slewrate   = at91_mux_sam9x60_set_slewrate,
 };
 
+static struct at91_pinctrl_mux_ops sam9x7_ops = {
+	.mux_A_periph	= at91_mux_pio3_set_A_periph,
+	.mux_B_periph	= at91_mux_pio3_set_B_periph,
+	.mux_C_periph	= at91_mux_pio3_set_C_periph,
+	.mux_D_periph	= at91_mux_pio3_set_D_periph,
+	.set_deglitch	= at91_mux_pio3_set_deglitch,
+	.set_debounce	= at91_mux_pio3_set_debounce,
+	.set_pulldown	= at91_mux_pio3_set_pulldown,
+	.disable_schmitt_trig = at91_mux_pio3_disable_schmitt_trig,
+	.set_drivestrength = at91_mux_sam9x60_set_drivestrength,
+	.set_slewrate   = at91_mux_sam9x60_set_slewrate,
+};
+
 static void at91_mux_gpio_disable(struct at91_port *pio, u32 mask)
 {
 	writel(mask, &pio->pdr);
@@ -517,6 +530,7 @@ static const struct udevice_id at91_pinctrl_match[] = {
 	{ .compatible = "atmel,at91sam9x5-pinctrl", .data = (ulong)&at91sam9x5_ops },
 	{ .compatible = "atmel,at91rm9200-pinctrl", .data = (ulong)&at91rm9200_ops },
 	{ .compatible = "microchip,sam9x60-pinctrl", .data = (ulong)&sam9x60_ops },
+	{ .compatible = "microchip,sam9x7-pinctrl", .data = (ulong)&sam9x7_ops },
 	{}
 };
 
