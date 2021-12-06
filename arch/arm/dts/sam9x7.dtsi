@@ -70,7 +70,7 @@
 		ranges;
 
 		sdhci0: sdhci-host@80000000 {
-			compatible = "microchip,sam9x60-sdhci";
+			compatible = "microchip,sam9x7-sdhci";
 			reg = <0x80000000 0x300>;
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 12>, <&pmc PMC_TYPE_GCK 12>;
 			clock-names = "hclock", "multclk";
@@ -89,7 +89,7 @@
 			ranges;
 
 			qspi: spi@f0014000 {
-				compatible = "microchip,sam9x60-qspi";
+				compatible = "microchip,sam9x7-qspi";
 				reg = <0xf0014000 0x100>, <0x70000000 0x10000000>;
 				reg-names = "qspi_base", "qspi_mmap";
 				clocks =  <&pmc PMC_TYPE_PERIPHERAL 35>, <&pmc PMC_TYPE_SYSTEM 18>; /* ID_QSPI */
@@ -110,7 +110,7 @@
 			};
 
 			macb0: ethernet@f802c000 {
-				compatible = "cdns,sam9x60-macb", "cdns,macb";
+				compatible = "cdns,sam9x7-macb", "cdns,macb";
 				reg = <0xf802c000 0x100>;
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_macb0_rmii>;
@@ -131,7 +131,7 @@
 			pinctrl {
 				#address-cells = <1>;
 				#size-cells = <1>;
-				compatible = "microchip,sam9x60-pinctrl", "simple-bus";
+				compatible = "microchip,sam9x7-pinctrl", "simple-bus";
 				ranges = <0xfffff400 0xfffff400 0x800>;
 				reg = <0xfffff400 0x200		/* pioA */
 				       0xfffff600 0x200		/* pioB */
@@ -207,7 +207,7 @@
 			};
 
 			pmc: pmc@fffffc00 {
-				compatible = "microchip,sam9x60-pmc";
+				compatible = "microchip,sam9x7-pmc";
 				reg = <0xfffffc00 0x200>;
 				#clock-cells = <2>;
 				clocks = <&clk32 1>, <&clk32 0>, <&main_xtal>, <&main_rc>;
