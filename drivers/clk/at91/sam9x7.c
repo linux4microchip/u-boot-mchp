@@ -18,24 +18,25 @@
  * Clock identifiers to be used in conjunction with macros like
  * AT91_TO_CLK_ID()
  *
- * @ID_MD_SLCK:			TD slow clock identifier
- * @ID_TD_SLCK:			MD slow clock identifier
- * @ID_MAIN_XTAL:		Main Xtal clock identifier
- * @ID_MAIN_RC:			Main RC clock identifier
- * @ID_MAIN_RC_OSC:		Main RC Oscillator clock identifier
- * @ID_MAIN_OSC:		Main Oscillator clock identifier
- * @ID_MAINCK:			MAINCK clock identifier
- * @ID_PLL_U_FRAC:		UPLL fractional clock identifier
- * @ID_PLL_U_DIV:		UPLL divider clock identifier
- * @ID_PLL_A_FRAC:		APLL fractional clock identifier
- * @ID_PLL_A_DIV:		APLL divider clock identifier
- * @ID_PLL_A_DIV2:      PLLA DIV2 divider clock identifier
- * @ID_PLL_AUDIO_FRAC:  Audio PLL fractional clock identifier
- * @ID_PLL_AUDIO_DIV:   Audio PLL divider clock identifier
- * @ID_PLL_LVDS_FRAC:   LVDS PLL fractional clock identifier
- * @ID_PLL_LVDS_DIV:    LVDS PLL divider clock identifier
+ * @ID_MD_SLCK:         	TD slow clock identifier
+ * @ID_TD_SLCK:         	MD slow clock identifier
+ * @ID_MAIN_XTAL:       	Main Xtal clock identifier
+ * @ID_MAIN_RC:         	Main RC clock identifier
+ * @ID_MAIN_RC_OSC:     	Main RC Oscillator clock identifier
+ * @ID_MAIN_OSC:        	Main Oscillator clock identifier
+ * @ID_MAINCK:          	MAINCK clock identifier
+ * @ID_PLL_U_FRAC:      	UPLL fractional clock identifier
+ * @ID_PLL_U_DIV:       	UPLL divider clock identifier
+ * @ID_PLL_A_FRAC:      	APLL fractional clock identifier
+ * @ID_PLL_A_DIV:       	APLL divider clock identifier
+ * @ID_PLL_A_2_FRAC:    	PLLA DIV2 fractional clock identifier
+ * @ID_PLL_A_2_DIV:     	PLLA DIV2 divider clock identifier
+ * @ID_PLL_AUDIO_FRAC:  	Audio PLL fractional clock identifier
+ * @ID_PLL_AUDIO_DIV:   	Audio PLL divider clock identifier
+ * @ID_PLL_LVDS_FRAC:   	LVDS PLL fractional clock identifier
+ * @ID_PLL_LVDS_DIV:    	LVDS PLL divider clock identifier
 
- * @ID_MCK_DIV:			MCK DIV clock identifier
+ * @ID_MCK_DIV: 		MCK DIV clock identifier
 
  * @ID_UTMI:			UTMI clock identifier
 
@@ -43,11 +44,17 @@
  * @ID_PROG1:			Programmable 1 clock identifier
  * @ID_PROG2:			Programmable 2 clock identifier
  * @ID_PROG3:			Programmable 3 clock identifier
+ * @ID_PROG4:			Programmable 4 clock identifier
+ * @ID_PROG5:			Programmable 5 clock identifier
+ * @ID_PROG6:			Programmable 6 clock identifier
 
  * @ID_PCK0:			PCK0 system clock identifier
  * @ID_PCK1:			PCK1 system clock identifier
  * @ID_PCK2:			PCK2 system clock identifier
  * @ID_PCK3:			PCK3 system clock identifier
+ * @ID_PCK4:			PCK4 system clock identifier
+ * @ID_PCK5:			PCK5 system clock identifier
+ * @ID_PCK6:			PCK6 system clock identifier
  * @ID_DDR:			DDR system clock identifier
  * @ID_QSPI:			QSPI system clock identifier
  *
@@ -57,44 +64,51 @@
  *       device tree
  */
 enum pmc_clk_ids {
-	ID_MD_SLCK		= 0,
-	ID_TD_SLCK		= 1,
-	ID_MAIN_XTAL		= 2,
-	ID_MAIN_RC		= 3,
-	ID_MAIN_RC_OSC		= 4,
-	ID_MAIN_OSC		= 5,
-	ID_MAINCK		= 6,
+        ID_MD_SLCK              = 0,
+        ID_TD_SLCK              = 1,
+        ID_MAIN_XTAL            = 2,
+        ID_MAIN_RC              = 3,
+        ID_MAIN_RC_OSC          = 4,
+        ID_MAIN_OSC             = 5,
+        ID_MAINCK               = 6,
 
-	ID_PLL_U_FRAC		= 7,
-	ID_PLL_U_DIV		= 8,
-	ID_PLL_A_FRAC		= 9,
-	ID_PLL_A_DIV		= 10,
-	ID_PLL_A_DIV2		= 11,
-	ID_PLL_AUDIO_FRAC		= 12,
-	ID_PLL_AUDIO_DIV		= 13,
-	ID_PLL_LVDS_FRAC		= 14,
-	ID_PLL_LVDS_DIV		= 15,
+        ID_PLL_U_FRAC           = 7,
+        ID_PLL_U_DIV            = 8,
+        ID_PLL_A_FRAC           = 9,
+        ID_PLL_A_DIV            = 10,
+        ID_PLL_A_2_FRAC         = 11,
+        ID_PLL_A_2_DIV          = 12,
+        ID_PLL_AUDIO_FRAC       = 13,
+        ID_PLL_AUDIO_DIV        = 14,
+        ID_PLL_LVDS_FRAC        = 15,
+        ID_PLL_LVDS_DIV         = 16,
 
-	ID_MCK_DIV		= 16,
+        ID_MCK_DIV              = 17,
 
-	ID_UTMI			= 17,
+        ID_UTMI                 = 18,
 
-	ID_PROG0		= 18,
-	ID_PROG1		= 19,
-	ID_PROG2		= 20,
-	ID_PROG3		= 21,
+        ID_PROG0                = 19,
+        ID_PROG1                = 20,
+        ID_PROG2                = 21,
+        ID_PROG3                = 22,
+        ID_PROG4                = 23,
+        ID_PROG5                = 24,
+        ID_PROG6                = 25,
 
-	ID_PCK0			= 22,
-	ID_PCK1			= 23,
-	ID_PCK2			= 24,
-	ID_PCK3			= 25,
+        ID_PCK0                 = 26,
+        ID_PCK1                 = 27,
+        ID_PCK2                 = 28,
+        ID_PCK3                 = 29,
+        ID_PCK4                 = 30,
+        ID_PCK5                 = 31,
+        ID_PCK6                 = 32,
 
-	ID_DDR			= 26,
-	ID_QSPI			= 27,
+        ID_DDR                  = 33,
+        ID_QSPI                 = 34,
 
-	ID_MCK_PRES		= 28,
+        ID_MCK_PRES             = 35,
 
-	ID_MAX,
+        ID_MAX,
 };
 
 /**
@@ -114,16 +128,16 @@ static const char *clk_names[] = {
 	[ID_MAINCK]		= "mainck",
 	[ID_PLL_U_DIV]		= "upll_divpmcck",
 	[ID_PLL_A_DIV]		= "plla_divpmcck",
-	[ID_PLL_A_DIV2]		= "plla_div2pmcck",
-	[ID_PLL_AUDIO_DIV]		= "pll_audio_divpmcck",
-	[ID_PLL_LVDS_DIV]		= "pll_lvds_divpmcck",
+	[ID_PLL_A_2_DIV]	= "plla_div2pmcck",
+	[ID_PLL_AUDIO_DIV]	= "pll_audio_divpmcck",
+	[ID_PLL_LVDS_DIV]	= "pll_lvds_divpmcck",
 	[ID_MCK_PRES]		= "mck_pres",
 	[ID_MCK_DIV]		= "mck_div",
 };
 
 /* Fractional PLL output range. */
 static const struct clk_range plla_outputs[] = {
-	{ .min = 2343750, .max = 1200000000 },
+	{ .min = 2343750, .max = 1600000000 },
 };
 
 static const struct clk_range upll_outputs[] = {
@@ -132,13 +146,13 @@ static const struct clk_range upll_outputs[] = {
 
 /* PLL characteristics. */
 static const struct clk_pll_characteristics apll_characteristics = {
-	.input = { .min = 12000000, .max = 48000000 },
+	.input = { .min = 20000000, .max = 50000000 },
 	.num_output = ARRAY_SIZE(plla_outputs),
 	.output = plla_outputs,
 };
 
 static const struct clk_pll_characteristics upll_characteristics = {
-	.input = { .min = 12000000, .max = 48000000 },
+	.input = { .min = 20000000, .max = 50000000 },
 	.num_output = ARRAY_SIZE(upll_outputs),
 	.output = upll_outputs,
 	.upll = true,
@@ -163,13 +177,13 @@ static const struct clk_pll_layout pll_layout_div = {
 /* MCK characteristics. */
 static const struct clk_master_characteristics mck_characteristics = {
 	.output = { .min = 140000000, .max = 266666666 },
-	.divisors = { 1, 2, 4, 3 },
+	.divisors = { 1, 2, 3, 4, 5 },
 	.have_div3_pres = 1,
 };
 
 /* MCK layout. */
 static const struct clk_master_layout mck_layout = {
-	.mask = 0x373,
+	.mask = 0x773,
 	.pres_shift = 4,
 	.offset = 0x28,
 };
@@ -256,17 +270,6 @@ static const struct {
 	},
 
 	{
-		.n = "plla_div2pmcck",
-		.p = "plla_fracck",
-		.l = &pll_layout_div,
-		.c = &upll_characteristics,
-		.t = PLL_TYPE_DIV,
-		.f = 1,
-		.id = 1,
-		.cid = ID_PLL_A_DIV2,
-	},
-
-	{
 		.n = "audiopll_fracck",
 		.p = "main_osc",
 		.l = &pll_layout_div,
@@ -310,6 +313,28 @@ static const struct {
 		.cid = ID_PLL_LVDS_DIV,
 	},
 
+	{
+		.n = "plla_div2fracck",
+		.p = "main_osc",
+		.l = &pll_layout_frac,
+		.c = &apll_characteristics,
+		.t = PLL_TYPE_FRAC,
+		.f = 1,
+		.id = 4,
+		.cid = ID_PLL_A_2_FRAC,
+	},
+
+	{
+		.n = "plla_div2pmcck",
+		.p = "plla_fracck",
+		.l = &pll_layout_div,
+		.c = &apll_characteristics,
+		.t = PLL_TYPE_DIV,
+		.f = 1,
+		.id = 4,
+		.cid = ID_PLL_A_2_DIV,
+	},
+
 };
 
 /**
@@ -325,10 +350,13 @@ static const struct {
 	{ .n = "prog1", .cid = ID_PROG1, },
 	{ .n = "prog2", .cid = ID_PROG2, },
 	{ .n = "prog3", .cid = ID_PROG3, },
+	{ .n = "prog4", .cid = ID_PROG4, },
+	{ .n = "prog5", .cid = ID_PROG5, },
+	{ .n = "prog6", .cid = ID_PROG6, },
 };
 
 /* Mux table for programmable clocks. */
-static u32 sam9x7_prog_mux_table[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, };
+static u32 sam9x7_prog_mux_table[] = { 0, 1, 2, 3, 4, 5, 6, };
 
 /**
  * System clock description
@@ -343,10 +371,14 @@ static const struct {
 	u8 id;
 	u8 cid;
 } sam9x7_systemck[] = {
-	{ .n = "ddrck",		.p = "mck_pres", .id = 2, .cid = ID_DDR, },
-	{ .n = "pck0",		.p = "prog0",    .id = 8, .cid = ID_PCK0, },
-	{ .n = "pck1",		.p = "prog1",    .id = 9, .cid = ID_PCK1, },
-	{ .n = "qspick",	.p = "mck_pres", .id = 19, .cid = ID_QSPI, },
+	{ .n = "ddrck", .p = "mck_pres", .id = 2, .cid = ID_DDR, },
+	{ .n = "pck0",  .p = "prog0",    .id = 8, .cid = ID_PCK0, },
+	{ .n = "pck1",  .p = "prog1",    .id = 9, .cid = ID_PCK1, },
+	{ .n = "pck2",  .p = "prog2",    .id = 10, .cid = ID_PCK2, },
+	{ .n = "pck3",  .p = "prog3",    .id = 11, .cid = ID_PCK3, },
+	{ .n = "pck4",  .p = "prog4",    .id = 12, .cid = ID_PCK4, },
+	{ .n = "pck5",  .p = "prog5",    .id = 13, .cid = ID_PCK5, },
+	{ .n = "pck6",  .p = "prog6",    .id = 14, .cid = ID_PCK6, },
 };
 
 /**
@@ -358,57 +390,57 @@ static const struct {
 	const char *n;
 	u8 id;
 } sam9x7_periphck[] = {
-	{ .n = "pioA_clk",   .id = 2, },
-	{ .n = "pioB_clk",   .id = 3, },
-	{ .n = "pioC_clk",   .id = 4, },
-	{ .n = "flex0_clk",  .id = 5, },
-	{ .n = "flex1_clk",  .id = 6, },
-	{ .n = "flex2_clk",  .id = 7, },
-	{ .n = "flex3_clk",  .id = 8, },
-	{ .n = "flex6_clk",  .id = 9, },
-	{ .n = "flex7_clk",  .id = 10, },
-	{ .n = "flex8_clk",  .id = 11, },
-	{ .n = "sdmmc0_clk", .id = 12, },
-	{ .n = "flex4_clk",  .id = 13, },
-	{ .n = "flex5_clk",  .id = 14, },
-	{ .n = "flex9_clk",  .id = 15, },
-	{ .n = "flex10_clk", .id = 16, },
-	{ .n = "tcb0_clk",   .id = 17, },
-	{ .n = "pwm_clk",    .id = 18, },
-	{ .n = "adc_clk",    .id = 19, },
-	{ .n = "dma0_clk",   .id = 20, },
-	{ .n = "matrix_clk", .id = 21, },
-	{ .n = "uhphs_clk",  .id = 22, },
-	{ .n = "udphs_clk",  .id = 23, },
-	{ .n = "gmac_clk",  .id = 24, },
-	{ .n = "lcd_clk",    .id = 25, },
-	{ .n = "sdmmc1_clk", .id = 26, },
-	{ .n = "ssc_clk",    .id = 28, },
-	{ .n = "mcan0_clk",   .id = 29, },
-	{ .n = "mcan1_clk",   .id = 30, },
-	{ .n = "flex11_clk", .id = 32, },
-	{ .n = "flex12_clk", .id = 33, },
-	{ .n = "i2s_clk",    .id = 34, },
-	{ .n = "qspi_clk",   .id = 35, },
-	{ .n = "gfx2d_clk",  .id = 36, },
-	{ .n = "pit64b0_clk", .id = 37, },
-	{ .n = "trng_clk",   .id = 38, },
-	{ .n = "aes_clk",    .id = 39, },
-	{ .n = "tdes_clk",   .id = 40, },
-	{ .n = "sha_clk",    .id = 41, },
-	{ .n = "classd_clk", .id = 42, },
-	{ .n = "isi_clk",    .id = 43, },
-	{ .n = "pioD_clk",   .id = 44, },
-	{ .n = "tcb1_clk",   .id = 45, },
-	{ .n = "dbgu_clk",   .id = 47, },
-	{ .n = "mpddr_clk",  .id = 49, },
-	{ .n = "csi2dc_clk",  .id = 52, },
-	{ .n = "csi4l_clk",  .id = 53, },
-	{ .n = "dsi4l_clk",  .id = 54, },
+	{ .n = "pioA_clk",     .id = 2, },
+	{ .n = "pioB_clk",     .id = 3, },
+	{ .n = "pioC_clk",     .id = 4, },
+	{ .n = "flex0_clk",    .id = 5, },
+	{ .n = "flex1_clk",    .id = 6, },
+	{ .n = "flex2_clk",    .id = 7, },
+	{ .n = "flex3_clk",    .id = 8, },
+	{ .n = "flex6_clk",    .id = 9, },
+	{ .n = "flex7_clk",    .id = 10, },
+	{ .n = "flex8_clk",    .id = 11, },
+	{ .n = "sdmmc0_clk",   .id = 12, },
+	{ .n = "flex4_clk",    .id = 13, },
+	{ .n = "flex5_clk",    .id = 14, },
+	{ .n = "flex9_clk",    .id = 15, },
+	{ .n = "flex10_clk",   .id = 16, },
+	{ .n = "tcb0_clk",     .id = 17, },
+	{ .n = "pwm_clk",      .id = 18, },
+	{ .n = "adc_clk",      .id = 19, },
+	{ .n = "dma0_clk",     .id = 20, },
+	{ .n = "matrix_clk",   .id = 21, },
+	{ .n = "uhphs_clk",    .id = 22, },
+	{ .n = "udphs_clk",    .id = 23, },
+	{ .n = "gmac_clk",     .id = 24, },
+	{ .n = "lcd_clk",      .id = 25, },
+	{ .n = "sdmmc1_clk",   .id = 26, },
+	{ .n = "ssc_clk",      .id = 28, },
+	{ .n = "mcan0_clk",    .id = 29, },
+	{ .n = "mcan1_clk",    .id = 30, },
+	{ .n = "flex11_clk",   .id = 32, },
+	{ .n = "flex12_clk",   .id = 33, },
+	{ .n = "i2s_clk",      .id = 34, },
+	{ .n = "qspi_clk",     .id = 35, },
+	{ .n = "gfx2d_clk",    .id = 36, },
+	{ .n = "pit64b0_clk",  .id = 37, },
+	{ .n = "trng_clk",     .id = 38, },
+	{ .n = "aes_clk",      .id = 39, },
+	{ .n = "tdes_clk",     .id = 40, },
+	{ .n = "sha_clk",      .id = 41, },
+	{ .n = "classd_clk",   .id = 42, },
+	{ .n = "isi_clk",      .id = 43, },
+	{ .n = "pioD_clk",     .id = 44, },
+	{ .n = "tcb1_clk",     .id = 45, },
+	{ .n = "dbgu_clk",     .id = 47, },
+	{ .n = "mpddr_clk",    .id = 49, },
+	{ .n = "csi2dc_clk",   .id = 52, },
+	{ .n = "csi4l_clk",    .id = 53, },
+	{ .n = "dsi4l_clk",    .id = 54, },
 	{ .n = "mipiphy_clk",  .id = 55, },
-	{ .n = "lvdsc_clk",  .id = 56, },
-	{ .n = "pit64b1_clk", .id = 58, },
-	{ .n = "puf_clk",  .id = 59, },
+	{ .n = "lvdsc_clk",    .id = 56, },
+	{ .n = "pit64b1_clk",  .id = 58, },
+	{ .n = "puf_clk",      .id = 59, },
 	{ .n = "gmactsu_clk",  .id = 67, },
 };
 
@@ -424,32 +456,273 @@ static const struct {
  */
 static const struct {
 	const char *n;
+	const char *ep[8];
+	const char ep_mux_table[8];
+	const char ep_clk_mux_table[8];
 	struct clk_range r;
+	u8 ep_count;
 	u8 id;
 } sam9x7_gck[] = {
-	{ .n = "flex0_gclk",  .id = 5, },
-	{ .n = "flex1_gclk",  .id = 6, },
-	{ .n = "flex2_gclk",  .id = 7, },
-	{ .n = "flex3_gclk",  .id = 8, },
-	{ .n = "flex6_gclk",  .id = 9, },
-	{ .n = "flex7_gclk",  .id = 10, },
-	{ .n = "flex8_gclk",  .id = 11, },
-	{ .n = "sdmmc0_gclk", .id = 12, .r = { .min = 0, .max = 105000000 }, },
-	{ .n = "flex4_gclk",  .id = 13, },
-	{ .n = "flex5_gclk",  .id = 14, },
-	{ .n = "flex9_gclk",  .id = 15, },
-	{ .n = "flex10_gclk", .id = 16, },
-	{ .n = "tcb0_gclk",   .id = 17, },
-	{ .n = "adc_gclk",    .id = 19, },
-	{ .n = "lcd_gclk",    .id = 25, .r = { .min = 0, .max = 140000000 }, },
-	{ .n = "sdmmc1_gclk", .id = 26, .r = { .min = 0, .max = 105000000 }, },
-	{ .n = "flex11_gclk", .id = 32, },
-	{ .n = "flex12_gclk", .id = 33, },
-	{ .n = "i2s_gclk",    .id = 34, .r = { .min = 0, .max = 105000000 }, },
-	{ .n = "pit64b_gclk", .id = 37, },
-	{ .n = "classd_gclk", .id = 42, .r = { .min = 0, .max = 100000000 }, },
-	{ .n = "tcb1_gclk",   .id = 45, },
-	{ .n = "dbgu_gclk",   .id = 47, },
+	{
+        .n = "flex0_gclk",
+        .id = 5,
+        .ep = { "plla_div2pmcck", },
+        .ep_mux_table = { 8, },
+        .ep_clk_mux_table = { ID_PLL_A_2_DIV, },
+        .ep_count = 1,
+    },
+
+	{
+        .n = "flex1_gclk",
+        .id = 6,
+        .ep = { "plla_div2pmcck", },
+        .ep_mux_table = { 8, },
+        .ep_clk_mux_table = { ID_PLL_A_2_DIV, },
+        .ep_count = 1,
+    },
+
+	{
+        .n = "flex2_gclk",
+        .id = 7,
+        .ep = { "plla_div2pmcck", },
+        .ep_mux_table = { 8, },
+        .ep_clk_mux_table = { ID_PLL_A_2_DIV, },
+        .ep_count = 1,
+    },
+
+	{
+        .n = "flex3_gclk",
+        .id = 8,
+        .ep = { "plla_div2pmcck", },
+        .ep_mux_table = { 8, },
+        .ep_clk_mux_table = { ID_PLL_A_2_DIV, },
+        .ep_count = 1,
+    },
+
+	{
+        .n = "flex6_gclk",
+        .id = 9,
+        .ep = { "plla_div2pmcck", },
+        .ep_mux_table = { 8, },
+        .ep_clk_mux_table = { ID_PLL_A_2_DIV, },
+        .ep_count = 1,
+    },
+
+	{
+        .n = "flex7_gclk",
+        .id = 10,
+        .ep = { "plla_div2pmcck", },
+        .ep_mux_table = { 8, },
+        .ep_clk_mux_table = { ID_PLL_A_2_DIV, },
+        .ep_count = 1,
+    },
+
+	{
+        .n = "flex8_gclk",
+        .id = 11,
+        .ep = { "plla_div2pmcck", },
+        .ep_mux_table = { 8, },
+        .ep_clk_mux_table = { ID_PLL_A_2_DIV, },
+        .ep_count = 1,
+    },
+
+	{
+        .n = "sdmmc0_gclk",
+        .id = 12,
+        .r = { .max = 105000000 },
+        .ep = { "audiopll_divpmcck", "plla_div2pmcck", },
+        .ep_mux_table = { 6, 8, },
+        .ep_clk_mux_table = { ID_PLL_AUDIO_DIV, ID_PLL_A_2_DIV, },
+        .ep_count = 2,
+    },
+
+	{
+        .n = "flex4_gclk",
+        .id = 13,
+        .ep = { "plla_div2pmcck", },
+        .ep_mux_table = { 8, },
+        .ep_clk_mux_table = { ID_PLL_A_2_DIV, },
+        .ep_count = 1,
+    },
+
+	{
+        .n = "flex5_gclk",
+        .id = 14,
+        .ep = { "plla_div2pmcck", },
+        .ep_mux_table = { 8, },
+        .ep_clk_mux_table = { ID_PLL_A_2_DIV, },
+        .ep_count = 1,
+    },
+
+	{
+        .n = "flex9_gclk",
+        .id = 15,
+        .ep = { "plla_div2pmcck", },
+        .ep_mux_table = { 8, },
+        .ep_clk_mux_table = { ID_PLL_A_2_DIV, },
+        .ep_count = 1,
+    },
+
+	{
+        .n = "flex10_gclk",
+        .id = 16,
+        .ep = { "plla_div2pmcck", },
+        .ep_mux_table = { 8, },
+        .ep_clk_mux_table = { ID_PLL_A_2_DIV, },
+        .ep_count = 1,
+    },
+
+	{
+        .n = "tcb0_gclk",
+        .id = 17,
+        .ep = { "audiopll_divpmcck", "plla_div2pmcck", },
+        .ep_mux_table = { 6, 8, },
+        .ep_clk_mux_table = { ID_PLL_AUDIO_DIV, ID_PLL_A_2_DIV, },
+        .ep_count = 2,
+    },
+
+	{
+        .n = "adc_gclk",
+        .id = 19,
+        .ep = { "upll_divpmcck", "plla_div2pmcck", },
+        .ep_mux_table = { 5, 8, },
+        .ep_clk_mux_table = { ID_PLL_U_DIV, ID_PLL_A_2_DIV, },
+        .ep_count = 2,
+    },
+
+	{
+        .n = "lcd_gclk",
+        .id = 25,
+        .r = { .max = 75000000 },
+        .ep = { "audiopll_divpmcck", "plla_div2pmcck", },
+        .ep_mux_table = { 6, 8, },
+        .ep_clk_mux_table = { ID_PLL_AUDIO_DIV, ID_PLL_A_2_DIV, },
+        .ep_count = 2,
+    },
+
+	{
+        .n = "sdmmc1_gclk",
+        .id = 26,
+        .r = { .max = 105000000 },
+        .ep = { "audiopll_divpmcck", "plla_div2pmcck", },
+        .ep_mux_table = { 6, 8, },
+        .ep_clk_mux_table = { ID_PLL_AUDIO_DIV, ID_PLL_A_2_DIV, },
+        .ep_count = 2,
+    },
+
+	{
+        .n = "mcan0_gclk",
+        .id = 29,
+        .r = { .max = 80000000 },
+        .ep = { "upll_divpmcck", "plla_div2pmcck", },
+        .ep_mux_table = { 5, 8, },
+        .ep_clk_mux_table = { ID_PLL_U_DIV, ID_PLL_A_2_DIV, },
+        .ep_count = 2,
+    },
+
+	{
+        .n = "mcan1_gclk",
+        .id = 30,
+        .r = { .max = 80000000 },
+        .ep = { "upll_divpmcck", "plla_div2pmcck", },
+        .ep_mux_table = { 5, 8, },
+        .ep_clk_mux_table = { ID_PLL_U_DIV, ID_PLL_A_2_DIV, },
+        .ep_count = 2,
+    },
+
+	{
+        .n = "flex11_gclk",
+        .id = 32,
+        .ep = { "plla_div2pmcck", },
+        .ep_mux_table = { 8, },
+        .ep_clk_mux_table = { ID_PLL_A_2_DIV, },
+        .ep_count = 1,
+    },
+
+	{
+        .n = "flex12_gclk",
+        .id = 33,
+        .ep = { "plla_div2pmcck", },
+        .ep_mux_table = { 8, },
+        .ep_clk_mux_table = { ID_PLL_A_2_DIV, },
+        .ep_count = 1,
+    },
+
+	{
+        .n = "i2s_gclk",
+        .id = 34,
+        .r = { .max = 100000000 },
+        .ep = { "audiopll_divpmcck", "plla_div2pmcck", },
+        .ep_mux_table = { 6, 8, },
+        .ep_clk_mux_table = { ID_PLL_AUDIO_DIV, ID_PLL_A_2_DIV, },
+        .ep_count = 2,
+    },
+
+	{
+        .n = "pit64b0_gclk",
+        .id = 37,
+        .ep = { "plla_div2pmcck", },
+        .ep_mux_table = { 8, },
+        .ep_clk_mux_table = { ID_PLL_A_2_DIV, },
+        .ep_count = 1,
+    },
+
+	{
+        .n = "classd_gclk",
+        .id = 42,
+        .r = { .max = 100000000 },
+        .ep = { "audiopll_divpmcck", "plla_div2pmcck", },
+        .ep_mux_table = { 6, 8, },
+        .ep_clk_mux_table = { ID_PLL_AUDIO_DIV, ID_PLL_A_2_DIV, },
+        .ep_count = 2,
+    },
+
+	{
+        .n = "tcb1_gclk",
+        .id = 45,
+        .ep = { "audiopll_divpmcck", "plla_div2pmcck", },
+        .ep_mux_table = { 6, 8, },
+        .ep_clk_mux_table = { ID_PLL_AUDIO_DIV, ID_PLL_A_2_DIV, },
+        .ep_count = 2,
+    },
+
+	{
+        .n = "dbgu_gclk",
+        .id = 47,
+        .ep = { "plla_div2pmcck", },
+        .ep_mux_table = { 8, },
+        .ep_clk_mux_table = { ID_PLL_A_2_DIV, },
+        .ep_count = 1,
+    },
+
+	{
+        .n = "mipiphy_gclk",
+        .id = 55,
+        .r = { .max = 27000000 },
+        .ep = { "plla_div2pmcck", },
+        .ep_mux_table = { 8, },
+        .ep_clk_mux_table = { ID_PLL_A_2_DIV, },
+        .ep_count = 1,
+    },
+
+	{
+        .n = "pit64b1_gclk",
+        .id = 58,
+        .ep = { "plla_div2pmcck", },
+        .ep_mux_table = { 8, },
+        .ep_clk_mux_table = { ID_PLL_A_2_DIV, },
+        .ep_count = 1,
+    },
+
+	{
+        .n = "gmac_gclk",
+        .id = 67,
+        .ep = { "audiopll_divpmcck", "plla_div2pmcck", },
+        .ep_mux_table = { 6, 8, },
+        .ep_clk_mux_table = { ID_PLL_AUDIO_DIV, ID_PLL_A_2_DIV, },
+        .ep_count = 2,
+    },
+
 };
 
 #define prepare_mux_table(_allocs, _index, _dst, _src, _num, _label)	\
@@ -472,7 +745,7 @@ static int sam9x7_clk_probe(struct udevice *dev)
 	const char *p[10];
 	unsigned int cm[10], m[10], *tmpclkmux, *tmpmux;
 	struct clk clk, *c;
-	int ret, muxallocindex = 0, clkmuxallocindex = 0, i;
+	int ret, muxallocindex = 0, clkmuxallocindex = 0, i, j;
 	static const struct clk_range r = { 0, 0 };
 
 	if (!base)
@@ -634,25 +907,21 @@ static int sam9x7_clk_probe(struct udevice *dev)
 	p[2] = clk_names[ID_MAINCK];
 	p[3] = clk_names[ID_MCK_DIV];
 	p[4] = clk_names[ID_PLL_A_DIV];
-	p[5] = clk_names[ID_PLL_A_DIV2];
-	p[6] = clk_names[ID_PLL_U_DIV];
-	p[7] = clk_names[ID_PLL_AUDIO_DIV];
-	p[8] = clk_names[ID_PLL_LVDS_DIV];
+	p[5] = clk_names[ID_PLL_U_DIV];
+	p[6] = clk_names[ID_PLL_AUDIO_DIV];
 	cm[0] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_MD_SLCK);
 	cm[1] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_TD_SLCK);
 	cm[2] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_MAINCK);
 	cm[3] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_MCK_DIV);
 	cm[4] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_A_DIV);
-	cm[5] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_A_DIV2);
-	cm[6] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_U_DIV);
-	cm[7] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_AUDIO_DIV);
-	cm[8] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_LVDS_DIV);
+	cm[5] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_U_DIV);
+	cm[6] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_AUDIO_DIV);
 	for (i = 0; i < ARRAY_SIZE(sam9x7_prog); i++) {
 		prepare_mux_table(clkmuxallocs, clkmuxallocindex, tmpclkmux, cm,
-				  6, fail);
+				  7, fail);
 
 		c = at91_clk_register_programmable(base, sam9x7_prog[i].n, p,
-						   10, i, &programmable_layout,
+						   7, i, &programmable_layout,
 						   tmpclkmux,
 						   sam9x7_prog_mux_table);
 		if (IS_ERR(c)) {
@@ -695,38 +964,29 @@ static int sam9x7_clk_probe(struct udevice *dev)
 	p[1] = clk_names[ID_TD_SLCK];
 	p[2] = clk_names[ID_MAINCK];
 	p[3] = clk_names[ID_MCK_DIV];
-	p[4] = clk_names[ID_PLL_A_DIV];
-	p[5] = clk_names[ID_PLL_A_DIV2];
-	p[6] = clk_names[ID_PLL_U_DIV];
-	p[7] = clk_names[ID_PLL_AUDIO_DIV];
-	p[8] = clk_names[ID_PLL_LVDS_DIV];
 	m[0] = 0;
 	m[1] = 1;
 	m[2] = 2;
 	m[3] = 3;
-	m[4] = 4;
-	m[5] = 5;
-	m[6] = 6;
-	m[7] = 7;
-	m[8] = 8;
 	cm[0] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_MD_SLCK);
 	cm[1] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_TD_SLCK);
 	cm[2] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_MAINCK);
 	cm[3] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_MCK_DIV);
-	cm[4] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_A_DIV);
-	cm[5] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_A_DIV2);
-	cm[6] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_U_DIV);
-	cm[7] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_AUDIO_DIV);
-	cm[8] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_LVDS_DIV);
 	for (i = 0; i < ARRAY_SIZE(sam9x7_gck); i++) {
+		for (j = 0; j < sam9x7_gck[i].ep_count; j++) {
+			p[4 + j] = sam9x7_gck[i].ep[j];
+			m[4 + j] = sam9x7_gck[i].ep_mux_table[j];
+			cm[4 + j] = AT91_TO_CLK_ID(PMC_TYPE_CORE,
+					sam9x7_gck[i].ep_clk_mux_table[j]);
+		}
 		prepare_mux_table(clkmuxallocs, clkmuxallocindex, tmpclkmux, cm,
-				  6, fail);
+				  4 + sam9x7_gck[i].ep_count, fail);
 		prepare_mux_table(muxallocs, muxallocindex, tmpmux, m,
-				  6, fail);
+				  4 + sam9x7_gck[i].ep_count, fail);
 
 		c = at91_clk_register_generic(base, &sam9x7_pcr_layout,
 					      sam9x7_gck[i].n, p, tmpclkmux,
-					      tmpmux, 6, sam9x7_gck[i].id,
+					      tmpmux, 4 + sam9x7_gck[i].ep_count, sam9x7_gck[i].id,
 					      &sam9x7_gck[i].r);
 		if (IS_ERR(c)) {
 			ret = PTR_ERR(c);
