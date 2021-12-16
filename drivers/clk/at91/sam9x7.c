@@ -32,7 +32,8 @@
  * @ID_PLL_A_2_FRAC:    	PLLA DIV2 fractional clock identifier
  * @ID_PLL_A_2_DIV:     	PLLA DIV2 divider clock identifier
  * @ID_PLL_AUDIO_FRAC:  	Audio PLL fractional clock identifier
- * @ID_PLL_AUDIO_DIV:   	Audio PLL divider clock identifier
+ * @ID_PLL_AUDIO_DIVPMC:   	Audio PLL divider clock identifier
+ * @ID_PLL_AUDIO_DIVIO:	Audio PLL IO divider clock identifier
  * @ID_PLL_LVDS_FRAC:   	LVDS PLL fractional clock identifier
  * @ID_PLL_LVDS_DIV:    	LVDS PLL divider clock identifier
 
@@ -79,34 +80,35 @@ enum pmc_clk_ids {
         ID_PLL_A_2_FRAC         = 11,
         ID_PLL_A_2_DIV          = 12,
         ID_PLL_AUDIO_FRAC       = 13,
-        ID_PLL_AUDIO_DIV        = 14,
-        ID_PLL_LVDS_FRAC        = 15,
-        ID_PLL_LVDS_DIV         = 16,
+        ID_PLL_AUDIO_DIVPMC     = 14,
+        ID_PLL_AUDIO_DIVIO      = 15,
+        ID_PLL_LVDS_FRAC        = 16,
+        ID_PLL_LVDS_DIV         = 17,
 
-        ID_MCK_DIV              = 17,
+        ID_MCK_DIV              = 18,
 
-        ID_UTMI                 = 18,
+        ID_UTMI                 = 19,
 
-        ID_PROG0                = 19,
-        ID_PROG1                = 20,
-        ID_PROG2                = 21,
-        ID_PROG3                = 22,
-        ID_PROG4                = 23,
-        ID_PROG5                = 24,
-        ID_PROG6                = 25,
+        ID_PROG0                = 20,
+        ID_PROG1                = 21,
+        ID_PROG2                = 22,
+        ID_PROG3                = 23,
+        ID_PROG4                = 24,
+        ID_PROG5                = 25,
+        ID_PROG6                = 26,
 
-        ID_PCK0                 = 26,
-        ID_PCK1                 = 27,
-        ID_PCK2                 = 28,
-        ID_PCK3                 = 29,
-        ID_PCK4                 = 30,
-        ID_PCK5                 = 31,
-        ID_PCK6                 = 32,
+        ID_PCK0                 = 27,
+        ID_PCK1                 = 28,
+        ID_PCK2                 = 29,
+        ID_PCK3                 = 30,
+        ID_PCK4                 = 31,
+        ID_PCK5                 = 32,
+        ID_PCK6                 = 33,
 
-        ID_DDR                  = 33,
-        ID_QSPI                 = 34,
+        ID_DDR                  = 34,
+        ID_QSPI                 = 35,
 
-        ID_MCK_PRES             = 35,
+        ID_MCK_PRES             = 36,
 
         ID_MAX,
 };
@@ -129,7 +131,8 @@ static const char *clk_names[] = {
 	[ID_PLL_U_DIV]		= "upll_divpmcck",
 	[ID_PLL_A_DIV]		= "plla_divpmcck",
 	[ID_PLL_A_2_DIV]	= "plla_div2pmcck",
-	[ID_PLL_AUDIO_DIV]	= "pll_audio_divpmcck",
+	[ID_PLL_AUDIO_DIVPMC]	= "pll_audio_divpmcck",
+	[ID_PLL_AUDIO_DIVIO]	= "pll_audio_diviock",
 	[ID_PLL_LVDS_DIV]	= "pll_lvds_divpmcck",
 	[ID_MCK_PRES]		= "mck_pres",
 	[ID_MCK_DIV]		= "mck_div",
@@ -167,23 +170,31 @@ static const struct clk_pll_layout pll_layout_frac = {
 };
 
 /* Layout for DIV PLLs. */
-static const struct clk_pll_layout pll_layout_div = {
+static const struct clk_pll_layout pll_layout_divpmc = {
 	.div_mask = GENMASK(7, 0),
 	.endiv_mask = BIT(29),
 	.div_shift = 0,
 	.endiv_shift = 29,
 };
 
+/* Layout for DIVIO dividers. */
+static const struct clk_pll_layout pll_layout_divio = {
+        .div_mask       = GENMASK(19, 12),
+        .endiv_mask     = BIT(30),
+        .div_shift      = 12,
+        .endiv_shift    = 30,
+};
+
 /* MCK characteristics. */
 static const struct clk_master_characteristics mck_characteristics = {
 	.output = { .min = 140000000, .max = 266666666 },
-	.divisors = { 1, 2, 3, 4, 5 },
+	.divisors = { 1, 2, 4, 3, 5},
 	.have_div3_pres = 1,
 };
 
 /* MCK layout. */
 static const struct clk_master_layout mck_layout = {
-	.mask = 0x773,
+	.mask = 0x373,
 	.pres_shift = 4,
 	.offset = 0x28,
 };
@@ -239,7 +250,7 @@ static const struct {
 	{
 		.n = "plla_divpmcck",
 		.p = "plla_fracck",
-		.l = &pll_layout_div,
+		.l = &pll_layout_divpmc,
 		.c = &apll_characteristics,
 		.t = PLL_TYPE_DIV,
 		.f = 1,
@@ -261,7 +272,7 @@ static const struct {
 	{
 		.n = "upll_divpmcck",
 		.p = "upll_fracck",
-		.l = &pll_layout_div,
+		.l = &pll_layout_divpmc,
 		.c = &upll_characteristics,
 		.t = PLL_TYPE_DIV,
 		.f = 1,
@@ -272,8 +283,8 @@ static const struct {
 	{
 		.n = "audiopll_fracck",
 		.p = "main_osc",
-		.l = &pll_layout_div,
-		.c = &upll_characteristics,
+		.l = &pll_layout_frac,
+		.c = &apll_characteristics,
 		.t = PLL_TYPE_FRAC,
 		.f = 1,
 		.id = 2,
@@ -283,19 +294,30 @@ static const struct {
 	{
 		.n = "audiopll_divpmcck",
 		.p = "audiopll_fracck",
-		.l = &pll_layout_div,
-		.c = &upll_characteristics,
+		.l = &pll_layout_divpmc,
+		.c = &apll_characteristics,
 		.t = PLL_TYPE_DIV,
 		.f = 1,
 		.id = 2,
-		.cid = ID_PLL_AUDIO_DIV,
+		.cid = ID_PLL_AUDIO_DIVPMC,
+	},
+
+	{
+		.n = "audiopll_diviock",
+		.p = "audiopll_fracck",
+		.l = &pll_layout_divio,
+		.c = &apll_characteristics,
+		.t = PLL_TYPE_DIV,
+		.f = 1,
+		.id = 2,
+		.cid = ID_PLL_AUDIO_DIVIO,
 	},
 
 	{
 		.n = "lvdspll_fracck",
 		.p = "main_osc",
-		.l = &pll_layout_div,
-		.c = &upll_characteristics,
+		.l = &pll_layout_frac,
+		.c = &apll_characteristics,
 		.t = PLL_TYPE_FRAC,
 		.f = 1,
 		.id = 3,
@@ -305,8 +327,8 @@ static const struct {
 	{
 		.n = "lvdspll_divpmcck",
 		.p = "lvdspll_fracck",
-		.l = &pll_layout_div,
-		.c = &upll_characteristics,
+		.l = &pll_layout_divpmc,
+		.c = &apll_characteristics,
 		.t = PLL_TYPE_DIV,
 		.f = 1,
 		.id = 3,
@@ -327,7 +349,7 @@ static const struct {
 	{
 		.n = "plla_div2pmcck",
 		.p = "plla_fracck",
-		.l = &pll_layout_div,
+		.l = &pll_layout_divpmc,
 		.c = &apll_characteristics,
 		.t = PLL_TYPE_DIV,
 		.f = 1,
@@ -532,7 +554,7 @@ static const struct {
         .r = { .max = 105000000 },
         .ep = { "audiopll_divpmcck", "plla_div2pmcck", },
         .ep_mux_table = { 6, 8, },
-        .ep_clk_mux_table = { ID_PLL_AUDIO_DIV, ID_PLL_A_2_DIV, },
+        .ep_clk_mux_table = { ID_PLL_AUDIO_DIVPMC, ID_PLL_A_2_DIV, },
         .ep_count = 2,
     },
 
@@ -577,7 +599,7 @@ static const struct {
         .id = 17,
         .ep = { "audiopll_divpmcck", "plla_div2pmcck", },
         .ep_mux_table = { 6, 8, },
-        .ep_clk_mux_table = { ID_PLL_AUDIO_DIV, ID_PLL_A_2_DIV, },
+        .ep_clk_mux_table = { ID_PLL_AUDIO_DIVPMC, ID_PLL_A_2_DIV, },
         .ep_count = 2,
     },
 
@@ -596,7 +618,7 @@ static const struct {
         .r = { .max = 75000000 },
         .ep = { "audiopll_divpmcck", "plla_div2pmcck", },
         .ep_mux_table = { 6, 8, },
-        .ep_clk_mux_table = { ID_PLL_AUDIO_DIV, ID_PLL_A_2_DIV, },
+        .ep_clk_mux_table = { ID_PLL_AUDIO_DIVPMC, ID_PLL_A_2_DIV, },
         .ep_count = 2,
     },
 
@@ -606,7 +628,7 @@ static const struct {
         .r = { .max = 105000000 },
         .ep = { "audiopll_divpmcck", "plla_div2pmcck", },
         .ep_mux_table = { 6, 8, },
-        .ep_clk_mux_table = { ID_PLL_AUDIO_DIV, ID_PLL_A_2_DIV, },
+        .ep_clk_mux_table = { ID_PLL_AUDIO_DIVPMC, ID_PLL_A_2_DIV, },
         .ep_count = 2,
     },
 
@@ -654,7 +676,7 @@ static const struct {
         .r = { .max = 100000000 },
         .ep = { "audiopll_divpmcck", "plla_div2pmcck", },
         .ep_mux_table = { 6, 8, },
-        .ep_clk_mux_table = { ID_PLL_AUDIO_DIV, ID_PLL_A_2_DIV, },
+        .ep_clk_mux_table = { ID_PLL_AUDIO_DIVPMC, ID_PLL_A_2_DIV, },
         .ep_count = 2,
     },
 
@@ -673,7 +695,7 @@ static const struct {
         .r = { .max = 100000000 },
         .ep = { "audiopll_divpmcck", "plla_div2pmcck", },
         .ep_mux_table = { 6, 8, },
-        .ep_clk_mux_table = { ID_PLL_AUDIO_DIV, ID_PLL_A_2_DIV, },
+        .ep_clk_mux_table = { ID_PLL_AUDIO_DIVPMC, ID_PLL_A_2_DIV, },
         .ep_count = 2,
     },
 
@@ -682,7 +704,7 @@ static const struct {
         .id = 45,
         .ep = { "audiopll_divpmcck", "plla_div2pmcck", },
         .ep_mux_table = { 6, 8, },
-        .ep_clk_mux_table = { ID_PLL_AUDIO_DIV, ID_PLL_A_2_DIV, },
+        .ep_clk_mux_table = { ID_PLL_AUDIO_DIVPMC, ID_PLL_A_2_DIV, },
         .ep_count = 2,
     },
 
@@ -719,7 +741,7 @@ static const struct {
         .id = 67,
         .ep = { "audiopll_divpmcck", "plla_div2pmcck", },
         .ep_mux_table = { 6, 8, },
-        .ep_clk_mux_table = { ID_PLL_AUDIO_DIV, ID_PLL_A_2_DIV, },
+        .ep_clk_mux_table = { ID_PLL_AUDIO_DIVPMC, ID_PLL_A_2_DIV, },
         .ep_count = 2,
     },
 
@@ -908,14 +930,14 @@ static int sam9x7_clk_probe(struct udevice *dev)
 	p[3] = clk_names[ID_MCK_DIV];
 	p[4] = clk_names[ID_PLL_A_DIV];
 	p[5] = clk_names[ID_PLL_U_DIV];
-	p[6] = clk_names[ID_PLL_AUDIO_DIV];
+	p[6] = clk_names[ID_PLL_AUDIO_DIVPMC];
 	cm[0] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_MD_SLCK);
 	cm[1] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_TD_SLCK);
 	cm[2] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_MAINCK);
 	cm[3] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_MCK_DIV);
 	cm[4] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_A_DIV);
 	cm[5] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_U_DIV);
-	cm[6] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_AUDIO_DIV);
+	cm[6] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_AUDIO_DIVPMC);
 	for (i = 0; i < ARRAY_SIZE(sam9x7_prog); i++) {
 		prepare_mux_table(clkmuxallocs, clkmuxallocindex, tmpclkmux, cm,
 				  7, fail);
