@@ -33,7 +33,11 @@
 #define PLL_MUL_MAX		(FIELD_GET(PMC_PLL_CTRL1_MUL_MSK, UINT_MAX) + 1)
 
 #define FCORE_MIN		(600000000)
+#if defined(CONFIG_SAM9X7)
+#define FCORE_MAX		(1600000002)
+#else
 #define FCORE_MAX		(1200000000)
+#endif
 
 #define PLL_MAX_ID		7
 
