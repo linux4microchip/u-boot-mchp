@@ -39,6 +39,9 @@
 #define FCORE_MAX		(1200000000)
 #endif
 
+#if defined(CONFIG_SAM9X7)
+#define PLL_ID_PLLA		0
+#endif
 #define PLL_MAX_ID		7
 
 struct sam9x60_pll {
@@ -147,6 +150,7 @@ static ulong sam9x60_frac_pll_get_rate(struct clk *clk)
 	void __iomem *base = pll->base;
 	ulong parent_rate = clk_get_parent_rate(clk);
 	u32 mul, frac, val;
+	ulong pll_freq;
 
 	if (!parent_rate)
 		return 0;
@@ -156,8 +160,14 @@ static ulong sam9x60_frac_pll_get_rate(struct clk *clk)
 	pmc_read(base, AT91_PMC_PLL_CTRL1, &val);
 	mul = (val & pll->layout->mul_mask) >> pll->layout->mul_shift;
 	frac = (val & pll->layout->frac_mask) >> pll->layout->frac_shift;
+	pll_freq = (parent_rate * (mul + 1) + ((u64)parent_rate * frac >> 22));
 
-	return (parent_rate * (mul + 1) + ((u64)parent_rate * frac >> 22));
+#if defined(CONFIG_SAM9X7)
+	if(pll->id == PLL_ID_PLLA){
+		pll_freq /= 2;
+	}
+#endif
+	return pll_freq;
 }
 
 static int sam9x60_frac_pll_enable(struct clk *clk)
