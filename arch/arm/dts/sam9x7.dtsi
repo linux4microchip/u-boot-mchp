@@ -58,7 +58,7 @@
 		ARM9260_0: cpu@0 {
 			device_type = "cpu";
 			compatible = "arm,arm926ej-s";
-			clocks = <&pmc PMC_TYPE_CORE 35>, <&pmc PMC_TYPE_CORE 17>, <&main_xtal>;
+			clocks = <&pmc PMC_TYPE_CORE 36>, <&pmc PMC_TYPE_CORE 18>, <&main_xtal>;
 			clock-names = "cpu", "master", "xtal";
 		};
 	};
@@ -217,8 +217,8 @@
 
 			pit: timer@fffffe40 {
 				compatible = "atmel,at91sam9260-pit";
-				reg = <0xfffffe40 0x10>;
-				clocks = <&pmc PMC_TYPE_CORE 17>; /* ID_MCK. */
+				reg = <0xfffffe40 0x0D>;
+				clocks = <&pmc PMC_TYPE_CORE 18>; /* ID_MCK. */
 			};
 
 			clk32: sckc@fffffe50 {
