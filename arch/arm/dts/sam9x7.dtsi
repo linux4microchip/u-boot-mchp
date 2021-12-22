@@ -198,6 +198,14 @@
 				clocks = <&pmc PMC_TYPE_PERIPHERAL 3>;
 			};
 
+			pioC: gpio@fffff800 {
+				compatible = "atmel,at91sam9x5-gpio", "atmel,at91rm9200-gpio";
+				reg = <0xfffff800 0x200>;
+				#gpio-cells = <2>;
+				gpio-controller;
+				clocks = <&pmc PMC_TYPE_PERIPHERAL 4>;
+			};
+
 			pioD: gpio@fffffa00 {
 				compatible = "atmel,at91sam9x5-gpio", "atmel,at91rm9200-gpio";
 				reg = <0xfffffa00 0x200>;
