@@ -41,6 +41,10 @@
 
 #if defined(CONFIG_SAM9X7)
 #define PLL_ID_PLLA		0
+#define PLL_ID_UPLL            1
+#define PLL_ID_AUDIO_PLL       2
+#define PLL_ID_LVDS_PLL        3
+#define PLL_ID_PLLA_DIV2       4
 #endif
 #define PLL_MAX_ID		7
 
@@ -163,7 +167,7 @@ static ulong sam9x60_frac_pll_get_rate(struct clk *clk)
 	pll_freq = (parent_rate * (mul + 1) + ((u64)parent_rate * frac >> 22));
 
 #if defined(CONFIG_SAM9X7)
-	if(pll->id == PLL_ID_PLLA){
+	if ((pll->id == PLL_ID_PLLA) || (pll->id == PLL_ID_PLLA_DIV2)) {
 		pll_freq /= 2;
 	}
 #endif
