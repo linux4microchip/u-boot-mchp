@@ -33,11 +33,11 @@
 		gpios = <&pioD 14 GPIO_ACTIVE_HIGH>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_onewire_tm_default>;
-		status = "okay";
+		status = "disabled";
 
 		w1_eeprom: w1_eeprom@0 {
 			compatible = "maxim,ds24b33";
-			status = "okay";
+			status = "disabled";
 		};
 	};
 
@@ -59,7 +59,7 @@
 
 			flx0: flexcom@f801c600 {
 				atmel,flexcom-mode = <3>;
-				status = "okay";
+				status = "disabled";
 
 				i2c@600 {
 					compatible = "atmel,sama5d2-i2c";
@@ -69,7 +69,7 @@
 					#address-cells = <1>;
 					#size-cells = <0>;
 					clocks = <&pmc PMC_TYPE_PERIPHERAL 5>;
-					status = "okay";
+					status = "disabled";
 
 					eeprom@53 {
 						compatible = "atmel,24c32";
