@@ -106,7 +106,16 @@
 	};
 };
 
-&macb0 {
-	phy-mode = "rmii";
+&gmac0 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_gmac0>;
+	phy-mode = "rgmii";
+	phy-handle = <&phy>;
 	status = "okay";
+
+	phy: ethernet-phy@7 {
+		reg = <0x7>;
+	};
 };
