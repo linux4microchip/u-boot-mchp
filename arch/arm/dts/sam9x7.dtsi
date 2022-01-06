@@ -112,11 +112,11 @@
 			gmac0: ethernet@f802c000 {
 				compatible = "cdns,sam9x7-gem";
 				reg = <0xf802c000 0x4000>;
-				clocks = <&pmc PMC_TYPE_PERIPHERAL 24>, <&pmc PMC_TYPE_PERIPHERAL 24>, <&pmc PMC_TYPE_GCK 67>;
+				clocks = <&pmc PMC_TYPE_PERIPHERAL 24>, <&pmc PMC_TYPE_PERIPHERAL 24>, <&pmc PMC_TYPE_GCK 24>;
 				clock-names = "hclk", "pclk", "tx_clk";
-				assigned-clocks = <&pmc PMC_TYPE_GCK 67>;
+				assigned-clocks = <&pmc PMC_TYPE_GCK 24>;
 				assigned-clock-parents = <&pmc PMC_TYPE_CORE 12>; /* ID_PLL_A_2_DIV */
-				assigned-clock-rates = <125000000>;
+				assigned-clock-rates = <50000000>;
 				status = "disabled";
 			};
 
