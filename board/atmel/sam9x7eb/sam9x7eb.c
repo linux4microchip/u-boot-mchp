@@ -1,3 +1,4 @@
+#define DEBUG
 // SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (C) 2021 Microchip Technology Inc. and its subsidiaries
@@ -16,6 +17,7 @@
 #include <debug_uart.h>
 #include <asm/mach-types.h>
 #include <init.h>
+#include <linux/delay.h>
 
 extern void at91_pda_detect(void);
 
@@ -76,6 +78,15 @@ static void sam9x7eb_nand_hw_init(void)
 #endif
 	       AT91_SMC_MODE_TDF | AT91_SMC_MODE_TDF_CYCLE(15),
 	       &smc->cs[3].mode);
+}
+#endif
+
+#ifdef CONFIG_RESET_PHY_R
+void reset_phy(void)
+{
+	at91_set_pio_output(AT91_PIO_PORTC, 25, 0);
+	mdelay(10);
+	at91_set_pio_output(AT91_PIO_PORTC, 25, 1);
 }
 #endif
 
