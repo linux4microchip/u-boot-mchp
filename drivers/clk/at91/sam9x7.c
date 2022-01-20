@@ -138,27 +138,83 @@ static const char *clk_names[] = {
 	[ID_MCK_DIV]		= "mck_div",
 };
 
+/* Fractional PLL core output range. */
+static const struct clk_range plla_core_outputs[] = {
+	{ .min = 375000000, .max = 1600000000 },
+};
+
+static const struct clk_range upll_core_outputs[] = {
+	{ .min = 600000000, .max = 1200000000 },
+};
+
+static const struct clk_range lvdspll_core_outputs[] = {
+	{ .min = 400000000, .max = 800000000 },
+};
+
+static const struct clk_range audiopll_core_outputs[] = {
+	{ .min = 400000000, .max = 800000000 },
+};
+
+static const struct clk_range plladiv2_core_outputs[] = {
+	{ .min = 375000000, .max = 1600000000 },
+};
+
 /* Fractional PLL output range. */
 static const struct clk_range plla_outputs[] = {
-	{ .min = 2343750, .max = 1600000000 },
+	{ .min = 2343750, .max = 800000000 },
 };
 
 static const struct clk_range upll_outputs[] = {
-	{ .min = 300000000, .max = 500000000 },
+	{ .min = 300000000, .max = 600000000 },
+};
+
+static const struct clk_range lvdspll_outputs[] = {
+	{ .min = 10000000, .max = 800000000 },
+};
+
+static const struct clk_range audiopll_outputs[] = {
+	{ .min = 10000000, .max = 800000000 },
+};
+
+static const struct clk_range plladiv2_outputs[] = {
+	{ .min = 2343750, .max = 400000000 },
 };
 
 /* PLL characteristics. */
-static const struct clk_pll_characteristics apll_characteristics = {
+static const struct clk_pll_characteristics plla_characteristics = {
 	.input = { .min = 20000000, .max = 50000000 },
 	.num_output = ARRAY_SIZE(plla_outputs),
 	.output = plla_outputs,
+	.core_output = plla_core_outputs,
 };
 
 static const struct clk_pll_characteristics upll_characteristics = {
 	.input = { .min = 20000000, .max = 50000000 },
 	.num_output = ARRAY_SIZE(upll_outputs),
 	.output = upll_outputs,
+	.core_output = upll_core_outputs,
 	.upll = true,
+};
+
+static const struct clk_pll_characteristics lvdspll_characteristics = {
+	.input = { .min = 20000000, .max = 50000000 },
+	.num_output = ARRAY_SIZE(lvdspll_outputs),
+	.output = lvdspll_outputs,
+	.core_output = lvdspll_core_outputs,
+};
+
+static const struct clk_pll_characteristics audiopll_characteristics = {
+	.input = { .min = 20000000, .max = 50000000 },
+	.num_output = ARRAY_SIZE(audiopll_outputs),
+	.output = audiopll_outputs,
+	.core_output = audiopll_core_outputs,
+};
+
+static const struct clk_pll_characteristics plladiv2_characteristics = {
+	.input = { .min = 20000000, .max = 50000000 },
+	.num_output = ARRAY_SIZE(plladiv2_outputs),
+	.output = plladiv2_outputs,
+	.core_output = plladiv2_core_outputs,
 };
 
 /* Layout for fractional PLLs. */
@@ -222,6 +278,7 @@ static const struct clk_pcr_layout sam9x7_pcr_layout = {
  * @p:		clock parent
  * @l:		clock layout
  * @t:		clock type
+ * @c:		pll characteristics
  * @f:		true if clock is fixed and not changeable by driver
  * @id:		clock id corresponding to PLL driver
  * @cid:	clock id corresponding to clock subsystem
@@ -240,7 +297,7 @@ static const struct {
 		.n = "plla_fracck",
 		.p = "mainck",
 		.l = &pll_layout_frac,
-		.c = &apll_characteristics,
+		.c = &plla_characteristics,
 		.t = PLL_TYPE_FRAC,
 		.f = 1,
 		.id = 0,
@@ -251,7 +308,7 @@ static const struct {
 		.n = "plla_divpmcck",
 		.p = "plla_fracck",
 		.l = &pll_layout_divpmc,
-		.c = &apll_characteristics,
+		.c = &plla_characteristics,
 		.t = PLL_TYPE_DIV,
 		.f = 1,
 		.id = 0,
@@ -284,7 +341,7 @@ static const struct {
 		.n = "audiopll_fracck",
 		.p = "main_osc",
 		.l = &pll_layout_frac,
-		.c = &apll_characteristics,
+		.c = &audiopll_characteristics,
 		.t = PLL_TYPE_FRAC,
 		.f = 1,
 		.id = 2,
@@ -295,7 +352,7 @@ static const struct {
 		.n = "audiopll_divpmcck",
 		.p = "audiopll_fracck",
 		.l = &pll_layout_divpmc,
-		.c = &apll_characteristics,
+		.c = &audiopll_characteristics,
 		.t = PLL_TYPE_DIV,
 		.f = 1,
 		.id = 2,
@@ -306,7 +363,7 @@ static const struct {
 		.n = "audiopll_diviock",
 		.p = "audiopll_fracck",
 		.l = &pll_layout_divio,
-		.c = &apll_characteristics,
+		.c = &audiopll_characteristics,
 		.t = PLL_TYPE_DIV,
 		.f = 1,
 		.id = 2,
@@ -317,7 +374,7 @@ static const struct {
 		.n = "lvdspll_fracck",
 		.p = "main_osc",
 		.l = &pll_layout_frac,
-		.c = &apll_characteristics,
+		.c = &lvdspll_characteristics,
 		.t = PLL_TYPE_FRAC,
 		.f = 1,
 		.id = 3,
@@ -328,7 +385,7 @@ static const struct {
 		.n = "lvdspll_divpmcck",
 		.p = "lvdspll_fracck",
 		.l = &pll_layout_divpmc,
-		.c = &apll_characteristics,
+		.c = &lvdspll_characteristics,
 		.t = PLL_TYPE_DIV,
 		.f = 1,
 		.id = 3,
@@ -337,9 +394,9 @@ static const struct {
 
 	{
 		.n = "plla_div2fracck",
-		.p = "main_osc",
+		.p = "mainck",
 		.l = &pll_layout_frac,
-		.c = &apll_characteristics,
+		.c = &plladiv2_characteristics,
 		.t = PLL_TYPE_FRAC,
 		.f = 1,
 		.id = 4,
@@ -350,7 +407,7 @@ static const struct {
 		.n = "plla_div2pmcck",
 		.p = "plla_fracck",
 		.l = &pll_layout_divpmc,
-		.c = &apll_characteristics,
+		.c = &plladiv2_characteristics,
 		.t = PLL_TYPE_DIV,
 		.f = 1,
 		.id = 4,

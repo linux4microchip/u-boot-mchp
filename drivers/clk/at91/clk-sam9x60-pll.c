@@ -64,14 +64,17 @@ static inline bool sam9x60_pll_ready(void __iomem *base, int id)
 	return !!(status & BIT(id));
 }
 
-static long sam9x60_frac_pll_compute_mul_frac(u32 *mul, u32 *frac, ulong rate,
-					      ulong parent_rate)
+static long sam9x60_frac_pll_compute_mul_frac(struct clk *clk, u32 *mul,
+                u32 *frac, ulong rate, ulong parent_rate)
 {
 	unsigned long tmprate, remainder;
 	unsigned long nmul = 0;
 	unsigned long nfrac = 0;
 
-	if (rate < FCORE_MIN || rate > FCORE_MAX)
+	struct sam9x60_pll *pll = to_sam9x60_pll(clk);
+
+        if (rate < pll->characteristics->core_output[0].min ||
+                        rate > pll->characteristics->core_output[0].min)
 		return -ERANGE;
 
 	/*
@@ -112,7 +115,7 @@ static ulong sam9x60_frac_pll_set_rate(struct clk *clk, ulong rate)
 	if (!parent_rate)
 		return 0;
 
-	ret = sam9x60_frac_pll_compute_mul_frac(&nmul, &nfrac, rate,
+	ret = sam9x60_frac_pll_compute_mul_frac(clk, &nmul, &nfrac, rate,
 						parent_rate);
 	if (ret < 0)
 		return 0;
