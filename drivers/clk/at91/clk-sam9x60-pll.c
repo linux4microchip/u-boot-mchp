@@ -41,6 +41,7 @@
 
 #if defined(CONFIG_SAM9X7)
 #define PLL_ID_PLLA		0
+#define PLL_ID_PLLA_DIV_2       4
 #endif
 #define PLL_MAX_ID		7
 
