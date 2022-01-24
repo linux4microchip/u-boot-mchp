@@ -53,7 +53,7 @@ static void sam9x7eb_nand_hw_init(void)
 
 	/* Enable CS3 */
 	csa = readl(&sfr->ebicsa);
-	csa |= AT91_SFR_CCFG_EBI_CSA(3, 1) | AT91_SFR_CCFG_NFD0_ON_D16;
+	csa |= AT91_SFR_CCFG_EBI_CSA(2, 1) | AT91_SFR_CCFG_NFD0_ON_D16;
 
 	/* Configure IO drive */
 	/* csa &= ~AT91_SFR_CCFG_EBI_DRIVE_SAM9X60; NA for 9x7 */
