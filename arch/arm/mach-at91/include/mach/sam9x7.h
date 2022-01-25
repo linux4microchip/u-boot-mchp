@@ -124,7 +124,7 @@
 #define ATMEL_BASE_SDMMC0	0x80000000
 #define ATMEL_BASE_SDMMC1	0x90000000
 
-/* 9x60 series chip id definitions */
+/* 9x7 series chip id definitions */
 #define ARCH_ID_SAM9X7		0x89750020
 #define ARCH_ID_VERSION_MASK	0x1f
 #define ARCH_EXID_SAM9X70	0x00000005
@@ -155,6 +155,7 @@
 #define PLL_ID_UPLL 1
 #define PLL_ID_AUDIOPLL 2
 #define PLL_ID_LVDSPLL 3
+#define PLL_ID_PLLA_DIV_2 4
 
 /*
  * PMECC table in ROM

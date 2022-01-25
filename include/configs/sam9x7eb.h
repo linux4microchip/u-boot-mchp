@@ -1,10 +1,10 @@
 /* SPDX-License-Identifier: GPL-2.0+ */
 /*
- * Configuation settings for the SAM9X60EK board.
+ * Configuation settings for the SAM9X7 board.
  *
- * Copyright (C) 2018 Microchip Technology Inc. and its subsidiaries
+ * Copyright (C) 2021 Microchip Technology Inc. and its subsidiaries
  *
- * Author: Sandeep Sheriker M <sandeep.sheriker@microchip.com>
+ * Author: Balamanikandan Gunasundar <balamanikandan.gunasundar@microchip.com>
  */
 
 #ifndef __CONFIG_H__
@@ -62,7 +62,7 @@
 #ifdef CONFIG_SD_BOOT
 /* bootstrap + u-boot + env + linux in sd card */
 #define CONFIG_BOOTCOMMAND  \
-			"fatload mmc 0:1 0x21000000 at91-sam9x60ek.dtb;" \
+			"fatload mmc 0:1 0x21000000 at91-sam9x7eb.dtb;" \
 			"fatload mmc 0:1 0x22000000 zImage;" \
 			"bootz 0x22000000 - 0x21000000"
 

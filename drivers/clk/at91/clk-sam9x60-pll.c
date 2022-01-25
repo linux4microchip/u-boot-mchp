@@ -67,14 +67,17 @@ static inline bool sam9x60_pll_ready(void __iomem *base, int id)
 	return !!(status & BIT(id));
 }
 
-static long sam9x60_frac_pll_compute_mul_frac(u32 *mul, u32 *frac, ulong rate,
-					      ulong parent_rate)
+static long sam9x60_frac_pll_compute_mul_frac(struct clk *clk, u32 *mul,
+                u32 *frac, ulong rate, ulong parent_rate)
 {
 	unsigned long tmprate, remainder;
 	unsigned long nmul = 0;
 	unsigned long nfrac = 0;
 
-	if (rate < FCORE_MIN || rate > FCORE_MAX)
+	struct sam9x60_pll *pll = to_sam9x60_pll(clk);
+
+        if (rate < pll->characteristics->core_output[0].min ||
+                        rate > pll->characteristics->core_output[0].min)
 		return -ERANGE;
 
 	/*
@@ -115,7 +118,7 @@ static ulong sam9x60_frac_pll_set_rate(struct clk *clk, ulong rate)
 	if (!parent_rate)
 		return 0;
 
-	ret = sam9x60_frac_pll_compute_mul_frac(&nmul, &nfrac, rate,
+	ret = sam9x60_frac_pll_compute_mul_frac(clk, &nmul, &nfrac, rate,
 						parent_rate);
 	if (ret < 0)
 		return 0;
@@ -167,10 +170,11 @@ static ulong sam9x60_frac_pll_get_rate(struct clk *clk)
 	pll_freq = (parent_rate * (mul + 1) + ((u64)parent_rate * frac >> 22));
 
 #if defined(CONFIG_SAM9X7)
-	if ((pll->id == PLL_ID_PLLA) || (pll->id == PLL_ID_PLLA_DIV2)) {
-		pll_freq /= 2;
+	if(pll->id == PLL_ID_PLLA || pll->id == PLL_ID_PLLA_DIV2){
+		pll_freq = pll->id?(pll_freq >> 2):(pll_freq >> 1);
 	}
 #endif
+
 	return pll_freq;
 }
 
@@ -376,7 +380,17 @@ static ulong sam9x60_div_pll_get_rate(struct clk *clk)
 
 	div = (val & pll->layout->div_mask) >> pll->layout->div_shift;
 
-	return parent_rate / (div + 1);
+        ulong freq;
+
+        freq = parent_rate / (div + 1);
+
+#if defined(CONFIG_SAM9X7)
+        if(pll->id == PLL_ID_PLLA_DIV2){
+                freq = freq >> 1;
+        }
+#endif
+
+	return freq;
 }
 
 static const struct clk_ops sam9x60_div_pll_ops = {
