@@ -670,6 +670,15 @@ static const struct {
     },
 
 	{
+        .n = "gmac_gclk",
+        .id = 24,
+        .ep = { "audiopll_divpmcck", "plla_div2pmcck", },
+        .ep_mux_table = { 6, 8, },
+        .ep_clk_mux_table = { ID_PLL_AUDIO_DIVPMC, ID_PLL_A_2_DIV, },
+        .ep_count = 2,
+    },
+
+	{
         .n = "lcd_gclk",
         .id = 25,
         .r = { .max = 75000000 },
@@ -794,7 +803,7 @@ static const struct {
     },
 
 	{
-        .n = "gmac_gclk",
+        .n = "gmac_tsu_gclk",
         .id = 67,
         .ep = { "audiopll_divpmcck", "plla_div2pmcck", },
         .ep_mux_table = { 6, 8, },
