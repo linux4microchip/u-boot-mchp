@@ -170,7 +170,7 @@ static ulong sam9x60_frac_pll_get_rate(struct clk *clk)
 	pll_freq = (parent_rate * (mul + 1) + ((u64)parent_rate * frac >> 22));
 
 #if defined(CONFIG_SAM9X7)
-	if(pll->id == PLL_ID_PLLA || pll->id == PLL_ID_PLLA_DIV_2){
+	if(pll->id == PLL_ID_PLLA || pll->id == PLL_ID_PLLA_DIV2){
 		pll_freq = pll->id?(pll_freq >> 2):(pll_freq >> 1);
 	}
 #endif
@@ -385,7 +385,7 @@ static ulong sam9x60_div_pll_get_rate(struct clk *clk)
         freq = parent_rate / (div + 1);
 
 #if defined(CONFIG_SAM9X7)
-        if(pll->id == PLL_ID_PLLA_DIV_2){
+        if(pll->id == PLL_ID_PLLA_DIV2){
                 freq = freq >> 1;
         }
 #endif
