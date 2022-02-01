@@ -77,8 +77,7 @@
 			assigned-clock-rates = <100000000>;
 			assigned-clock-parents = <&pmc PMC_TYPE_CORE 12>; /* ID_PLL_A_2_DIV */
 			bus-width = <4>;
-			pinctrl-names = "default";
-			pinctrl-0 = <&pinctrl_sdhci0>;
+
 		};
 
 		apb {
@@ -101,13 +100,11 @@
 			dbgu: serial@fffff200 {
 				compatible = "atmel,at91sam9260-dbgu", "atmel,at91sam9260-usart";
 				reg = <0xfffff200 0x200>;
-				pinctrl-names = "default";
-				pinctrl-0 = <&pinctrl_dbgu>;
 				clocks = <&pmc PMC_TYPE_PERIPHERAL 47>;
 				clock-names = "usart";
 			};
 
-			pinctrl {
+			pinctrl: pinctrl {
 				#address-cells = <1>;
 				#size-cells = <1>;
 				compatible = "microchip,sam9x7-pinctrl", "simple-bus";
@@ -116,59 +113,6 @@
 				       0xfffff600 0x200		/* pioB */
 				       0xfffff800 0x200		/* pioC */
 				       0xfffffa00 0x200>;	/* pioD */
-
-				/* shared pinctrl settings */
-				dbgu {
-					pinctrl_dbgu: dbgu-0 {
-						atmel,pins =
-							<AT91_PIOA 26 AT91_PERIPH_A AT91_PINCTRL_PULL_UP
-							AT91_PIOA 27 AT91_PERIPH_A AT91_PINCTRL_NONE>;
-					};
-				};
-
-				gmac0 {
-					pinctrl_gmac0: gmac0 {
-						atmel,pins =
-							<AT91_PIOB 13 AT91_PERIPH_A 	AT91_PINCTRL_NONE	/* ETH_TX0   */
-							 AT91_PIOB 14 AT91_PERIPH_A 	AT91_PINCTRL_NONE	/* ETH_TX1   */
-							 AT91_PIOB 4  AT91_PERIPH_A 	AT91_PINCTRL_NONE	/* ETH_TX2   */
-							 AT91_PIOB 5  AT91_PERIPH_A 	AT91_PINCTRL_NONE	/* ETH_TX3   */
-							 AT91_PIOB 7  AT91_PERIPH_A 	AT91_PINCTRL_NONE	/* ETH_TXCTL  */
-							 AT91_PIOB 6  AT91_PERIPH_A 	AT91_PINCTRL_PULL_UP	/* ETH_TXCK  */
-
-							 AT91_PIOB 11 AT91_PERIPH_A 	AT91_PINCTRL_NONE	/* ETH_RX0   */
-							 AT91_PIOB 12 AT91_PERIPH_A 	AT91_PINCTRL_NONE	/* ETH_RX1   */
-							 AT91_PIOB 0  AT91_PERIPH_A	AT91_PINCTRL_NONE	/* ETH_RX2   */
-							 AT91_PIOB 1  AT91_PERIPH_A 	AT91_PINCTRL_NONE	/* ETH_RX3   */
-							 AT91_PIOB 8  AT91_PERIPH_A 	AT91_PINCTRL_NONE	/* ETH_RXCK   */
-							 AT91_PIOB 3  AT91_PERIPH_A 	AT91_PINCTRL_NONE	/* ETH_RXCTL */
-
-							 AT91_PIOB 10 AT91_PERIPH_A 	AT91_PINCTRL_NONE	/* ETH_MDC   */
-							 AT91_PIOB 9  AT91_PERIPH_A 	AT91_PINCTRL_NONE	/* ETH_MDIO  */
-
-							 AT91_PIOB 2  AT91_PERIPH_A 	AT91_PINCTRL_NONE	/* ETH_125CK */
-							 AT91_PIOC 25 AT91_PERIPH_C 	AT91_PINCTRL_NONE	/* NRST_OUT  */
-							 AT91_PIOD 5  AT91_PERIPH_A 	AT91_PINCTRL_NONE>;	/* ETH_INT   */
-					};
-				};
-
-				sdhci0 {
-					pinctrl_sdhci0: sdhci0 {
-						atmel,pins =
-							<AT91_PIOA 2 AT91_PERIPH_A
-							 (AT91_PINCTRL_DRIVE_STRENGTH_HI | AT91_PINCTRL_SLEWRATE_ENA)				/* PA2 CK  periph A with pullup */
-							 AT91_PIOA 1 AT91_PERIPH_A
-							 (AT91_PINCTRL_PULL_UP | AT91_PINCTRL_DRIVE_STRENGTH_HI | AT91_PINCTRL_SLEWRATE_ENA)	/* PA1 CMD periph A with pullup */
-							 AT91_PIOA 0 AT91_PERIPH_A
-							 (AT91_PINCTRL_PULL_UP | AT91_PINCTRL_DRIVE_STRENGTH_HI | AT91_PINCTRL_SLEWRATE_ENA)	/* PA0 DAT0 periph A */
-							 AT91_PIOA 3 AT91_PERIPH_A
-							 (AT91_PINCTRL_PULL_UP | AT91_PINCTRL_DRIVE_STRENGTH_HI | AT91_PINCTRL_SLEWRATE_ENA)	/* PA3 DAT1 periph A with pullup */
-							 AT91_PIOA 4 AT91_PERIPH_A
-							 (AT91_PINCTRL_PULL_UP | AT91_PINCTRL_DRIVE_STRENGTH_HI | AT91_PINCTRL_SLEWRATE_ENA)	/* PA4 DAT2 periph A with pullup */
-							 AT91_PIOA 5 AT91_PERIPH_A
-							 (AT91_PINCTRL_PULL_UP | AT91_PINCTRL_DRIVE_STRENGTH_HI | AT91_PINCTRL_SLEWRATE_ENA)>;	/* PA5 DAT3 periph A with pullup */
-					};
-				};
 			};
 
 			pioA: gpio@fffff400 {
