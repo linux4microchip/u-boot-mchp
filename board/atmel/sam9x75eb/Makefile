@@ -4,4 +4,4 @@
 #
 # Author: <Balamanikandan.Gunasundar@microchip.com>
 
-obj-y += sam9x7eb.o
+obj-y += sam9x75eb.o

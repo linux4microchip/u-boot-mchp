@@ -174,8 +174,8 @@ config TARGET_SAM9X60EK
 	select BOARD_EARLY_INIT_F
 	select BOARD_LATE_INIT
 
-config TARGET_SAM9X7EB
-	bool "SAM9X7-EB board"
+config TARGET_SAM9X75EB
+	bool "SAM9X75-EB board"
 	select SAM9X7
 	select BOARD_EARLY_INIT_F
 	select BOARD_LATE_INIT
@@ -344,7 +344,7 @@ source "board/atmel/at91sam9n12ek/Kconfig"
 source "board/atmel/at91sam9rlek/Kconfig"
 source "board/atmel/at91sam9x5ek/Kconfig"
 source "board/atmel/sam9x60ek/Kconfig"
-source "board/atmel/sam9x7eb/Kconfig"
+source "board/atmel/sam9x75eb/Kconfig"
 source "board/atmel/sama7g5ek/Kconfig"
 source "board/atmel/sama5d2_ptc_ek/Kconfig"
 source "board/atmel/sama5d2_xplained/Kconfig"

@@ -62,7 +62,7 @@
 #ifdef CONFIG_SD_BOOT
 /* bootstrap + u-boot + env + linux in sd card */
 #define CONFIG_BOOTCOMMAND  \
-			"fatload mmc 0:1 0x21000000 at91-sam9x7eb.dtb;" \
+			"fatload mmc 0:1 0x21000000 at91-sam9x75eb.dtb;" \
 			"fatload mmc 0:1 0x22000000 zImage;" \
 			"bootz 0x22000000 - 0x21000000"
 

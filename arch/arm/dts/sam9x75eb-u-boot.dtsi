@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
- * sam9x7eb-u-boot.dts - Device Tree file for SAM9X60 SoC.
+ * sam9x75eb-u-boot.dts - Device Tree file for SAM9X7 SoC.
  *
  * Copyright (C) 2021 Microchip Technology Inc. and its subsidiaries
  */

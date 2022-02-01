@@ -26,7 +26,7 @@ DECLARE_GLOBAL_DATA_PTR;
 void at91_prepare_cpu_var(void);
 
 #ifdef CONFIG_CMD_NAND
-static void sam9x7eb_nand_hw_init(void)
+static void sam9x75eb_nand_hw_init(void)
 {
 	struct at91_smc *smc = (struct at91_smc *)ATMEL_BASE_SMC;
 	struct atmel_sfr *sfr = (struct atmel_sfr *)ATMEL_BASE_SFR;
@@ -136,7 +136,7 @@ int board_init(void)
 	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
 
 #ifdef CONFIG_CMD_NAND
-	sam9x7eb_nand_hw_init();
+	sam9x75eb_nand_hw_init();
 #endif
 	return 0;
 }
