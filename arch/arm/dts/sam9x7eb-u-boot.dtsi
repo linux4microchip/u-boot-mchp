@@ -47,10 +47,6 @@
 	u-boot,dm-pre-reloc;
 };
 
-&pinctrl_qspi {
-	u-boot,dm-pre-reloc;
-};
-
 &pioA {
 	u-boot,dm-pre-reloc;
 };
@@ -60,10 +56,6 @@
 };
 
 &pmc {
-	u-boot,dm-pre-reloc;
-};
-
-&qspi {
 	u-boot,dm-pre-reloc;
 };
 

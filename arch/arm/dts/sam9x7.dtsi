@@ -24,7 +24,6 @@
 		gpio0 = &pioA;
 		gpio1 = &pioB;
 		gpio3 = &pioD;
-		spi0 = &qspi;
 	};
 
 	clocks {
@@ -87,27 +86,6 @@
 			#address-cells = <1>;
 			#size-cells = <1>;
 			ranges;
-
-			qspi: spi@f0014000 {
-				compatible = "microchip,sam9x7-qspi";
-				reg = <0xf0014000 0x100>, <0x70000000 0x10000000>;
-				reg-names = "qspi_base", "qspi_mmap";
-				clocks =  <&pmc PMC_TYPE_PERIPHERAL 35>, <&pmc PMC_TYPE_SYSTEM 34>; /* ID_QSPI */
-				clock-names = "pclk", "qspick";
-				#address-cells = <1>;
-				#size-cells = <0>;
-				status = "disabled";
-			};
-
-			flx0: flexcom@f801c600 {
-				compatible = "atmel,sama5d2-flexcom";
-				reg = <0xf801c000 0x200>;
-				clocks = <&pmc PMC_TYPE_PERIPHERAL 5>;
-				#address-cells = <1>;
-				#size-cells = <1>;
-				ranges = <0x0 0xf801c000 0x800>;
-				status = "disabled";
-			};
 
 			gmac0: ethernet@f802c000 {
 				compatible = "cdns,sam9x7-gem";
@@ -247,10 +225,5 @@
 				#clock-cells = <1>;
 			};
 		};
-	};
-
-	onewire_tm: onewire {
-		compatible = "w1-gpio";
-		status = "disabled";
 	};
 };
