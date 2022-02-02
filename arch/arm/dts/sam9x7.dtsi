@@ -86,6 +86,14 @@
 			#size-cells = <1>;
 			ranges;
 
+                        pit64b0: timer@f0028000 {
+                                compatible = "microchip,sam9x7-pit64b";
+                                reg = <0xf0028000 0xec>;
+                                clocks = <&pmc PMC_TYPE_PERIPHERAL 37>, <&pmc PMC_TYPE_GCK 37>;
+                                clock-names = "pclk", "gclk";
+                                status = "disabled";
+                        };
+
 			gmac0: ethernet@f802c000 {
 				compatible = "cdns,sam9x7-gem";
 				reg = <0xf802c000 0x4000>;
@@ -160,6 +168,7 @@
 				compatible = "atmel,at91sam9260-pit";
 				reg = <0xfffffe40 0x0D>;
 				clocks = <&pmc PMC_TYPE_CORE 18>; /* ID_MCK. */
+				status = "disabled";
 			};
 
 			clk32: sckc@fffffe50 {

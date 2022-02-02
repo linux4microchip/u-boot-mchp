@@ -29,6 +29,10 @@
 	};
 };
 
+&pit64b0 {
+	status = "okay";
+};
+
 &gmac0 {
 	#address-cells = <1>;
 	#size-cells = <0>;

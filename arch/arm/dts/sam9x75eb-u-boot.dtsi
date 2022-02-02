@@ -39,6 +39,10 @@
 	u-boot,dm-pre-reloc;
 };
 
+&pit64b0 {
+	u-boot,dm-pre-reloc;
+};
+
 &pinctrl_dbgu {
 	u-boot,dm-pre-reloc;
 };
