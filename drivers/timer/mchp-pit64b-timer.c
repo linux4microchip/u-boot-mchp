@@ -92,6 +92,7 @@ static const struct timer_ops mchp_pit64b_ops = {
 
 static const struct udevice_id mchp_pit64b_ids[] = {
 	{ .compatible = "microchip,sam9x60-pit64b", },
+	{ .compatible = "microchip,sam9x7-pit64b", },
 	{ .compatible = "microchip,sama7g5-pit64b", },
 	{ }
 };
