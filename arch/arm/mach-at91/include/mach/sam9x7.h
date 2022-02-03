@@ -23,7 +23,7 @@
 #define ATMEL_ID_FLEXCOM6	9	/* FLEXCOM 6 */
 #define ATMEL_ID_FLEXCOM7	10	/* FLEXCOM 7 */
 #define ATMEL_ID_FLEXCOM8	11	/* FLEXCOM 8 */
-#define ATMEL_ID_SDMMC0		12	/* SDMMC 0 */
+#define ATMEL_ID_SDMMC0 	12      /* SDMMC 0 */
 #define ATMEL_ID_FLEXCOM4	13	/* FLEXCOM 4 */
 #define ATMEL_ID_FLEXCOM5	14	/* FLEXCOM 5 */
 #define ATMEL_ID_FLEXCOM9	15	/* FLEXCOM 9 */
@@ -31,13 +31,13 @@
 #define ATMEL_ID_TC01		17	/* Timer Counter 0, 1, 2, 3, 4 and 5 */
 #define ATMEL_ID_PWM		18	/* Pulse Width Modulation Controller */
 #define ATMEL_ID_ADC		19	/* ADC Controller */
-#define ATMEL_ID_XDMAC0		20	/* XDMA Controller 0 */
-#define ATMEL_ID_MATRIX		21	/* BUS Matrix */
+#define ATMEL_ID_XDMAC0 	20	/* XDMA Controller 0 */
+#define ATMEL_ID_MATRIX 	21	/* BUS Matrix */
 #define ATMEL_ID_UHPHS		22	/* USB Host High Speed */
 #define ATMEL_ID_UDPHS		23	/* USB Device High Speed */
 #define ATMEL_ID_EMAC0		24	/* Ethernet MAC 0 */
-#define ATMEL_ID_LCDC		25	/* LCD Controller */
-#define ATMEL_ID_SDMMC1		26	/* SDMMC 1 */
+#define ATMEL_ID_LCDC   	25	/* LCD Controller */
+#define ATMEL_ID_SDMMC1 	26	/* SDMMC 1 */
 #define ATMEL_ID_EMAC1		27	/* Ethernet MAC `1 */
 #define ATMEL_ID_SSC		28	/* Synchronous Serial Controller */
 #define ATMEL_ID_IRQ		31	/* Advanced Interrupt Controller */
@@ -52,9 +52,9 @@
 #define ATMEL_BASE_FLEXCOM5	0xf0004000
 #define ATMEL_BASE_XDMA0	0xf0008000
 #define ATMEL_BASE_SSC		0xf0010000
-#define ATMEL_BASE_QSPI		0xf0014000
-#define ATMEL_BASE_CAN0		0xf8000000
-#define ATMEL_BASE_CAN1		0xf8004000
+#define ATMEL_BASE_QSPI 	0xf0014000
+#define ATMEL_BASE_CAN0 	0xf8000000
+#define ATMEL_BASE_CAN1 	0xf8004000
 #define ATMEL_BASE_TC0		0xf8008000
 #define ATMEL_BASE_TC1		0xf8008040
 #define ATMEL_BASE_TC2		0xf8008080
@@ -71,10 +71,10 @@
 #define ATMEL_BASE_EMAC0	0xf802c000
 #define ATMEL_BASE_EMAC1	0xf8030000
 #define ATMEL_BASE_PWM		0xf8034000
-#define ATMEL_BASE_LCDC		0xf8038000
+#define ATMEL_BASE_LCDC 	0xf8038000
 #define ATMEL_BASE_UDPHS	0xf803c000
 #define ATMEL_BASE_FLEXCOM9	0xf8040000
-#define ATMEL_BASE_FLEXCOM10 0xf8044000
+#define ATMEL_BASE_FLEXCOM10	0xf8044000
 #define ATMEL_BASE_ISI		0xf8048000
 #define ATMEL_BASE_ADC		0xf804c000
 #define ATMEL_BASE_SFR		0xf8050000
@@ -90,27 +90,27 @@
 #define ATMEL_BASE_SMC		0xffffea00
 #define ATMEL_BASE_SDRAMC	0xffffec00
 #define ATMEL_BASE_AIC		0xfffff100
-#define ATMEL_BASE_DBGU		0xfffff200
-#define ATMEL_BASE_PIOA		0xfffff400
-#define ATMEL_BASE_PIOB		0xfffff600
-#define ATMEL_BASE_PIOC		0xfffff800
-#define ATMEL_BASE_PIOD		0xfffffa00
+#define ATMEL_BASE_DBGU 	0xfffff200
+#define ATMEL_BASE_PIOA 	0xfffff400
+#define ATMEL_BASE_PIOB 	0xfffff600
+#define ATMEL_BASE_PIOC 	0xfffff800
+#define ATMEL_BASE_PIOD 	0xfffffa00
 #define ATMEL_BASE_PMC		0xfffffc00
-#define ATMEL_BASE_RSTC		0xfffffe00
+#define ATMEL_BASE_RSTC 	0xfffffe00
 #define ATMEL_BASE_SHDWC	0xfffffe10
-#define ATMEL_BASE_PIT		0xfffffe40
-#define ATMEL_BASE_GPBR		0xfffffe60
-#define ATMEL_BASE_RTC		0xfffffea8
+#define ATMEL_BASE_PIT  	0xfffffe40
+#define ATMEL_BASE_GPBR 	0xfffffe60
+#define ATMEL_BASE_RTC  	0xfffffea8
 #define ATMEL_BASE_WDT		0xffffff80
 
 /*
  * Internal Memory.
  */
 #define ATMEL_BASE_ROM		0x00100000 /* Internal ROM base address */
-#define ATMEL_BASE_SRAM		0x00300000 /* Internal SRAM base address */
+#define ATMEL_BASE_SRAM  	0x00300000 /* Internal SRAM base address */
 #define ATMEL_BASE_UDPHS_FIFO	0x00500000 /* USB Device HS controller */
-#define ATMEL_BASE_OHCI		0x00600000 /* USB Host controller (OHCI) */
-#define ATMEL_BASE_EHCI		0x00700000 /* USB Host controller (EHCI) */
+#define ATMEL_BASE_OHCI 	0x00600000 /* USB Host controller (OHCI) */
+#define ATMEL_BASE_EHCI 	0x00700000 /* USB Host controller (EHCI) */
 
 /*
  * External memory
