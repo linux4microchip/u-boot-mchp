@@ -182,7 +182,8 @@ const struct flash_info spi_nor_ids[] = {
 #ifdef CONFIG_SPI_FLASH_MX66LM1G45G
 	{ INFO("mx66lm1g45g", 0xc2853b, 0, 64 * 1024, 2048,
 	       SPI_NOR_SKIP_SFDP | SPI_NOR_SOFT_RESET |
-	       SECT_4K | SPI_NOR_OCTAL_DTR_READ | SPI_NOR_4B_OPCODES)
+	       SECT_4K | SPI_NOR_OCTAL_DTR_READ | SPI_NOR_4B_OPCODES |
+	       SPI_NOR_DTR_BSWAP16)
 	},
 #endif
 #endif
