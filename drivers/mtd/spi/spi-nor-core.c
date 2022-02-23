@@ -4006,6 +4006,9 @@ int spi_nor_scan(struct spi_nor *nor)
 	if (info->flags & SPI_NOR_SOFT_RESET)
 		nor->flags |= SNOR_F_SOFT_RESET;
 
+	if (info->flags & SPI_NOR_DTR_BSWAP16)
+		nor->flags |= SNOR_F_DTR_BSWAP16;
+
 	if (nor->flags & SNOR_F_DTR_BSWAP16)
 		spi_nor_set_dtr_bswap16_ops(nor, &params);
 
