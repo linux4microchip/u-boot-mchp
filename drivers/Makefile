@@ -98,6 +98,7 @@ obj-$(CONFIG_QE) += qe/
 obj-$(CONFIG_U_QE) += qe/
 obj-y += mailbox/
 obj-y += memory/
+obj-y += mfd/
 obj-y += mtd/
 obj-y += pwm/
 obj-y += reset/
