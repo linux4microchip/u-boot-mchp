@@ -43,6 +43,7 @@
 #include <asm/io.h>
 #include <linux/dma-mapping.h>
 #include <asm/arch/clk.h>
+#include <asm-generic/gpio.h>
 #include <linux/errno.h>
 
 #include "macb.h"
@@ -136,7 +137,10 @@ struct macb_device {
 #ifdef CONFIG_PHYLIB
 	struct phy_device	*phydev;
 #endif
-
+#if CONFIG_IS_ENABLED(DM_GPIO)
+	struct gpio_desc	phy_reset_gpio;
+	u32			reset_delay_ms;
+#endif
 #ifdef CONFIG_DM_ETH
 #ifdef CONFIG_CLK
 	unsigned long		pclk_rate;
@@ -1362,6 +1366,27 @@ static int macb_eth_probe(struct udevice *dev)
 	struct ofnode_phandle_args phandle_args;
 	const char *phy_mode;
 	int ret;
+
+#if CONFIG_IS_ENABLED(DM_GPIO)
+	ret = gpio_request_by_name(dev, "reset-gpios", 0,
+				   &macb->phy_reset_gpio, GPIOD_IS_OUT);
+	if (!dm_gpio_is_valid(&macb->phy_reset_gpio))
+		return -EINVAL;
+
+	ret = dev_read_u32(dev, "reset-delay-ms", &macb->reset_delay_ms);
+	if (ret)
+		macb->reset_delay_ms = 1; /* default delay */
+
+	ret = dm_gpio_set_value(&macb->phy_reset_gpio, 1);
+	if (ret < 0)
+		return -EINVAL;
+
+	mdelay(macb->reset_delay_ms);
+
+	ret = dm_gpio_set_value(&macb->phy_reset_gpio, 0);
+	if (ret < 0)
+		return -EINVAL;
+#endif
 
 	phy_mode = dev_read_prop(dev, "phy-mode", NULL);
 
