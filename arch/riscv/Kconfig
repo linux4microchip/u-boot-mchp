@@ -8,6 +8,9 @@ choice
 	prompt "Target select"
 	optional
 
+config TARGET_ARIES_M100PFSEVP
+	bool "Support Aries M100PFSEVP PolarFire SoC-FPGA Platform"
+
 config TARGET_AE350
 	bool "Support ae350"
 
@@ -62,6 +65,7 @@ config SPL_SYS_DCACHE_OFF
 
 # board-specific options below
 source "board/AndesTech/ae350/Kconfig"
+source "board/aries/m100pfsevp/Kconfig"
 source "board/emulation/qemu-riscv/Kconfig"
 source "board/microchip/mpfs_icicle/Kconfig"
 source "board/sifive/unleashed/Kconfig"
