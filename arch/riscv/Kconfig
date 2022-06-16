@@ -17,6 +17,9 @@ config TARGET_AE350
 config TARGET_MICROCHIP_ICICLE
 	bool "Support Microchip PolarFire-SoC Icicle Board"
 
+config TARGET_MICROCHIP_VIDEOKIT
+	bool "Support Microchip PolarFire-SoC Video Kit"
+
 config TARGET_QEMU_VIRT
 	bool "Support QEMU Virt Board"
 
@@ -68,6 +71,7 @@ source "board/AndesTech/ae350/Kconfig"
 source "board/aries/m100pfsevp/Kconfig"
 source "board/emulation/qemu-riscv/Kconfig"
 source "board/microchip/mpfs_icicle/Kconfig"
+source "board/microchip/mpfs_videokit/Kconfig"
 source "board/sifive/unleashed/Kconfig"
 source "board/sifive/unmatched/Kconfig"
 source "board/openpiton/riscv64/Kconfig"

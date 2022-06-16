@@ -1,0 +1,7 @@
+Microchip MPFS video-kit
+M:	Vattipalli Praveen <praveen.kumar@microchip.com>
+M:	Shravan Chippa <shravan.chippa@microchip.com>
+S:	Maintained
+F:	board/microchip/mpfs_videokit/
+F:	include/configs/microchip_mpfs_videokit.h
+F:	configs/microchip_mpfs_videokit_defconfig
