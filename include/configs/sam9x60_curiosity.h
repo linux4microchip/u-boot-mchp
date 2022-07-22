@@ -28,4 +28,9 @@
 	 GENERATED_GBL_DATA_SIZE)
 #endif
 
+/* NAND flash */
+#ifdef CONFIG_CMD_NAND
+#define CONFIG_SYS_MAX_NAND_DEVICE      1
+#endif
+
 #endif
