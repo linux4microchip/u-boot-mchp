@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0+
 
 dtb-$(CONFIG_TARGET_AE350) += ae350_32.dtb ae350_64.dtb
+dtb-$(CONFIG_TARGET_ARIES_M100PFSEVP) += m100pfsevp.dtb
 dtb-$(CONFIG_TARGET_MICROCHIP_ICICLE) += microchip-mpfs-icicle-kit.dtb \
 microchip-mpfs-icicle-kit-amp.dtb
 dtb-$(CONFIG_TARGET_QEMU_VIRT) += qemu-virt32.dtb qemu-virt64.dtb
