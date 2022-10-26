@@ -14,6 +14,7 @@
 #undef CONFIG_SYS_AT91_MAIN_CLOCK
 #define CONFIG_SYS_AT91_MAIN_CLOCK      24000000 /* from 24 MHz crystal */
 
+#define CONFIG_SYS_PL310_BASE		0xa00000
 /* SPL */
 
 #endif
