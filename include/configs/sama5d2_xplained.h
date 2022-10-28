@@ -23,6 +23,15 @@
 	 GENERATED_GBL_DATA_SIZE)
 #endif
 
+/*
+ * Only if we have ARM SMC convention call, the L2 cache has to be maintained
+ * by U-boot
+ */
+#ifdef CONFIG_ARM_SMCCC
+#define CONFIG_SYS_L2_PL310
+#define CONFIG_SYS_PL310_BASE          0xa00000
+#endif
+
 /* SerialFlash */
 
 #ifdef CONFIG_SD_BOOT
