@@ -26,9 +26,9 @@
 #endif
 
 #if defined(CONFIG_CMD_MMC)
-#define BOOT_TARGET_DEVICES_EMMC(func)	func(EMMC, mmc, 0)
+#define BOOT_TARGET_DEVICES_MMC(func)	func(MMC, mmc, 0)
 #else
-#define BOOT_TARGET_DEVICES_EMMC(func)
+#define BOOT_TARGET_DEVICES_MMC(func)
 #endif
 
 #define BOOTENV_DEV_QSPI(devtypeu, devtypel, instance) \
@@ -39,22 +39,12 @@
 			"source ${scriptaddr}; setenv mtd_present; " \
 			"fi\0 "
 
-#define BOOTENV_DEV_EMMC(devtypeu, devtypel, instance) \
-	"bootcmd_mmc=echo Trying to boot from eMMC/SD...;"\
-			"setenv devnum 0; setenv mmcbootpart 1; setenv scriptname boot.scr.uimg;"\
-			"if mmc rescan; then " \
-			"load mmc 0:${mmcbootpart} ${scriptaddr} ${scriptname}; source ${scriptaddr}; " \
-			"fi\0 "
-
 #define BOOTENV_DEV_NAME_QSPI(devtypeu, devtypel, instance) \
 	"qspi "
 
-#define BOOTENV_DEV_NAME_EMMC(devtypeu, devtypel, instance) \
-	"mmc "
-
 #define BOOT_TARGET_DEVICES(func) \
-	BOOT_TARGET_DEVICES_EMMC(func)\
 	BOOT_TARGET_DEVICES_QSPI(func)\
+	BOOT_TARGET_DEVICES_MMC(func)\
 	BOOT_TARGET_DEVICES_DHCP(func)
 
 #include <config_distro_bootcmd.h>
