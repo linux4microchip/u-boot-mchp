@@ -40,6 +40,7 @@
  * providing some of the logic we are implementing here. It would be smart
  * to expose the needed lib/bch.c helpers/functions and re-use them here.
  */
+#include <clk.h>
 #include <linux/iopoll.h>
 #include <linux/mtd/rawnand.h>
 #include <dm/of_access.h>
@@ -142,6 +143,7 @@ struct atmel_pmecc_caps {
 	int nstrengths;
 	int el_offset;
 	bool correct_erased_chunks;
+	bool pmc_clk_ctrl;
 };
 
 struct atmel_pmecc_user_conf_cache {
@@ -889,6 +891,13 @@ static struct atmel_pmecc_caps at91sam9g45_caps = {
 	.el_offset = 0x8c,
 };
 
+static struct atmel_pmecc_caps sam9x7_caps = {
+	.strengths = atmel_pmecc_strengths,
+	.nstrengths = 5,
+	.el_offset = 0x8c,
+	.pmc_clk_ctrl = true,
+};
+
 static struct atmel_pmecc_caps sama5d4_caps = {
 	.strengths = atmel_pmecc_strengths,
 	.nstrengths = 5,
@@ -932,6 +941,7 @@ EXPORT_SYMBOL(devm_atmel_pmecc_get);
 
 static const struct udevice_id atmel_pmecc_match[] = {
 	{ .compatible = "atmel,at91sam9g45-pmecc", (ulong)&at91sam9g45_caps },
+	{ .compatible = "microchip,sam9x7-pmecc", (ulong)&sam9x7_caps },
 	{ .compatible = "atmel,sama5d4-pmecc", (ulong)&sama5d4_caps },
 	{ .compatible = "atmel,sama5d2-pmecc", (ulong)&sama5d2_caps },
 	{ /* sentinel */ }
@@ -939,7 +949,9 @@ static const struct udevice_id atmel_pmecc_match[] = {
 
 static int atmel_pmecc_probe(struct udevice *dev)
 {
+	int ret;
 	const struct atmel_pmecc_caps *caps;
+	struct clk pclk;
 	struct atmel_pmecc *pmecc;
 
 	caps = (struct atmel_pmecc_caps *)dev_get_driver_data(dev);
@@ -948,9 +960,21 @@ static int atmel_pmecc_probe(struct udevice *dev)
 		return -EINVAL;
 	}
 
+	if (caps->pmc_clk_ctrl) {
+		ret = clk_get_by_index(dev, 0, &pclk);
+		if (ret)
+			return ret;
+
+		ret = clk_enable(&pclk);
+		if (ret)
+			return ret;
+	}
+
 	pmecc = atmel_pmecc_create(dev, caps, 0, 1, 2);
-	if (IS_ERR(pmecc))
+	if (IS_ERR(pmecc)) {
+		clk_disable(&pclk);
 		return PTR_ERR(pmecc);
+	}
 
 	dev->plat_ = pmecc;
 
