@@ -486,6 +486,7 @@ static const struct {
 	{ .n = "pioD_clk",	.id = 44, },
 	{ .n = "tcb1_clk",	.id = 45, },
 	{ .n = "dbgu_clk",	.id = 47, },
+	{ .n = "pmecc_clk",	.id = 48, },
 	{ .n = "mpddr_clk",	.id = 49, },
 	{ .n = "csi2dc_clk",	.id = 52, },
 	{ .n = "csi4l_clk",	.id = 53, },
