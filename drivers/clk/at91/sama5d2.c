@@ -333,7 +333,7 @@ static int sama5d2_clk_probe(struct udevice *dev)
 	}
 	clk_dm(AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLLADIVCK), c);
 
-
+#ifdef CONFIG_AT91_UTMI
 	/* Register UTMI clock. */
 	c = at91_clk_register_utmi(base, dev, clk_names[ID_UTMI],
 				   clk_names[ID_MAINCK]);
@@ -342,6 +342,7 @@ static int sama5d2_clk_probe(struct udevice *dev)
 		goto fail;
 	}
 	clk_dm(AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_UTMI), c);
+#endif
 
 	/* Register master prescaller clock. */
 	p[0] = clk_names[ID_SLCK];
@@ -381,7 +382,7 @@ static int sama5d2_clk_probe(struct udevice *dev)
 	}
 	clk_dm(AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_H32MX), c);
 
-
+#ifdef CONFIG_AT91_USB_CLK
 	/* Register USB clock. */
 	p[0] = clk_names[ID_PLLADIVCK];
 	p[1] = clk_names[ID_UTMI];
@@ -396,6 +397,7 @@ static int sama5d2_clk_probe(struct udevice *dev)
 		goto fail;
 	}
 	clk_dm(AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_USBCK), c);
+#endif
 
 	/* Register programmable clocks. */
 	p[0] = clk_names[ID_SLCK];
