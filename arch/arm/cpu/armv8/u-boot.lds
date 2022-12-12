@@ -145,9 +145,9 @@ SECTIONS
 		*(.__rel_dyn_end)
 	}
 
-	_end = .;
-
 	. = ALIGN(8);
+
+	_end = .;
 
 	.bss_start : {
 		KEEP(*(.__bss_start));
