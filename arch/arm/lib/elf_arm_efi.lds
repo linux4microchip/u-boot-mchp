@@ -54,6 +54,11 @@ SECTIONS
 	.rel.data : { *(.rel.data) *(.rel.data*) }
 	_data_size = . - _etext;
 
+	.end : {
+		. = ALIGN(8);
+		*(.__end)
+	}
+
 	/DISCARD/ : {
 		*(.rel.reloc)
 		*(.eh_frame)
