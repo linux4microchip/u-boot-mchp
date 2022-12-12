@@ -41,7 +41,7 @@ SECTIONS
 		KEEP(*(SORT(__u_boot_list*)));
 	} > .sram
 
-	. = ALIGN(4);
+	. = ALIGN(8);
 
 	_image_binary_end = .;
 
