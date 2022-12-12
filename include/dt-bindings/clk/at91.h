@@ -19,6 +19,11 @@
 #define PMC_TYPE_PERIPHERAL	3
 #define PMC_TYPE_GCK		4
 #define PMC_TYPE_SLOW		5
+#define UTMI			6
+
+#define UTMI1			0
+#define UTMI2			1
+#define UTMI3			2
 
 /* Per SoC core clock identifiers. */
 #ifdef CONFIG_SAMA5D2
