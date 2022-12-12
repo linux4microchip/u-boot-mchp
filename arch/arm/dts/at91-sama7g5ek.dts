@@ -761,6 +761,11 @@
 		pinmux = <PIN_PB1__SPDIF_TX>;
 		bias-disable;
 	};
+
+	pinctrl_usb_default: usb_default {
+		pinmux = <PIN_PC6__GPIO>;
+		bias-disable;
+	};
 };
 
 &pwm {
@@ -834,6 +839,35 @@
 };
 
 &trng {
+	status = "okay";
+};
+
+&usb2 {
+	num-ports = <3>;
+	atmel,vbus-gpio = <0
+			   0
+			   &pioA PIN_PC6 GPIO_ACTIVE_HIGH
+			  >;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usb_default>;
+	phys = <&usb_phy2>;
+	phy-names = "usb";
+	status = "okay";
+};
+
+&usb3 {
+	status = "okay";
+};
+
+&usb_phy0 {
+	status = "okay";
+};
+
+&usb_phy1 {
+	status = "okay";
+};
+
+&usb_phy2 {
 	status = "okay";
 };
 

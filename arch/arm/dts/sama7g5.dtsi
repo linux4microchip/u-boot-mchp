@@ -16,6 +16,8 @@
 #include <dt-bindings/dma/at91.h>
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/mfd/at91-usart.h>
+#include <dt-bindings/reset/sama7g5-reset.h>
+#include <dt-bindings/clock/at91.h>
 
 / {
 	model = "Microchip SAMA7G5 family SoC";
@@ -103,6 +105,54 @@
 		};
 	};
 
+	utmi_clk: utmi-clk {
+		compatible = "microchip,sama7g5-utmi-clk";
+		sfr-phandle = <&sfr>;
+		#clock-cells = <1>;
+		clocks = <&pmc PMC_TYPE_CORE 27>;
+		clock-names = "utmi_clk";
+		resets = <&reset_controller SAMA7G5_RESET_USB_PHY1>,
+			 <&reset_controller SAMA7G5_RESET_USB_PHY2>,
+			 <&reset_controller SAMA7G5_RESET_USB_PHY3>;
+		reset-names = "usb0_reset", "usb1_reset", "usb2_reset";
+	};
+
+	utmi {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		usb_phy0: phy@0 {
+			compatible = "microchip,sama7g5-usb-phy";
+			sfr-phandle = <&sfr>;
+			reg = <0>;
+			clocks = <&utmi_clk UTMI1>;
+			clock-names = "utmi_clk";
+			status = "disabled";
+			#phy-cells = <0>;
+		};
+
+		usb_phy1: phy@1 {
+			compatible = "microchip,sama7g5-usb-phy";
+			sfr-phandle = <&sfr>;
+			reg = <1>;
+			clocks = <&utmi_clk UTMI2>;
+			clock-names = "utmi_clk";
+			status = "disabled";
+			#phy-cells = <0>;
+		};
+
+		usb_phy2: phy@2 {
+			compatible = "microchip,sama7g5-usb-phy";
+			sfr-phandle = <&sfr>;
+			reg = <2>;
+			clocks = <&utmi_clk UTMI3>;
+			clock-names = "utmi_clk";
+			status = "disabled";
+			#phy-cells = <0>;
+		};
+	};
+
 	vddout25: fixed-regulator-vddout25 {
 		compatible = "regulator-fixed";
 
@@ -126,6 +176,24 @@
 		#address-cells = <1>;
 		#size-cells = <1>;
 		ranges;
+
+		usb2: ohci@400000 {
+			compatible = "microchip,sama7g5-ohci", "usb-ohci";
+			reg = <0x00400000 0x100000>;
+			interrupts = <GIC_SPI 106 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 106>, <&utmi_clk UTMI1>, <&usb_clk>;
+			clock-names = "ohci_clk", "hclk", "uhpck";
+			status = "disabled";
+		};
+
+		usb3: ehci@500000 {
+			compatible = "atmel,at91sam9g45-ehci", "usb-ehci";
+			reg = <0x00500000 0x100000>;
+			interrupts = <GIC_SPI 106 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&usb_clk>, <&pmc PMC_TYPE_PERIPHERAL 106>;
+			clock-names = "usb_clk", "ehci_clk";
+			status = "disabled";
+		};
 
 		nfc_sram: sram@600000 {
 			compatible = "mmio-sram";
@@ -557,6 +625,11 @@
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 58>, <&pmc PMC_TYPE_GCK 58>;
 			clock-names = "pclk", "gclk";
 			status = "disabled";
+		};
+
+		sfr: sfr@e1624000 {
+			compatible = "microchip,sama7g5-sfr", "syscon";
+			reg = <0xe1624000 0x4000>;
 		};
 
 		eic: interrupt-controller@e1628000 {
