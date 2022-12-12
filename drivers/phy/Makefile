@@ -38,6 +38,7 @@ obj-$(CONFIG_PHY_MTK_TPHY) += phy-mtk-tphy.o
 obj-$(CONFIG_PHY_NPCM_USB) += phy-npcm-usb.o
 obj-$(CONFIG_PHY_IMX8MQ_USB) += phy-imx8mq-usb.o
 obj-$(CONFIG_PHY_XILINX_ZYNQMP) += phy-zynqmp.o
+obj-$(CONFIG_PHY_MICROCHIP_SAMA7_USB)  += phy-sama7-utmi-clk.o phy-sama7-usb.o
 obj-y += cadence/
 obj-y += ti/
 obj-y += qcom/
