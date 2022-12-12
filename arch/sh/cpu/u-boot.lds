@@ -74,6 +74,8 @@ SECTIONS
 		KEEP(*(SORT(__u_boot_list*)));
 	} >ram
 
+	. = ALIGN(8);
+
 	PROVIDE (__init_end = .);
 	PROVIDE (reloc_dst_end = .);
 	PROVIDE (_end = .);
