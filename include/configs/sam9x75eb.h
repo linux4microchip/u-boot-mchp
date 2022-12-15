@@ -23,4 +23,9 @@
 /* Ethernet */
 #define CONFIG_RESET_PHY_R
 
+/* NAND flash */
+#ifdef CONFIG_CMD_NAND
+#define CONFIG_SYS_MAX_NAND_DEVICE	1
+#endif
+
 #endif
