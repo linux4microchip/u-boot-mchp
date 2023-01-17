@@ -16,6 +16,7 @@
 #include <asm/global_data.h>
 #include <asm/io.h>
 #include <linux/bitops.h>
+#include <spi-mem.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -48,6 +49,9 @@ DECLARE_GLOBAL_DATA_PTR;
 #define ZYNQ_QSPI_CR_BAUD_MAX		8	/* Baud rate divisor max val */
 #define ZYNQ_QSPI_CR_BAUD_SHIFT		3	/* Baud rate divisor shift */
 #define ZYNQ_QSPI_CR_SS_SHIFT		10	/* Slave select shift */
+
+#define ZYNQ_QSPI_MAX_BAUD_RATE		0x7
+#define ZYNQ_QSPI_DEFAULT_BAUD_RATE	0x2
 
 #define ZYNQ_QSPI_FIFO_DEPTH		63
 #define ZYNQ_QSPI_WAIT			(CONFIG_SYS_HZ / 100)	/* 10 ms */
@@ -90,6 +94,7 @@ struct zynq_qspi_priv {
 	u8 mode;
 	u8 fifo_depth;
 	u32 freq;		/* required frequency */
+	u32 max_hz;
 	const void *tx_buf;
 	void *rx_buf;
 	unsigned len;
@@ -170,6 +175,16 @@ static void zynq_qspi_init_hw(struct zynq_qspi_priv *priv)
 	writel(ZYNQ_QSPI_ENR_SPI_EN_MASK, &regs->enr);
 }
 
+static int zynq_qspi_child_pre_probe(struct udevice *bus)
+{
+	struct spi_slave *slave = dev_get_parent_priv(bus);
+	struct zynq_qspi_priv *priv = dev_get_priv(bus->parent);
+
+	priv->max_hz = slave->max_hz;
+
+	return 0;
+}
+
 static int zynq_qspi_probe(struct udevice *bus)
 {
 	struct zynq_qspi_plat *plat = dev_get_plat(bus);
@@ -230,12 +245,16 @@ static void zynq_qspi_read_data(struct zynq_qspi_priv *priv, u32 data, u8 size)
 			priv->rx_buf += 1;
 			break;
 		case 2:
-			*((u16 *)priv->rx_buf) = data;
-			priv->rx_buf += 2;
+			*((u8 *)priv->rx_buf) = data;
+			priv->rx_buf += 1;
+			*((u8 *)priv->rx_buf) = (u8)(data >> 8);
+			priv->rx_buf += 1;
 			break;
 		case 3:
-			*((u16 *)priv->rx_buf) = data;
-			priv->rx_buf += 2;
+			*((u8 *)priv->rx_buf) = data;
+			priv->rx_buf += 1;
+			*((u8 *)priv->rx_buf) = (u8)(data >> 8);
+			priv->rx_buf += 1;
 			byte3 = (u8)(data >> 16);
 			*((u8 *)priv->rx_buf) = byte3;
 			priv->rx_buf += 1;
@@ -272,13 +291,17 @@ static void zynq_qspi_write_data(struct  zynq_qspi_priv *priv,
 			*data |= 0xFFFFFF00;
 			break;
 		case 2:
-			*data = *((u16 *)priv->tx_buf);
-			priv->tx_buf += 2;
+			*data = *((u8 *)priv->tx_buf);
+			priv->tx_buf += 1;
+			*data |= (*((u8 *)priv->tx_buf) << 8);
+			priv->tx_buf += 1;
 			*data |= 0xFFFF0000;
 			break;
 		case 3:
-			*data = *((u16 *)priv->tx_buf);
-			priv->tx_buf += 2;
+			*data = *((u8 *)priv->tx_buf);
+			priv->tx_buf += 1;
+			*data |= (*((u8 *)priv->tx_buf) << 8);
+			priv->tx_buf += 1;
 			*data |= (*((u8 *)priv->tx_buf) << 16);
 			priv->tx_buf += 1;
 			*data |= 0xFF000000;
@@ -599,19 +622,19 @@ static int zynq_qspi_set_speed(struct udevice *bus, uint speed)
 	uint32_t confr;
 	u8 baud_rate_val = 0;
 
-	if (speed > plat->frequency)
-		speed = plat->frequency;
+	if (!speed || speed > priv->max_hz)
+		speed = priv->max_hz;
 
 	/* Set the clock frequency */
 	confr = readl(&regs->cr);
-	if (speed == 0) {
-		/* Set baudrate x8, if the freq is 0 */
-		baud_rate_val = 0x2;
-	} else if (plat->speed_hz != speed) {
+	if (plat->speed_hz != speed) {
 		while ((baud_rate_val < ZYNQ_QSPI_CR_BAUD_MAX) &&
 		       ((plat->frequency /
 		       (2 << baud_rate_val)) > speed))
 			baud_rate_val++;
+
+		if (baud_rate_val > ZYNQ_QSPI_MAX_BAUD_RATE)
+			baud_rate_val = ZYNQ_QSPI_DEFAULT_BAUD_RATE;
 
 		plat->speed_hz = speed / (2 << baud_rate_val);
 	}
@@ -649,12 +672,120 @@ static int zynq_qspi_set_mode(struct udevice *bus, uint mode)
 	return 0;
 }
 
+static int zynq_qspi_exec_op(struct spi_slave *slave,
+			     const struct spi_mem_op *op)
+{
+	int op_len, pos = 0, ret, i;
+	u32 dummy_bytes = 0;
+	unsigned int flag = 0;
+	const u8 *tx_buf = NULL;
+	u8 *rx_buf = NULL;
+
+	if (op->data.nbytes) {
+		if (op->data.dir == SPI_MEM_DATA_IN)
+			rx_buf = op->data.buf.in;
+		else
+			tx_buf = op->data.buf.out;
+	}
+
+	op_len = op->cmd.nbytes + op->addr.nbytes + op->dummy.nbytes;
+	if (op->dummy.nbytes) {
+		op_len = op->cmd.nbytes + op->addr.nbytes +
+			 op->dummy.nbytes / op->dummy.buswidth;
+		dummy_bytes = op->dummy.nbytes / op->dummy.buswidth;
+	}
+
+	u8 op_buf[op_len];
+
+	op_buf[pos++] = op->cmd.opcode;
+
+	if (op->addr.nbytes) {
+		for (i = 0; i < op->addr.nbytes; i++)
+			op_buf[pos + i] = op->addr.val >>
+			(8 * (op->addr.nbytes - i - 1));
+
+		pos += op->addr.nbytes;
+	}
+
+	if (dummy_bytes)
+		memset(op_buf + pos, 0xff, dummy_bytes);
+
+	/* 1st transfer: opcode + address + dummy cycles */
+	/* Make sure to set END bit if no tx or rx data messages follow */
+	if (!tx_buf && !rx_buf)
+		flag |= SPI_XFER_END;
+
+	ret = zynq_qspi_xfer(slave->dev, op_len * 8, op_buf, NULL,
+			     flag | SPI_XFER_BEGIN);
+	if (ret)
+		return ret;
+
+	/* 2nd transfer: rx or tx data path */
+	if (tx_buf || rx_buf) {
+		ret = zynq_qspi_xfer(slave->dev, op->data.nbytes * 8, tx_buf,
+				     rx_buf, flag | SPI_XFER_END);
+		if (ret)
+			return ret;
+	}
+
+	spi_release_bus(slave);
+
+	return 0;
+}
+
+static int zynq_qspi_check_buswidth(struct spi_slave *slave, u8 width)
+{
+	u32 mode = slave->mode;
+
+	switch (width) {
+	case 1:
+		return 0;
+	case 2:
+		if (mode & SPI_RX_DUAL)
+			return 0;
+		break;
+	case 4:
+		if (mode & SPI_RX_QUAD)
+			return 0;
+		break;
+	}
+
+	return -EOPNOTSUPP;
+}
+
+bool zynq_qspi_mem_exec_op(struct spi_slave *slave,
+			   const struct spi_mem_op *op)
+{
+	if (zynq_qspi_check_buswidth(slave, op->cmd.buswidth))
+		return false;
+
+	if (op->addr.nbytes &&
+	    zynq_qspi_check_buswidth(slave, op->addr.buswidth))
+		return false;
+
+	if (op->dummy.nbytes &&
+	    zynq_qspi_check_buswidth(slave, op->dummy.buswidth))
+		return false;
+
+	if (op->data.dir != SPI_MEM_NO_DATA &&
+	    zynq_qspi_check_buswidth(slave, op->data.buswidth))
+		return false;
+
+	return true;
+}
+
+static const struct spi_controller_mem_ops zynq_qspi_mem_ops = {
+	.exec_op = zynq_qspi_exec_op,
+	.supports_op = zynq_qspi_mem_exec_op,
+};
+
 static const struct dm_spi_ops zynq_qspi_ops = {
 	.claim_bus      = zynq_qspi_claim_bus,
 	.release_bus    = zynq_qspi_release_bus,
 	.xfer           = zynq_qspi_xfer,
 	.set_speed      = zynq_qspi_set_speed,
 	.set_mode       = zynq_qspi_set_mode,
+	.mem_ops        = &zynq_qspi_mem_ops,
 };
 
 static const struct udevice_id zynq_qspi_ids[] = {
@@ -671,4 +802,5 @@ U_BOOT_DRIVER(zynq_qspi) = {
 	.plat_auto	= sizeof(struct zynq_qspi_plat),
 	.priv_auto	= sizeof(struct zynq_qspi_priv),
 	.probe  = zynq_qspi_probe,
+	.child_pre_probe = zynq_qspi_child_pre_probe,
 };

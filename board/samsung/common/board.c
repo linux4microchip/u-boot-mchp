@@ -26,7 +26,6 @@
 #include <asm/arch/pinmux.h>
 #include <asm/arch/power.h>
 #include <asm/arch/system.h>
-#include <lcd.h>
 #include <i2c.h>
 #include <mmc.h>
 #include <stdio_dev.h>
@@ -107,9 +106,9 @@ int board_init(void)
 	}
 	boot_temp_check();
 #endif
-#ifdef CONFIG_TZSW_RESERVED_DRAM_SIZE
+#if CONFIG_VAL(SYS_MEM_TOP_HIDE)
 	/* The last few MB of memory can be reserved for secure firmware */
-	ulong size = CONFIG_TZSW_RESERVED_DRAM_SIZE;
+	ulong size = CONFIG_SYS_MEM_TOP_HIDE;
 
 	gd->ram_size -= size;
 	gd->bd->bi_dram[CONFIG_NR_DRAM_BANKS - 1].size -= size;
@@ -176,10 +175,6 @@ int board_early_init_f(void)
 		debug("UART init failed\n");
 		return err;
 	}
-
-#ifdef CONFIG_SYS_I2C_INIT_BOARD
-	board_i2c_init(gd->fdt_blob);
-#endif
 
 	return exynos_early_init_f();
 }
@@ -261,10 +256,6 @@ int misc_init_r(void)
 
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
 	set_board_info();
-#endif
-#ifdef CONFIG_LCD_MENU
-	keys_init();
-	check_boot_mode();
 #endif
 #ifdef CONFIG_CMD_BMP
 	if (panel_info.logo_on)

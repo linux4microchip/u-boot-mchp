@@ -42,6 +42,12 @@
 		reg = <0x0 0x0 0x0 0x80000000>;
 	};
 
+	si5332_1: si5332_1 { /* u142 - GEM0 */
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <125000000>;
+	};
+
 	ina226-vccint {
 		compatible = "iio-hwmon";
 		io-channels = <&vccint 0>, <&vccint 1>, <&vccint 2>, <&vccint 3>;
@@ -135,13 +141,26 @@
 	xlnx,mio-bank = <1>;
 };
 
+/* GEM SGMII */
+&psgtr {
+	status = "okay";
+	/* gem0 */
+	clocks = <&si5332_1>;
+	clock-names = "ref0";
+};
+
 &gem0 {
 	status = "okay";
+	phys = <&psgtr 0 PHY_TYPE_SGMII 0 0>;
 	phy-handle = <&phy0>;
 	phy-mode = "sgmii";
 	is-internal-pcspma;
-	phy0: ethernet-phy@0 { /* u131 M88E1512 */
-		reg = <0>;
+	mdio: mdio {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		phy0: ethernet-phy@0 { /* u131 M88E1512 */
+			reg = <0>;
+		};
 	};
 };
 
@@ -188,6 +207,18 @@
 &i2c0 { /* MIO 34-35 - can't stay here */
 	status = "okay";
 	clock-frequency = <400000>;
+
+	tca6416_u233: gpio@20 { /* u233 */
+		compatible = "ti,tca6416";
+		reg = <0x20>;
+		gpio-controller; /* interrupt not connected */
+		#gpio-cells = <2>;
+		gpio-line-names = "MAX6643_OT_B", "MAX6643_FANFAIL_B", "", "", /* 0 - 3 */
+				"PMBUS2_INA226_ALERT", "", "", "MAX6643_FULLSPD", /* 4 - 7 */
+				"FMCP1_FMC_PRSNT_M2C_B", "FMCP2_FMC_PRSNT_M2C_B", "FMCP1_FMCP_PRSNT_M2C_B", "FMCP2_FMCP_PRSNT_M2C_B", /* 10 - 13 */
+				"VCCINT_VRHOT_B", "8A34001_EXP_RST_B", "PMBUS_ALERT", "PMBUS1_INA226_ALERT"; /* 14 - 17 */
+	};
+
 	i2c-mux@74 { /* u33 */
 		compatible = "nxp,pca9548";
 		#address-cells = <1>;
@@ -279,10 +310,10 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 			reg = <2>;
-			clock_8t49n287: clock-generator@d8 { /* u39 8T49N240 */
+			clock_8t49n287: clock-generator@6c { /* u39 8T49N240 */
 				#clock-cells = <1>; /* author David Cater <david.cater@idt.com>*/
 				compatible = "idt,8t49n240", "idt,8t49n241"; /* FIXME no driver for 240 */
-				reg = <0xd8>;
+				reg = <0x6c>;
 				/* Documentation/devicetree/bindings/clock/idt,idt8t49n24x.txt */
 				/* FIXME there input via J241 Samtec CLK1 and CLK0 from U38 - selection PIN */
 			};
@@ -432,7 +463,7 @@
 			si570_user1: clock-generator@5d { /* u205 */
 				#clock-cells = <0>;
 				compatible = "silabs,si570";
-				reg = <0x5f>;
+				reg = <0x5d>;
 				temperature-stability = <50>;
 				factory-fout = <100000000>;
 				clock-frequency = <100000000>;

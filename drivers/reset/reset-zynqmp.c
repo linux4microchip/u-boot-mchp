@@ -53,18 +53,8 @@ static int zynqmp_reset_request(struct reset_ctl *rst)
 	dev_dbg(rst->dev, "%s(rst=%p) (id=%lu) (nr_reset=%d)\n", __func__,
 		rst, rst->id, priv->nr_reset);
 
-	if (rst->id > priv->nr_reset)
+	if (priv->nr_reset && rst->id > priv->nr_reset)
 		return -EINVAL;
-
-	return 0;
-}
-
-static int zynqmp_reset_free(struct reset_ctl *rst)
-{
-	struct zynqmp_reset_priv *priv = dev_get_priv(rst->dev);
-
-	dev_dbg(rst->dev, "%s(rst=%p) (id=%lu) (nr_reset=%d)\n", __func__,
-		rst, rst->id, priv->nr_reset);
 
 	return 0;
 }
@@ -73,20 +63,24 @@ static int zynqmp_reset_probe(struct udevice *dev)
 {
 	struct zynqmp_reset_priv *priv = dev_get_priv(dev);
 
-	priv->reset_id = ZYNQMP_RESET_ID;
-	priv->nr_reset = ZYNQMP_NR_RESETS;
+	if (device_is_compatible(dev, "xlnx,zynqmp-reset")) {
+		priv->reset_id = ZYNQMP_RESET_ID;
+		priv->nr_reset = ZYNQMP_NR_RESETS;
+	}
+
 	return 0;
 }
 
 const struct reset_ops zynqmp_reset_ops = {
 	.request = zynqmp_reset_request,
-	.rfree = zynqmp_reset_free,
 	.rst_assert = zynqmp_reset_assert,
 	.rst_deassert = zynqmp_reset_deassert,
 };
 
 static const struct udevice_id zynqmp_reset_ids[] = {
 	{ .compatible = "xlnx,zynqmp-reset" },
+	{ .compatible = "xlnx,versal-reset" },
+	{ .compatible = "xlnx,versal-net-reset" },
 	{ }
 };
 

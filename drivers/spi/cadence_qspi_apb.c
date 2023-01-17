@@ -38,156 +38,10 @@
 #include <malloc.h>
 #include "cadence_qspi.h"
 
-#define CQSPI_REG_POLL_US			1 /* 1us */
-#define CQSPI_REG_RETRY				10000
-#define CQSPI_POLL_IDLE_RETRY			3
-
-/* Transfer mode */
-#define CQSPI_INST_TYPE_SINGLE			0
-#define CQSPI_INST_TYPE_DUAL			1
-#define CQSPI_INST_TYPE_QUAD			2
-#define CQSPI_INST_TYPE_OCTAL			3
-
-#define CQSPI_STIG_DATA_LEN_MAX			8
-
-#define CQSPI_DUMMY_CLKS_PER_BYTE		8
-#define CQSPI_DUMMY_CLKS_MAX			31
-
-/****************************************************************************
- * Controller's configuration and status register (offset from QSPI_BASE)
- ****************************************************************************/
-#define	CQSPI_REG_CONFIG			0x00
-#define	CQSPI_REG_CONFIG_ENABLE			BIT(0)
-#define	CQSPI_REG_CONFIG_CLK_POL		BIT(1)
-#define	CQSPI_REG_CONFIG_CLK_PHA		BIT(2)
-#define	CQSPI_REG_CONFIG_DIRECT			BIT(7)
-#define	CQSPI_REG_CONFIG_DECODE			BIT(9)
-#define	CQSPI_REG_CONFIG_XIP_IMM		BIT(18)
-#define	CQSPI_REG_CONFIG_CHIPSELECT_LSB		10
-#define	CQSPI_REG_CONFIG_BAUD_LSB		19
-#define CQSPI_REG_CONFIG_DTR_PROTO		BIT(24)
-#define CQSPI_REG_CONFIG_DUAL_OPCODE		BIT(30)
-#define	CQSPI_REG_CONFIG_IDLE_LSB		31
-#define	CQSPI_REG_CONFIG_CHIPSELECT_MASK	0xF
-#define	CQSPI_REG_CONFIG_BAUD_MASK		0xF
-
-#define	CQSPI_REG_RD_INSTR			0x04
-#define	CQSPI_REG_RD_INSTR_OPCODE_LSB		0
-#define	CQSPI_REG_RD_INSTR_TYPE_INSTR_LSB	8
-#define	CQSPI_REG_RD_INSTR_TYPE_ADDR_LSB	12
-#define	CQSPI_REG_RD_INSTR_TYPE_DATA_LSB	16
-#define	CQSPI_REG_RD_INSTR_MODE_EN_LSB		20
-#define	CQSPI_REG_RD_INSTR_DUMMY_LSB		24
-#define	CQSPI_REG_RD_INSTR_TYPE_INSTR_MASK	0x3
-#define	CQSPI_REG_RD_INSTR_TYPE_ADDR_MASK	0x3
-#define	CQSPI_REG_RD_INSTR_TYPE_DATA_MASK	0x3
-#define	CQSPI_REG_RD_INSTR_DUMMY_MASK		0x1F
-
-#define	CQSPI_REG_WR_INSTR			0x08
-#define	CQSPI_REG_WR_INSTR_OPCODE_LSB		0
-#define CQSPI_REG_WR_INSTR_TYPE_ADDR_LSB	12
-#define	CQSPI_REG_WR_INSTR_TYPE_DATA_LSB	16
-
-#define	CQSPI_REG_DELAY				0x0C
-#define	CQSPI_REG_DELAY_TSLCH_LSB		0
-#define	CQSPI_REG_DELAY_TCHSH_LSB		8
-#define	CQSPI_REG_DELAY_TSD2D_LSB		16
-#define	CQSPI_REG_DELAY_TSHSL_LSB		24
-#define	CQSPI_REG_DELAY_TSLCH_MASK		0xFF
-#define	CQSPI_REG_DELAY_TCHSH_MASK		0xFF
-#define	CQSPI_REG_DELAY_TSD2D_MASK		0xFF
-#define	CQSPI_REG_DELAY_TSHSL_MASK		0xFF
-
-#define	CQSPI_REG_RD_DATA_CAPTURE		0x10
-#define	CQSPI_REG_RD_DATA_CAPTURE_BYPASS	BIT(0)
-#define	CQSPI_REG_RD_DATA_CAPTURE_DELAY_LSB	1
-#define	CQSPI_REG_RD_DATA_CAPTURE_DELAY_MASK	0xF
-
-#define	CQSPI_REG_SIZE				0x14
-#define	CQSPI_REG_SIZE_ADDRESS_LSB		0
-#define	CQSPI_REG_SIZE_PAGE_LSB			4
-#define	CQSPI_REG_SIZE_BLOCK_LSB		16
-#define	CQSPI_REG_SIZE_ADDRESS_MASK		0xF
-#define	CQSPI_REG_SIZE_PAGE_MASK		0xFFF
-#define	CQSPI_REG_SIZE_BLOCK_MASK		0x3F
-
-#define	CQSPI_REG_SRAMPARTITION			0x18
-#define	CQSPI_REG_INDIRECTTRIGGER		0x1C
-
-#define	CQSPI_REG_REMAP				0x24
-#define	CQSPI_REG_MODE_BIT			0x28
-
-#define	CQSPI_REG_SDRAMLEVEL			0x2C
-#define	CQSPI_REG_SDRAMLEVEL_RD_LSB		0
-#define	CQSPI_REG_SDRAMLEVEL_WR_LSB		16
-#define	CQSPI_REG_SDRAMLEVEL_RD_MASK		0xFFFF
-#define	CQSPI_REG_SDRAMLEVEL_WR_MASK		0xFFFF
-
-#define CQSPI_REG_WR_COMPLETION_CTRL		0x38
-#define CQSPI_REG_WR_DISABLE_AUTO_POLL		BIT(14)
-
-#define	CQSPI_REG_IRQSTATUS			0x40
-#define	CQSPI_REG_IRQMASK			0x44
-
-#define	CQSPI_REG_INDIRECTRD			0x60
-#define	CQSPI_REG_INDIRECTRD_START		BIT(0)
-#define	CQSPI_REG_INDIRECTRD_CANCEL		BIT(1)
-#define	CQSPI_REG_INDIRECTRD_INPROGRESS		BIT(2)
-#define	CQSPI_REG_INDIRECTRD_DONE		BIT(5)
-
-#define	CQSPI_REG_INDIRECTRDWATERMARK		0x64
-#define	CQSPI_REG_INDIRECTRDSTARTADDR		0x68
-#define	CQSPI_REG_INDIRECTRDBYTES		0x6C
-
-#define	CQSPI_REG_CMDCTRL			0x90
-#define	CQSPI_REG_CMDCTRL_EXECUTE		BIT(0)
-#define	CQSPI_REG_CMDCTRL_INPROGRESS		BIT(1)
-#define	CQSPI_REG_CMDCTRL_DUMMY_LSB		7
-#define	CQSPI_REG_CMDCTRL_WR_BYTES_LSB		12
-#define	CQSPI_REG_CMDCTRL_WR_EN_LSB		15
-#define	CQSPI_REG_CMDCTRL_ADD_BYTES_LSB		16
-#define	CQSPI_REG_CMDCTRL_ADDR_EN_LSB		19
-#define	CQSPI_REG_CMDCTRL_RD_BYTES_LSB		20
-#define	CQSPI_REG_CMDCTRL_RD_EN_LSB		23
-#define	CQSPI_REG_CMDCTRL_OPCODE_LSB		24
-#define	CQSPI_REG_CMDCTRL_DUMMY_MASK		0x1F
-#define	CQSPI_REG_CMDCTRL_WR_BYTES_MASK		0x7
-#define	CQSPI_REG_CMDCTRL_ADD_BYTES_MASK	0x3
-#define	CQSPI_REG_CMDCTRL_RD_BYTES_MASK		0x7
-#define	CQSPI_REG_CMDCTRL_OPCODE_MASK		0xFF
-
-#define	CQSPI_REG_INDIRECTWR			0x70
-#define	CQSPI_REG_INDIRECTWR_START		BIT(0)
-#define	CQSPI_REG_INDIRECTWR_CANCEL		BIT(1)
-#define	CQSPI_REG_INDIRECTWR_INPROGRESS		BIT(2)
-#define	CQSPI_REG_INDIRECTWR_DONE		BIT(5)
-
-#define	CQSPI_REG_INDIRECTWRWATERMARK		0x74
-#define	CQSPI_REG_INDIRECTWRSTARTADDR		0x78
-#define	CQSPI_REG_INDIRECTWRBYTES		0x7C
-
-#define	CQSPI_REG_CMDADDRESS			0x94
-#define	CQSPI_REG_CMDREADDATALOWER		0xA0
-#define	CQSPI_REG_CMDREADDATAUPPER		0xA4
-#define	CQSPI_REG_CMDWRITEDATALOWER		0xA8
-#define	CQSPI_REG_CMDWRITEDATAUPPER		0xAC
-
-#define CQSPI_REG_OP_EXT_LOWER			0xE0
-#define CQSPI_REG_OP_EXT_READ_LSB		24
-#define CQSPI_REG_OP_EXT_WRITE_LSB		16
-#define CQSPI_REG_OP_EXT_STIG_LSB		0
-
-#define CQSPI_REG_IS_IDLE(base)					\
-	((readl(base + CQSPI_REG_CONFIG) >>		\
-		CQSPI_REG_CONFIG_IDLE_LSB) & 0x1)
-
-#define CQSPI_GET_RD_SRAM_LEVEL(reg_base)			\
-	(((readl(reg_base + CQSPI_REG_SDRAMLEVEL)) >>	\
-	CQSPI_REG_SDRAMLEVEL_RD_LSB) & CQSPI_REG_SDRAMLEVEL_RD_MASK)
-
-#define CQSPI_GET_WR_SRAM_LEVEL(reg_base)			\
-	(((readl(reg_base + CQSPI_REG_SDRAMLEVEL)) >>	\
-	CQSPI_REG_SDRAMLEVEL_WR_LSB) & CQSPI_REG_SDRAMLEVEL_WR_MASK)
+__weak void cadence_qspi_apb_enable_linear_mode(bool enable)
+{
+	return;
+}
 
 void cadence_qspi_apb_controller_enable(void *reg_base)
 {
@@ -229,13 +83,13 @@ static unsigned int cadence_qspi_calc_dummy(const struct spi_mem_op *op,
 	return dummy_clk;
 }
 
-static u32 cadence_qspi_calc_rdreg(struct cadence_spi_plat *plat)
+static u32 cadence_qspi_calc_rdreg(struct cadence_spi_priv *priv)
 {
 	u32 rdreg = 0;
 
-	rdreg |= plat->inst_width << CQSPI_REG_RD_INSTR_TYPE_INSTR_LSB;
-	rdreg |= plat->addr_width << CQSPI_REG_RD_INSTR_TYPE_ADDR_LSB;
-	rdreg |= plat->data_width << CQSPI_REG_RD_INSTR_TYPE_DATA_LSB;
+	rdreg |= priv->inst_width << CQSPI_REG_RD_INSTR_TYPE_INSTR_LSB;
+	rdreg |= priv->addr_width << CQSPI_REG_RD_INSTR_TYPE_ADDR_LSB;
+	rdreg |= priv->data_width << CQSPI_REG_RD_INSTR_TYPE_DATA_LSB;
 
 	return rdreg;
 }
@@ -261,27 +115,27 @@ static int cadence_qspi_buswidth_to_inst_type(u8 buswidth)
 	}
 }
 
-static int cadence_qspi_set_protocol(struct cadence_spi_plat *plat,
+static int cadence_qspi_set_protocol(struct cadence_spi_priv *priv,
 				     const struct spi_mem_op *op)
 {
 	int ret;
 
-	plat->dtr = op->data.dtr && op->cmd.dtr && op->addr.dtr;
+	priv->dtr = op->data.dtr && op->cmd.dtr && op->addr.dtr;
 
 	ret = cadence_qspi_buswidth_to_inst_type(op->cmd.buswidth);
 	if (ret < 0)
 		return ret;
-	plat->inst_width = ret;
+	priv->inst_width = ret;
 
 	ret = cadence_qspi_buswidth_to_inst_type(op->addr.buswidth);
 	if (ret < 0)
 		return ret;
-	plat->addr_width = ret;
+	priv->addr_width = ret;
 
 	ret = cadence_qspi_buswidth_to_inst_type(op->data.buswidth);
 	if (ret < 0)
 		return ret;
-	plat->data_width = ret;
+	priv->data_width = ret;
 
 	return 0;
 }
@@ -460,35 +314,34 @@ void cadence_qspi_apb_delay(void *reg_base,
 	cadence_qspi_apb_controller_enable(reg_base);
 }
 
-void cadence_qspi_apb_controller_init(struct cadence_spi_plat *plat)
+void cadence_qspi_apb_controller_init(struct cadence_spi_priv *priv)
 {
 	unsigned reg;
 
-	cadence_qspi_apb_controller_disable(plat->regbase);
+	cadence_qspi_apb_controller_disable(priv->regbase);
 
 	/* Configure the device size and address bytes */
-	reg = readl(plat->regbase + CQSPI_REG_SIZE);
+	reg = readl(priv->regbase + CQSPI_REG_SIZE);
 	/* Clear the previous value */
 	reg &= ~(CQSPI_REG_SIZE_PAGE_MASK << CQSPI_REG_SIZE_PAGE_LSB);
 	reg &= ~(CQSPI_REG_SIZE_BLOCK_MASK << CQSPI_REG_SIZE_BLOCK_LSB);
-	reg |= (plat->page_size << CQSPI_REG_SIZE_PAGE_LSB);
-	reg |= (plat->block_size << CQSPI_REG_SIZE_BLOCK_LSB);
-	writel(reg, plat->regbase + CQSPI_REG_SIZE);
+	reg |= (priv->page_size << CQSPI_REG_SIZE_PAGE_LSB);
+	reg |= (priv->block_size << CQSPI_REG_SIZE_BLOCK_LSB);
+	writel(reg, priv->regbase + CQSPI_REG_SIZE);
 
 	/* Configure the remap address register, no remap */
-	writel(0, plat->regbase + CQSPI_REG_REMAP);
+	writel(0, priv->regbase + CQSPI_REG_REMAP);
 
 	/* Indirect mode configurations */
-	writel(plat->fifo_depth / 2, plat->regbase + CQSPI_REG_SRAMPARTITION);
+	writel(priv->fifo_depth / 2, priv->regbase + CQSPI_REG_SRAMPARTITION);
 
 	/* Disable all interrupts */
-	writel(0, plat->regbase + CQSPI_REG_IRQMASK);
+	writel(0, priv->regbase + CQSPI_REG_IRQMASK);
 
-	cadence_qspi_apb_controller_enable(plat->regbase);
+	cadence_qspi_apb_controller_enable(priv->regbase);
 }
 
-static int cadence_qspi_apb_exec_flash_cmd(void *reg_base,
-	unsigned int reg)
+int cadence_qspi_apb_exec_flash_cmd(void *reg_base, unsigned int reg)
 {
 	unsigned int retry = CQSPI_REG_RETRY;
 
@@ -517,7 +370,7 @@ static int cadence_qspi_apb_exec_flash_cmd(void *reg_base,
 	return 0;
 }
 
-static int cadence_qspi_setup_opcode_ext(struct cadence_spi_plat *plat,
+static int cadence_qspi_setup_opcode_ext(struct cadence_spi_priv *priv,
 					 const struct spi_mem_op *op,
 					 unsigned int shift)
 {
@@ -530,15 +383,15 @@ static int cadence_qspi_setup_opcode_ext(struct cadence_spi_plat *plat,
 	/* Opcode extension is the LSB. */
 	ext = op->cmd.opcode & 0xff;
 
-	reg = readl(plat->regbase + CQSPI_REG_OP_EXT_LOWER);
+	reg = readl(priv->regbase + CQSPI_REG_OP_EXT_LOWER);
 	reg &= ~(0xff << shift);
 	reg |= ext << shift;
-	writel(reg, plat->regbase + CQSPI_REG_OP_EXT_LOWER);
+	writel(reg, priv->regbase + CQSPI_REG_OP_EXT_LOWER);
 
 	return 0;
 }
 
-static int cadence_qspi_enable_dtr(struct cadence_spi_plat *plat,
+static int cadence_qspi_enable_dtr(struct cadence_spi_priv *priv,
 				   const struct spi_mem_op *op,
 				   unsigned int shift,
 				   bool enable)
@@ -546,14 +399,14 @@ static int cadence_qspi_enable_dtr(struct cadence_spi_plat *plat,
 	unsigned int reg;
 	int ret;
 
-	reg = readl(plat->regbase + CQSPI_REG_CONFIG);
+	reg = readl(priv->regbase + CQSPI_REG_CONFIG);
 
 	if (enable) {
 		reg |= CQSPI_REG_CONFIG_DTR_PROTO;
 		reg |= CQSPI_REG_CONFIG_DUAL_OPCODE;
 
 		/* Set up command opcode extension. */
-		ret = cadence_qspi_setup_opcode_ext(plat, op, shift);
+		ret = cadence_qspi_setup_opcode_ext(priv, op, shift);
 		if (ret)
 			return ret;
 	} else {
@@ -561,37 +414,37 @@ static int cadence_qspi_enable_dtr(struct cadence_spi_plat *plat,
 		reg &= ~CQSPI_REG_CONFIG_DUAL_OPCODE;
 	}
 
-	writel(reg, plat->regbase + CQSPI_REG_CONFIG);
+	writel(reg, priv->regbase + CQSPI_REG_CONFIG);
 
 	return 0;
 }
 
-int cadence_qspi_apb_command_read_setup(struct cadence_spi_plat *plat,
+int cadence_qspi_apb_command_read_setup(struct cadence_spi_priv *priv,
 					const struct spi_mem_op *op)
 {
 	int ret;
 	unsigned int reg;
 
-	ret = cadence_qspi_set_protocol(plat, op);
+	ret = cadence_qspi_set_protocol(priv, op);
 	if (ret)
 		return ret;
 
-	ret = cadence_qspi_enable_dtr(plat, op, CQSPI_REG_OP_EXT_STIG_LSB,
-				      plat->dtr);
+	ret = cadence_qspi_enable_dtr(priv, op, CQSPI_REG_OP_EXT_STIG_LSB,
+				      priv->dtr);
 	if (ret)
 		return ret;
 
-	reg = cadence_qspi_calc_rdreg(plat);
-	writel(reg, plat->regbase + CQSPI_REG_RD_INSTR);
+	reg = cadence_qspi_calc_rdreg(priv);
+	writel(reg, priv->regbase + CQSPI_REG_RD_INSTR);
 
 	return 0;
 }
 
 /* For command RDID, RDSR. */
-int cadence_qspi_apb_command_read(struct cadence_spi_plat *plat,
+int cadence_qspi_apb_command_read(struct cadence_spi_priv *priv,
 				  const struct spi_mem_op *op)
 {
-	void *reg_base = plat->regbase;
+	void *reg_base = priv->regbase;
 	unsigned int reg;
 	unsigned int read_len;
 	int status;
@@ -605,7 +458,7 @@ int cadence_qspi_apb_command_read(struct cadence_spi_plat *plat,
 		return -EINVAL;
 	}
 
-	if (plat->dtr)
+	if (priv->dtr)
 		opcode = op->cmd.opcode >> 8;
 	else
 		opcode = op->cmd.opcode;
@@ -613,7 +466,7 @@ int cadence_qspi_apb_command_read(struct cadence_spi_plat *plat,
 	reg = opcode << CQSPI_REG_CMDCTRL_OPCODE_LSB;
 
 	/* Set up dummy cycles. */
-	dummy_clk = cadence_qspi_calc_dummy(op, plat->dtr);
+	dummy_clk = cadence_qspi_calc_dummy(op, priv->dtr);
 	if (dummy_clk > CQSPI_DUMMY_CLKS_MAX)
 		return -ENOTSUPP;
 
@@ -646,29 +499,29 @@ int cadence_qspi_apb_command_read(struct cadence_spi_plat *plat,
 	return 0;
 }
 
-int cadence_qspi_apb_command_write_setup(struct cadence_spi_plat *plat,
+int cadence_qspi_apb_command_write_setup(struct cadence_spi_priv *priv,
 					 const struct spi_mem_op *op)
 {
 	int ret;
 	unsigned int reg;
 
-	ret = cadence_qspi_set_protocol(plat, op);
+	ret = cadence_qspi_set_protocol(priv, op);
 	if (ret)
 		return ret;
 
-	ret = cadence_qspi_enable_dtr(plat, op, CQSPI_REG_OP_EXT_STIG_LSB,
-				      plat->dtr);
+	ret = cadence_qspi_enable_dtr(priv, op, CQSPI_REG_OP_EXT_STIG_LSB,
+				      priv->dtr);
 	if (ret)
 		return ret;
 
-	reg = cadence_qspi_calc_rdreg(plat);
-	writel(reg, plat->regbase + CQSPI_REG_RD_INSTR);
+	reg = cadence_qspi_calc_rdreg(priv);
+	writel(reg, priv->regbase + CQSPI_REG_RD_INSTR);
 
 	return 0;
 }
 
 /* For commands: WRSR, WREN, WRDI, CHIP_ERASE, BE, etc. */
-int cadence_qspi_apb_command_write(struct cadence_spi_plat *plat,
+int cadence_qspi_apb_command_write(struct cadence_spi_priv *priv,
 				   const struct spi_mem_op *op)
 {
 	unsigned int reg = 0;
@@ -676,7 +529,7 @@ int cadence_qspi_apb_command_write(struct cadence_spi_plat *plat,
 	unsigned int wr_len;
 	unsigned int txlen = op->data.nbytes;
 	const void *txbuf = op->data.buf.out;
-	void *reg_base = plat->regbase;
+	void *reg_base = priv->regbase;
 	u32 addr;
 	u8 opcode;
 
@@ -694,7 +547,7 @@ int cadence_qspi_apb_command_write(struct cadence_spi_plat *plat,
 		return -EINVAL;
 	}
 
-	if (plat->dtr)
+	if (priv->dtr)
 		opcode = op->cmd.opcode >> 8;
 	else
 		opcode = op->cmd.opcode;
@@ -726,7 +579,7 @@ int cadence_qspi_apb_command_write(struct cadence_spi_plat *plat,
 }
 
 /* Opcode + Address (3/4 bytes) + dummy bytes (0-4 bytes) */
-int cadence_qspi_apb_read_setup(struct cadence_spi_plat *plat,
+int cadence_qspi_apb_read_setup(struct cadence_spi_priv *priv,
 				const struct spi_mem_op *op)
 {
 	unsigned int reg;
@@ -736,33 +589,33 @@ int cadence_qspi_apb_read_setup(struct cadence_spi_plat *plat,
 	int ret;
 	u8 opcode;
 
-	ret = cadence_qspi_set_protocol(plat, op);
+	ret = cadence_qspi_set_protocol(priv, op);
 	if (ret)
 		return ret;
 
-	ret = cadence_qspi_enable_dtr(plat, op, CQSPI_REG_OP_EXT_READ_LSB,
-				      plat->dtr);
+	ret = cadence_qspi_enable_dtr(priv, op, CQSPI_REG_OP_EXT_READ_LSB,
+				      priv->dtr);
 	if (ret)
 		return ret;
 
 	/* Setup the indirect trigger address */
-	writel(plat->trigger_address,
-	       plat->regbase + CQSPI_REG_INDIRECTTRIGGER);
+	writel(priv->trigger_address,
+	       priv->regbase + CQSPI_REG_INDIRECTTRIGGER);
 
 	/* Configure the opcode */
-	if (plat->dtr)
+	if (priv->dtr)
 		opcode = op->cmd.opcode >> 8;
 	else
 		opcode = op->cmd.opcode;
 
 	rd_reg = opcode << CQSPI_REG_RD_INSTR_OPCODE_LSB;
-	rd_reg |= cadence_qspi_calc_rdreg(plat);
+	rd_reg |= cadence_qspi_calc_rdreg(priv);
 
-	writel(op->addr.val, plat->regbase + CQSPI_REG_INDIRECTRDSTARTADDR);
+	writel(op->addr.val, priv->regbase + CQSPI_REG_INDIRECTRDSTARTADDR);
 
 	if (dummy_bytes) {
 		/* Convert to clock cycles. */
-		dummy_clk = cadence_qspi_calc_dummy(op, plat->dtr);
+		dummy_clk = cadence_qspi_calc_dummy(op, priv->dtr);
 
 		if (dummy_clk > CQSPI_DUMMY_CLKS_MAX)
 			return -ENOTSUPP;
@@ -772,30 +625,30 @@ int cadence_qspi_apb_read_setup(struct cadence_spi_plat *plat,
 				<< CQSPI_REG_RD_INSTR_DUMMY_LSB;
 	}
 
-	writel(rd_reg, plat->regbase + CQSPI_REG_RD_INSTR);
+	writel(rd_reg, priv->regbase + CQSPI_REG_RD_INSTR);
 
 	/* set device size */
-	reg = readl(plat->regbase + CQSPI_REG_SIZE);
+	reg = readl(priv->regbase + CQSPI_REG_SIZE);
 	reg &= ~CQSPI_REG_SIZE_ADDRESS_MASK;
 	reg |= (op->addr.nbytes - 1);
-	writel(reg, plat->regbase + CQSPI_REG_SIZE);
+	writel(reg, priv->regbase + CQSPI_REG_SIZE);
 	return 0;
 }
 
-static u32 cadence_qspi_get_rd_sram_level(struct cadence_spi_plat *plat)
+static u32 cadence_qspi_get_rd_sram_level(struct cadence_spi_priv *priv)
 {
-	u32 reg = readl(plat->regbase + CQSPI_REG_SDRAMLEVEL);
+	u32 reg = readl(priv->regbase + CQSPI_REG_SDRAMLEVEL);
 	reg >>= CQSPI_REG_SDRAMLEVEL_RD_LSB;
 	return reg & CQSPI_REG_SDRAMLEVEL_RD_MASK;
 }
 
-static int cadence_qspi_wait_for_data(struct cadence_spi_plat *plat)
+static int cadence_qspi_wait_for_data(struct cadence_spi_priv *priv)
 {
 	unsigned int timeout = 10000;
 	u32 reg;
 
 	while (timeout--) {
-		reg = cadence_qspi_get_rd_sram_level(plat);
+		reg = cadence_qspi_get_rd_sram_level(priv);
 		if (reg)
 			return reg;
 		udelay(1);
@@ -805,21 +658,21 @@ static int cadence_qspi_wait_for_data(struct cadence_spi_plat *plat)
 }
 
 static int
-cadence_qspi_apb_indirect_read_execute(struct cadence_spi_plat *plat,
+cadence_qspi_apb_indirect_read_execute(struct cadence_spi_priv *priv,
 				       unsigned int n_rx, u8 *rxbuf)
 {
 	unsigned int remaining = n_rx;
 	unsigned int bytes_to_read = 0;
 	int ret;
 
-	writel(n_rx, plat->regbase + CQSPI_REG_INDIRECTRDBYTES);
+	writel(n_rx, priv->regbase + CQSPI_REG_INDIRECTRDBYTES);
 
 	/* Start the indirect read transfer */
 	writel(CQSPI_REG_INDIRECTRD_START,
-	       plat->regbase + CQSPI_REG_INDIRECTRD);
+	       priv->regbase + CQSPI_REG_INDIRECTRD);
 
 	while (remaining > 0) {
-		ret = cadence_qspi_wait_for_data(plat);
+		ret = cadence_qspi_wait_for_data(priv);
 		if (ret < 0) {
 			printf("Indirect write timed out (%i)\n", ret);
 			goto failrd;
@@ -828,7 +681,7 @@ cadence_qspi_apb_indirect_read_execute(struct cadence_spi_plat *plat,
 		bytes_to_read = ret;
 
 		while (bytes_to_read != 0) {
-			bytes_to_read *= plat->fifo_width;
+			bytes_to_read *= priv->fifo_width;
 			bytes_to_read = bytes_to_read > remaining ?
 					remaining : bytes_to_read;
 			/*
@@ -836,18 +689,18 @@ cadence_qspi_apb_indirect_read_execute(struct cadence_spi_plat *plat,
 			 * data abort.
 			 */
 			if (((uintptr_t)rxbuf % 4) || (bytes_to_read % 4))
-				readsb(plat->ahbbase, rxbuf, bytes_to_read);
+				readsb(priv->ahbbase, rxbuf, bytes_to_read);
 			else
-				readsl(plat->ahbbase, rxbuf,
+				readsl(priv->ahbbase, rxbuf,
 				       bytes_to_read >> 2);
 			rxbuf += bytes_to_read;
 			remaining -= bytes_to_read;
-			bytes_to_read = cadence_qspi_get_rd_sram_level(plat);
+			bytes_to_read = cadence_qspi_get_rd_sram_level(priv);
 		}
 	}
 
 	/* Check indirect done status */
-	ret = wait_for_bit_le32(plat->regbase + CQSPI_REG_INDIRECTRD,
+	ret = wait_for_bit_le32(priv->regbase + CQSPI_REG_INDIRECTRD,
 				CQSPI_REG_INDIRECTRD_DONE, 1, 10, 0);
 	if (ret) {
 		printf("Indirect read completion error (%i)\n", ret);
@@ -856,10 +709,10 @@ cadence_qspi_apb_indirect_read_execute(struct cadence_spi_plat *plat,
 
 	/* Clear indirect completion status */
 	writel(CQSPI_REG_INDIRECTRD_DONE,
-	       plat->regbase + CQSPI_REG_INDIRECTRD);
+	       priv->regbase + CQSPI_REG_INDIRECTRD);
 
 	/* Check indirect done status */
-	ret = wait_for_bit_le32(plat->regbase + CQSPI_REG_INDIRECTRD,
+	ret = wait_for_bit_le32(priv->regbase + CQSPI_REG_INDIRECTRD,
 				CQSPI_REG_INDIRECTRD_DONE, 0, 10, 0);
 	if (ret) {
 		printf("Indirect read clear completion error (%i)\n", ret);
@@ -871,68 +724,70 @@ cadence_qspi_apb_indirect_read_execute(struct cadence_spi_plat *plat,
 failrd:
 	/* Cancel the indirect read */
 	writel(CQSPI_REG_INDIRECTRD_CANCEL,
-	       plat->regbase + CQSPI_REG_INDIRECTRD);
+	       priv->regbase + CQSPI_REG_INDIRECTRD);
 	return ret;
 }
 
-int cadence_qspi_apb_read_execute(struct cadence_spi_plat *plat,
+int cadence_qspi_apb_read_execute(struct cadence_spi_priv *priv,
 				  const struct spi_mem_op *op)
 {
 	u64 from = op->addr.val;
 	void *buf = op->data.buf.in;
 	size_t len = op->data.nbytes;
 
-	if (plat->use_dac_mode && (from + len < plat->ahbsize)) {
+	cadence_qspi_apb_enable_linear_mode(true);
+
+	if (priv->use_dac_mode && (from + len < priv->ahbsize)) {
 		if (len < 256 ||
-		    dma_memcpy(buf, plat->ahbbase + from, len) < 0) {
-			memcpy_fromio(buf, plat->ahbbase + from, len);
+		    dma_memcpy(buf, priv->ahbbase + from, len) < 0) {
+			memcpy_fromio(buf, priv->ahbbase + from, len);
 		}
-		if (!cadence_qspi_wait_idle(plat->regbase))
+		if (!cadence_qspi_wait_idle(priv->regbase))
 			return -EIO;
 		return 0;
 	}
 
-	return cadence_qspi_apb_indirect_read_execute(plat, len, buf);
+	return cadence_qspi_apb_indirect_read_execute(priv, len, buf);
 }
 
 /* Opcode + Address (3/4 bytes) */
-int cadence_qspi_apb_write_setup(struct cadence_spi_plat *plat,
+int cadence_qspi_apb_write_setup(struct cadence_spi_priv *priv,
 				 const struct spi_mem_op *op)
 {
 	unsigned int reg;
 	int ret;
 	u8 opcode;
 
-	ret = cadence_qspi_set_protocol(plat, op);
+	ret = cadence_qspi_set_protocol(priv, op);
 	if (ret)
 		return ret;
 
-	ret = cadence_qspi_enable_dtr(plat, op, CQSPI_REG_OP_EXT_WRITE_LSB,
-				      plat->dtr);
+	ret = cadence_qspi_enable_dtr(priv, op, CQSPI_REG_OP_EXT_WRITE_LSB,
+				      priv->dtr);
 	if (ret)
 		return ret;
 
 	/* Setup the indirect trigger address */
-	writel(plat->trigger_address,
-	       plat->regbase + CQSPI_REG_INDIRECTTRIGGER);
+	writel(priv->trigger_address,
+	       priv->regbase + CQSPI_REG_INDIRECTTRIGGER);
 
 	/* Configure the opcode */
-	if (plat->dtr)
+	if (priv->dtr)
 		opcode = op->cmd.opcode >> 8;
 	else
 		opcode = op->cmd.opcode;
 
 	reg = opcode << CQSPI_REG_WR_INSTR_OPCODE_LSB;
-	reg |= plat->data_width << CQSPI_REG_WR_INSTR_TYPE_DATA_LSB;
-	reg |= plat->addr_width << CQSPI_REG_WR_INSTR_TYPE_ADDR_LSB;
-	writel(reg, plat->regbase + CQSPI_REG_WR_INSTR);
+	reg |= priv->data_width << CQSPI_REG_WR_INSTR_TYPE_DATA_LSB;
+	reg |= priv->addr_width << CQSPI_REG_WR_INSTR_TYPE_ADDR_LSB;
+	writel(reg, priv->regbase + CQSPI_REG_WR_INSTR);
 
-	reg = cadence_qspi_calc_rdreg(plat);
-	writel(reg, plat->regbase + CQSPI_REG_RD_INSTR);
+	reg = cadence_qspi_calc_rdreg(priv);
+	writel(reg, priv->regbase + CQSPI_REG_RD_INSTR);
 
-	writel(op->addr.val, plat->regbase + CQSPI_REG_INDIRECTWRSTARTADDR);
+	writel(op->addr.val, priv->regbase + CQSPI_REG_INDIRECTWRSTARTADDR);
 
-	if (plat->dtr) {
+	if (priv->dtr) {
 		/*
 		 * Some flashes like the cypress Semper flash expect a 4-byte
 		 * dummy address with the Read SR command in DTR mode, but this
@@ -941,23 +796,23 @@ int cadence_qspi_apb_write_setup(struct cadence_spi_plat *plat,
 		 * controller's side. spi-nor will take care of polling the
 		 * status register.
 		 */
-		reg = readl(plat->regbase + CQSPI_REG_WR_COMPLETION_CTRL);
+		reg = readl(priv->regbase + CQSPI_REG_WR_COMPLETION_CTRL);
 		reg |= CQSPI_REG_WR_DISABLE_AUTO_POLL;
-		writel(reg, plat->regbase + CQSPI_REG_WR_COMPLETION_CTRL);
+		writel(reg, priv->regbase + CQSPI_REG_WR_COMPLETION_CTRL);
 	}
 
-	reg = readl(plat->regbase + CQSPI_REG_SIZE);
+	reg = readl(priv->regbase + CQSPI_REG_SIZE);
 	reg &= ~CQSPI_REG_SIZE_ADDRESS_MASK;
 	reg |= (op->addr.nbytes - 1);
-	writel(reg, plat->regbase + CQSPI_REG_SIZE);
+	writel(reg, priv->regbase + CQSPI_REG_SIZE);
 	return 0;
 }
 
 static int
-cadence_qspi_apb_indirect_write_execute(struct cadence_spi_plat *plat,
+cadence_qspi_apb_indirect_write_execute(struct cadence_spi_priv *priv,
 					unsigned int n_tx, const u8 *txbuf)
 {
-	unsigned int page_size = plat->page_size;
+	unsigned int page_size = priv->page_size;
 	unsigned int remaining = n_tx;
 	const u8 *bb_txbuf = txbuf;
 	void *bounce_buf = NULL;
@@ -977,27 +832,27 @@ cadence_qspi_apb_indirect_write_execute(struct cadence_spi_plat *plat,
 	}
 
 	/* Configure the indirect read transfer bytes */
-	writel(n_tx, plat->regbase + CQSPI_REG_INDIRECTWRBYTES);
+	writel(n_tx, priv->regbase + CQSPI_REG_INDIRECTWRBYTES);
 
 	/* Start the indirect write transfer */
 	writel(CQSPI_REG_INDIRECTWR_START,
-	       plat->regbase + CQSPI_REG_INDIRECTWR);
+	       priv->regbase + CQSPI_REG_INDIRECTWR);
 
 	/*
 	 * Some delay is required for the above bit to be internally
 	 * synchronized by the QSPI module.
 	 */
-	ndelay(plat->wr_delay);
+	ndelay(priv->wr_delay);
 
 	while (remaining > 0) {
 		write_bytes = remaining > page_size ? page_size : remaining;
-		writesl(plat->ahbbase, bb_txbuf, write_bytes >> 2);
+		writesl(priv->ahbbase, bb_txbuf, write_bytes >> 2);
 		if (write_bytes % 4)
-			writesb(plat->ahbbase,
+			writesb(priv->ahbbase,
 				bb_txbuf + rounddown(write_bytes, 4),
 				write_bytes % 4);
 
-		ret = wait_for_bit_le32(plat->regbase + CQSPI_REG_SDRAMLEVEL,
+		ret = wait_for_bit_le32(priv->regbase + CQSPI_REG_SDRAMLEVEL,
 					CQSPI_REG_SDRAMLEVEL_WR_MASK <<
 					CQSPI_REG_SDRAMLEVEL_WR_LSB, 0, 10, 0);
 		if (ret) {
@@ -1010,7 +865,7 @@ cadence_qspi_apb_indirect_write_execute(struct cadence_spi_plat *plat,
 	}
 
 	/* Check indirect done status */
-	ret = wait_for_bit_le32(plat->regbase + CQSPI_REG_INDIRECTWR,
+	ret = wait_for_bit_le32(priv->regbase + CQSPI_REG_INDIRECTWR,
 				CQSPI_REG_INDIRECTWR_DONE, 1, 10, 0);
 	if (ret) {
 		printf("Indirect write completion error (%i)\n", ret);
@@ -1019,10 +874,10 @@ cadence_qspi_apb_indirect_write_execute(struct cadence_spi_plat *plat,
 
 	/* Clear indirect completion status */
 	writel(CQSPI_REG_INDIRECTWR_DONE,
-	       plat->regbase + CQSPI_REG_INDIRECTWR);
+	       priv->regbase + CQSPI_REG_INDIRECTWR);
 
 	/* Check indirect done status */
-	ret = wait_for_bit_le32(plat->regbase + CQSPI_REG_INDIRECTWR,
+	ret = wait_for_bit_le32(priv->regbase + CQSPI_REG_INDIRECTWR,
 				CQSPI_REG_INDIRECTWR_DONE, 0, 10, 0);
 	if (ret) {
 		printf("Indirect write clear completion error (%i)\n", ret);
@@ -1036,13 +891,13 @@ cadence_qspi_apb_indirect_write_execute(struct cadence_spi_plat *plat,
 failwr:
 	/* Cancel the indirect write */
 	writel(CQSPI_REG_INDIRECTWR_CANCEL,
-	       plat->regbase + CQSPI_REG_INDIRECTWR);
+	       priv->regbase + CQSPI_REG_INDIRECTWR);
 	if (bounce_buf)
 		free(bounce_buf);
 	return ret;
 }
 
-int cadence_qspi_apb_write_execute(struct cadence_spi_plat *plat,
+int cadence_qspi_apb_write_execute(struct cadence_spi_priv *priv,
 				   const struct spi_mem_op *op)
 {
 	u32 to = op->addr.val;
@@ -1057,14 +912,15 @@ int cadence_qspi_apb_write_execute(struct cadence_spi_plat *plat,
 	 * mode. So, we can not use direct mode when in DTR mode for writing
 	 * data.
 	 */
-	if (!plat->dtr && plat->use_dac_mode && (to + len < plat->ahbsize)) {
-		memcpy_toio(plat->ahbbase + to, buf, len);
-		if (!cadence_qspi_wait_idle(plat->regbase))
+	cadence_qspi_apb_enable_linear_mode(true);
+	if (!priv->dtr && priv->use_dac_mode && (to + len < priv->ahbsize)) {
+		memcpy_toio(priv->ahbbase + to, buf, len);
+		if (!cadence_qspi_wait_idle(priv->regbase))
 			return -EIO;
 		return 0;
 	}
 
-	return cadence_qspi_apb_indirect_write_execute(plat, len, buf);
+	return cadence_qspi_apb_indirect_write_execute(priv, len, buf);
 }
 
 void cadence_qspi_apb_enter_xip(void *reg_base, char xip_dummy)

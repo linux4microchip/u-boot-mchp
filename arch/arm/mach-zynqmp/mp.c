@@ -42,6 +42,9 @@
 
 #define ZYNQMP_MAX_CORES	6
 
+#define ZYNQMP_RPU0_USE_MASK BIT(1)
+#define ZYNQMP_RPU1_USE_MASK BIT(2)
+
 int is_core_valid(unsigned int core)
 {
 	if (core < ZYNQMP_MAX_CORES)
@@ -102,13 +105,21 @@ static void set_r5_reset(u32 nr, u8 mode)
 	u32 tmp;
 
 	tmp = readl(&crlapb_base->rst_lpd_top);
-	if (mode == LOCK || nr == ZYNQMP_CORE_RPU0)
+	if (mode == LOCK) {
 		tmp |= (ZYNQMP_CRLAPB_RST_LPD_AMBA_RST_MASK |
-			ZYNQMP_CRLAPB_RST_LPD_R50_RST_MASK);
-
-	if (mode == LOCK || nr == ZYNQMP_CORE_RPU1)
-		tmp |= (ZYNQMP_CRLAPB_RST_LPD_AMBA_RST_MASK |
+			ZYNQMP_CRLAPB_RST_LPD_R50_RST_MASK |
 			ZYNQMP_CRLAPB_RST_LPD_R51_RST_MASK);
+	} else {
+		if (nr == ZYNQMP_CORE_RPU0) {
+			tmp |= ZYNQMP_CRLAPB_RST_LPD_R50_RST_MASK;
+			if (tmp & ZYNQMP_CRLAPB_RST_LPD_R51_RST_MASK)
+				tmp |= ZYNQMP_CRLAPB_RST_LPD_AMBA_RST_MASK;
+		} else {
+			tmp |= ZYNQMP_CRLAPB_RST_LPD_R51_RST_MASK;
+			if (tmp & ZYNQMP_CRLAPB_RST_LPD_R50_RST_MASK)
+				tmp |= ZYNQMP_CRLAPB_RST_LPD_AMBA_RST_MASK;
+		}
+	}
 
 	writel(tmp, &crlapb_base->rst_lpd_top);
 }
@@ -142,14 +153,25 @@ static void enable_clock_r5(void)
 	udelay(0x500);
 }
 
+static int check_r5_mode(void)
+{
+	u32 tmp;
+
+	tmp = readl(&rpu_base->rpu_glbl_ctrl);
+	if (tmp & ZYNQMP_RPU_GLBL_CTRL_SPLIT_LOCK_MASK)
+		return SPLIT;
+
+	return LOCK;
+}
+
 int cpu_disable(u32 nr)
 {
-	if (nr >= ZYNQMP_CORE_APU0 && nr <= ZYNQMP_CORE_APU3) {
+	if (nr <= ZYNQMP_CORE_APU3) {
 		u32 val = readl(&crfapb_base->rst_fpd_apu);
 		val |= 1 << nr;
 		writel(val, &crfapb_base->rst_fpd_apu);
 	} else {
-		set_r5_reset(nr, SPLIT);
+		set_r5_reset(nr, check_r5_mode());
 	}
 
 	return 0;
@@ -157,7 +179,7 @@ int cpu_disable(u32 nr)
 
 int cpu_status(u32 nr)
 {
-	if (nr >= ZYNQMP_CORE_APU0 && nr <= ZYNQMP_CORE_APU3) {
+	if (nr <= ZYNQMP_CORE_APU3) {
 		u32 addr_low = readl(((u8 *)&apu_base->rvbar_addr0_l) + nr * 8);
 		u32 addr_high = readl(((u8 *)&apu_base->rvbar_addr0_h) +
 				      nr * 8);
@@ -231,9 +253,30 @@ void initialize_tcm(bool mode)
 	}
 }
 
+static void mark_r5_used(u32 nr, u8 mode)
+{
+	u32 mask = 0;
+
+	if (mode == LOCK) {
+		mask = ZYNQMP_RPU0_USE_MASK | ZYNQMP_RPU1_USE_MASK;
+	} else {
+		switch (nr) {
+		case ZYNQMP_CORE_RPU0:
+			mask = ZYNQMP_RPU0_USE_MASK;
+			break;
+		case ZYNQMP_CORE_RPU1:
+			mask = ZYNQMP_RPU1_USE_MASK;
+			break;
+		default:
+			return;
+		}
+	}
+	zynqmp_mmio_write((ulong)&pmu_base->gen_storage4, mask, mask);
+}
+
 int cpu_release(u32 nr, int argc, char *const argv[])
 {
-	if (nr >= ZYNQMP_CORE_APU0 && nr <= ZYNQMP_CORE_APU3) {
+	if (nr <= ZYNQMP_CORE_APU3) {
 		u64 boot_addr = simple_strtoull(argv[0], NULL, 16);
 		/* HIGH */
 		writel((u32)(boot_addr >> 32),
@@ -286,6 +329,7 @@ int cpu_release(u32 nr, int argc, char *const argv[])
 			write_tcm_boot_trampoline(boot_addr_uniq);
 			dcache_enable();
 			set_r5_halt_mode(nr, RELEASE, LOCK);
+			mark_r5_used(nr, LOCK);
 		} else if (!strncmp(argv[1], "split", 5)) {
 			printf("R5 split mode\n");
 			set_r5_reset(nr, SPLIT);
@@ -298,6 +342,7 @@ int cpu_release(u32 nr, int argc, char *const argv[])
 			write_tcm_boot_trampoline(boot_addr_uniq);
 			dcache_enable();
 			set_r5_halt_mode(nr, RELEASE, SPLIT);
+			mark_r5_used(nr, SPLIT);
 		} else {
 			printf("Unsupported mode\n");
 			return 1;

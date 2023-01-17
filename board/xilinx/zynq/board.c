@@ -25,10 +25,20 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#if !defined(CONFIG_SPL_BUILD) && defined(CONFIG_DEBUG_UART_BOARD_INIT)
+void board_debug_uart_init(void)
+{
+	/* Add initialization sequence if UART is not configured */
+}
+#endif
+
 int board_init(void)
 {
 	if (IS_ENABLED(CONFIG_SPL_BUILD))
 		printf("Silicon version:\t%d\n", zynq_get_silicon_version());
+
+	if (CONFIG_IS_ENABLED(DM_I2C) && CONFIG_IS_ENABLED(I2C_EEPROM))
+		xilinx_read_eeprom();
 
 	return 0;
 }
@@ -169,13 +179,14 @@ void set_dfu_alt_info(char *interface, char *devstr)
 	switch ((zynq_slcr_get_boot_mode()) & ZYNQ_BM_MASK) {
 	case ZYNQ_BM_SD:
 		snprintf(buf, DFU_ALT_BUF_LEN,
-			 "mmc 0:1=boot.bin fat 0 1;"
-			 "u-boot.img fat 0 1");
+			 "mmc 0=boot.bin fat 0 1;"
+			 "%s fat 0 1", CONFIG_SPL_FS_LOAD_PAYLOAD_NAME);
 		break;
 	case ZYNQ_BM_QSPI:
 		snprintf(buf, DFU_ALT_BUF_LEN,
 			 "sf 0:0=boot.bin raw 0 0x1500000;"
-			 "u-boot.img raw 0x%x 0x500000",
+			 "%s raw 0x%x 0x500000",
+			 CONFIG_SPL_FS_LOAD_PAYLOAD_NAME,
 			 CONFIG_SYS_SPI_U_BOOT_OFFS);
 		break;
 	default:

@@ -43,7 +43,6 @@
 #include <asm/io.h>
 #include <linux/dma-mapping.h>
 #include <asm/arch/clk.h>
-#include <asm-generic/gpio.h>
 #include <linux/errno.h>
 
 #include "macb.h"
@@ -99,6 +98,9 @@ struct macb_dma_desc_64 {
 #define MACB_RX_DMA_DESC_SIZE	(DMA_DESC_BYTES(MACB_RX_RING_SIZE))
 #define MACB_TX_DUMMY_DMA_DESC_SIZE	(DMA_DESC_BYTES(1))
 
+#define DESC_PER_CACHELINE_32	(ARCH_DMA_MINALIGN/sizeof(struct macb_dma_desc))
+#define DESC_PER_CACHELINE_64	(ARCH_DMA_MINALIGN/DMA_DESC_SIZE)
+
 #define RXBUF_FRMLEN_MASK	0x00000fff
 #define TXBUF_FRMLEN_MASK	0x000007ff
 
@@ -137,10 +139,7 @@ struct macb_device {
 #ifdef CONFIG_PHYLIB
 	struct phy_device	*phydev;
 #endif
-#if CONFIG_IS_ENABLED(DM_GPIO)
-	struct gpio_desc	phy_reset_gpio;
-	u32			reset_delay_ms;
-#endif
+
 #ifdef CONFIG_DM_ETH
 #ifdef CONFIG_CLK
 	unsigned long		pclk_rate;
@@ -405,32 +404,56 @@ static int _macb_send(struct macb_device *macb, const char *name, void *packet,
 	return 0;
 }
 
+static void reclaim_rx_buffer(struct macb_device *macb,
+			      unsigned int idx)
+{
+	unsigned int mask;
+	unsigned int shift;
+	unsigned int i;
+
+	/*
+	 * There may be multiple descriptors per CPU cacheline,
+	 * so a cache flush would flush the whole line, meaning the content of other descriptors
+	 * in the cacheline would also flush. If one of the other descriptors had been
+	 * written to by the controller, the flush would cause those changes to be lost.
+	 *
+	 * To circumvent this issue, we do the actual freeing only when we need to free
+	 * the last descriptor in the current cacheline. When the current descriptor is the
+	 * last in the cacheline, we free all the descriptors that belong to that cacheline.
+	 */
+	if (macb->config->hw_dma_cap & HW_DMA_CAP_64B) {
+		mask = DESC_PER_CACHELINE_64 - 1;
+		shift = 1;
+	} else {
+		mask = DESC_PER_CACHELINE_32 - 1;
+		shift = 0;
+	}
+
+	/* we exit without freeing if idx is not the last descriptor in the cacheline */
+	if ((idx & mask) != mask)
+		return;
+
+	for (i = idx & (~mask); i <= idx; i++)
+		macb->rx_ring[i << shift].addr &= ~MACB_BIT(RX_USED);
+}
+
 static void reclaim_rx_buffers(struct macb_device *macb,
 			       unsigned int new_tail)
 {
 	unsigned int i;
-	unsigned int count;
 
 	i = macb->rx_tail;
 
 	macb_invalidate_ring_desc(macb, RX);
 	while (i > new_tail) {
-		if (macb->config->hw_dma_cap & HW_DMA_CAP_64B)
-			count = i * 2;
-		else
-			count = i;
-		macb->rx_ring[count].addr &= ~MACB_BIT(RX_USED);
+		reclaim_rx_buffer(macb, i);
 		i++;
-		if (i > MACB_RX_RING_SIZE)
+		if (i >= MACB_RX_RING_SIZE)
 			i = 0;
 	}
 
 	while (i < new_tail) {
-		if (macb->config->hw_dma_cap & HW_DMA_CAP_64B)
-			count = i * 2;
-		else
-			count = i;
-		macb->rx_ring[count].addr &= ~MACB_BIT(RX_USED);
+		reclaim_rx_buffer(macb, i);
 		i++;
 	}
 
@@ -1364,38 +1387,11 @@ static int macb_eth_probe(struct udevice *dev)
 	struct eth_pdata *pdata = dev_get_plat(dev);
 	struct macb_device *macb = dev_get_priv(dev);
 	struct ofnode_phandle_args phandle_args;
-	const char *phy_mode;
 	int ret;
 
-#if CONFIG_IS_ENABLED(DM_GPIO)
-	ret = gpio_request_by_name(dev, "reset-gpios", 0,
-				   &macb->phy_reset_gpio, GPIOD_IS_OUT);
-	if (!dm_gpio_is_valid(&macb->phy_reset_gpio))
+	macb->phy_interface = dev_read_phy_mode(dev);
+	if (macb->phy_interface == PHY_INTERFACE_MODE_NA)
 		return -EINVAL;
-
-	ret = dev_read_u32(dev, "reset-delay-ms", &macb->reset_delay_ms);
-	if (ret)
-		macb->reset_delay_ms = 1; /* default delay */
-
-	ret = dm_gpio_set_value(&macb->phy_reset_gpio, 1);
-	if (ret < 0)
-		return -EINVAL;
-
-	mdelay(macb->reset_delay_ms);
-
-	ret = dm_gpio_set_value(&macb->phy_reset_gpio, 0);
-	if (ret < 0)
-		return -EINVAL;
-#endif
-
-	phy_mode = dev_read_prop(dev, "phy-mode", NULL);
-
-	if (phy_mode)
-		macb->phy_interface = phy_get_interface_by_name(phy_mode);
-	if (macb->phy_interface == -1) {
-		debug("%s: Invalid PHY interface '%s'\n", __func__, phy_mode);
-		return -EINVAL;
-	}
 
 	/* Read phyaddr from DT */
 	if (!dev_read_phandle_with_args(dev, "phy-handle", NULL, 0, 0,
@@ -1515,8 +1511,6 @@ static const struct udevice_id macb_eth_ids[] = {
 	{ .compatible = "cdns,macb" },
 	{ .compatible = "cdns,at91sam9260-macb" },
 	{ .compatible = "cdns,sam9x60-macb" },
-	{ .compatible = "microchip,sam9x7-gem",
-	  .data = (ulong)&sama7g5_gmac_config },
 	{ .compatible = "cdns,sama7g5-gem",
 	  .data = (ulong)&sama7g5_gmac_config },
 	{ .compatible = "cdns,sama7g5-emac",

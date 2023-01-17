@@ -14,14 +14,14 @@
 #include <console.h>
 #include <malloc.h>
 #include <asm/global_data.h>
-#include <asm/io.h>
 #include <phy.h>
 #include <miiphy.h>
 #include <fdtdec.h>
 #include <linux/delay.h>
 #include <linux/errno.h>
+#include <linux/io.h>
 #include <linux/kernel.h>
-#include <asm/io.h>
+#include <eth_phy.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -112,12 +112,12 @@ static void xemaclite_alignedread(u32 *srcptr, void *destptr, u32 bytecount)
 	/* Word aligned buffer, no correction needed. */
 	to32ptr = (u32 *) destptr;
 	while (bytecount > 3) {
-		*to32ptr++ = *from32ptr++;
+		*to32ptr++ = __raw_readl(from32ptr++);
 		bytecount -= 4;
 	}
 	to8ptr = (u8 *) to32ptr;
 
-	alignbuffer = *from32ptr++;
+	alignbuffer = __raw_readl(from32ptr++);
 	from8ptr = (u8 *) &alignbuffer;
 
 	for (i = 0; i < bytecount; i++)
@@ -135,8 +135,7 @@ static void xemaclite_alignedwrite(void *srcptr, u32 *destptr, u32 bytecount)
 
 	from32ptr = (u32 *) srcptr;
 	while (bytecount > 3) {
-
-		*to32ptr++ = *from32ptr++;
+		__raw_writel(*from32ptr++, to32ptr++);
 		bytecount -= 4;
 	}
 
@@ -147,7 +146,7 @@ static void xemaclite_alignedwrite(void *srcptr, u32 *destptr, u32 bytecount)
 	for (i = 0; i < bytecount; i++)
 		*to8ptr++ = *from8ptr++;
 
-	*to32ptr++ = alignbuffer;
+	__raw_writel(alignbuffer, to32ptr++);
 }
 
 static int wait_for_bit(const char *func, u32 *reg, const u32 mask,
@@ -518,6 +517,8 @@ try_again:
 		length = ntohs(ip->ip_len);
 		length += ETHER_HDR_SIZE + ETH_FCS_LEN;
 		debug("IP Packet %x\n", length);
+		if (length > PKTSIZE)
+			length = PKTSIZE;
 		break;
 	default:
 		debug("Other Packet\n");
@@ -526,7 +527,7 @@ try_again:
 	}
 
 	/* Read the rest of the packet which is longer then first read */
-	if (length != first_read)
+	if (length > first_read)
 		xemaclite_alignedread(addr + first_read,
 				      etherrxbuff + first_read,
 				      length - first_read);
@@ -564,14 +565,27 @@ static int emaclite_probe(struct udevice *dev)
 	struct xemaclite *emaclite = dev_get_priv(dev);
 	int ret;
 
-	emaclite->bus = mdio_alloc();
-	emaclite->bus->read = emaclite_miiphy_read;
-	emaclite->bus->write = emaclite_miiphy_write;
-	emaclite->bus->priv = emaclite;
+	if (IS_ENABLED(CONFIG_DM_ETH_PHY))
+		emaclite->bus = eth_phy_get_mdio_bus(dev);
 
-	ret = mdio_register_seq(emaclite->bus, dev_seq(dev));
-	if (ret)
-		return ret;
+	if (!emaclite->bus) {
+		emaclite->bus = mdio_alloc();
+		emaclite->bus->read = emaclite_miiphy_read;
+		emaclite->bus->write = emaclite_miiphy_write;
+		emaclite->bus->priv = emaclite;
+
+		ret = mdio_register_seq(emaclite->bus, dev_seq(dev));
+		if (ret)
+			return ret;
+	}
+
+	if (IS_ENABLED(CONFIG_DM_ETH_PHY)) {
+		eth_phy_set_mdio_bus(dev, emaclite->bus);
+		emaclite->phyaddr = eth_phy_get_addr(dev);
+	}
+
+	printf("EMACLITE: %lx, phyaddr %d, %d/%d\n", (ulong)emaclite->regs,
+	       emaclite->phyaddr, emaclite->txpp, emaclite->rxpp);
 
 	return 0;
 }
@@ -601,24 +615,23 @@ static int emaclite_of_to_plat(struct udevice *dev)
 	int offset = 0;
 
 	pdata->iobase = dev_read_addr(dev);
-	emaclite->regs = (struct emaclite_regs *)ioremap_nocache(pdata->iobase,
-								 0x10000);
+	emaclite->regs = (struct emaclite_regs *)ioremap(pdata->iobase,
+							 0x10000);
 
 	emaclite->phyaddr = -1;
 
-	offset = fdtdec_lookup_phandle(gd->fdt_blob, dev_of_offset(dev),
-				      "phy-handle");
-	if (offset > 0)
-		emaclite->phyaddr = fdtdec_get_int(gd->fdt_blob, offset,
-						   "reg", -1);
+	if (!(IS_ENABLED(CONFIG_DM_ETH_PHY))) {
+		offset = fdtdec_lookup_phandle(gd->fdt_blob, dev_of_offset(dev),
+					       "phy-handle");
+		if (offset > 0)
+			emaclite->phyaddr = fdtdec_get_int(gd->fdt_blob,
+							   offset, "reg", -1);
+	}
 
 	emaclite->txpp = fdtdec_get_int(gd->fdt_blob, dev_of_offset(dev),
 					"xlnx,tx-ping-pong", 0);
 	emaclite->rxpp = fdtdec_get_int(gd->fdt_blob, dev_of_offset(dev),
 					"xlnx,rx-ping-pong", 0);
-
-	printf("EMACLITE: %lx, phyaddr %d, %d/%d\n", (ulong)emaclite->regs,
-	       emaclite->phyaddr, emaclite->txpp, emaclite->rxpp);
 
 	return 0;
 }

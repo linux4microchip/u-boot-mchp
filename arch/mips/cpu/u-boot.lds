@@ -33,8 +33,8 @@ SECTIONS
 	}
 
 	. = ALIGN(4);
-	.u_boot_list : {
-		KEEP(*(SORT(.u_boot_list*)));
+	__u_boot_list : {
+		KEEP(*(SORT(__u_boot_list*)));
 	}
 
 	. = ALIGN(4);
@@ -56,7 +56,7 @@ SECTIONS
 		. += CONFIG_MIPS_RELOCATION_TABLE_SIZE - 4;
 	}
 
-	. = ALIGN(4);
+	. = ALIGN(8);
 	_end = .;
 
 	.bss __rel_start (OVERLAY) : {

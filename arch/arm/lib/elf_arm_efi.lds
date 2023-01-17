@@ -18,7 +18,7 @@ SECTIONS
 		*(.gnu.linkonce.t.*)
 		*(.srodata)
 		*(.rodata*)
-		. = ALIGN(16);
+		. = ALIGN(512);
 	}
 	_etext = .;
 	_text_size = . - _text;
@@ -44,7 +44,7 @@ SECTIONS
 		*(.bss)
 		*(.bss.*)
 		*(COMMON)
-		. = ALIGN(16);
+		. = ALIGN(512);
 		_bss_end = .;
 		_edata = .;
 	}
@@ -53,6 +53,11 @@ SECTIONS
 	.rel.got : { *(.rel.got) }
 	.rel.data : { *(.rel.data) *(.rel.data*) }
 	_data_size = . - _etext;
+
+	.end : {
+		. = ALIGN(8);
+		*(.__end)
+	}
 
 	/DISCARD/ : {
 		*(.rel.reloc)
