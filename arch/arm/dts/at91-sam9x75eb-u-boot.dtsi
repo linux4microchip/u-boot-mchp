@@ -47,7 +47,7 @@
 	u-boot,dm-pre-reloc;
 };
 
-&pinctrl_gmac0_rgmii {
+&pinctrl_macb0_rgmii {
 	u-boot,dm-pre-reloc;
 };
 

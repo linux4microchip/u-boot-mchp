@@ -23,6 +23,15 @@ DECLARE_GLOBAL_DATA_PTR;
 
 void at91_prepare_cpu_var(void);
 
+#ifdef CONFIG_RESET_PHY_R
+void reset_phy(void)
+{
+	at91_set_pio_output(AT91_PIO_PORTC, 25, 0);
+	mdelay(10);
+	at91_set_pio_output(AT91_PIO_PORTC, 25, 1);
+}
+#endif
+
 int board_late_init(void)
 {
 	at91_prepare_cpu_var();

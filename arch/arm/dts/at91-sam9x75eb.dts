@@ -75,6 +75,14 @@
 		device_type = "memory";
 		reg = <0x20000000 0x10000000>;
 	};
+
+	sound {
+		compatible = "mikroe,mikroe-proto";
+		model = "wm8731 @ sam9x75eb";
+		i2s-controller = <&i2s>;
+		audio-codec = <&wm8731>;
+		dai-format = "i2s";
+	};
 };
 
 &can0 {
@@ -86,6 +94,14 @@
 &can1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_can1_default>;
+	status = "okay";
+};
+
+&classd {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_classd_default>;
+	atmel,pwm-type = "diff";
+	atmel,non-overlap-time = <10>;
 	status = "okay";
 };
 
@@ -108,6 +124,8 @@
 	status = "okay";
 
 	i2c7: i2c@600 {
+		#address-cells = <1>;
+		#size-cells = <0>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_flx7_default>;
 		i2c-analog-filter;
@@ -116,10 +134,9 @@
 		status = "okay";
 
 		eeprom@53 {
-			compatible = "atmel,24c32";
+			compatible = "atmel,24c02";
 			reg = <0x53>;
 			pagesize = <16>;
-			size = <128>;
 			status = "okay";
 		};
 	};
@@ -130,6 +147,8 @@
 	status = "okay";
 
 	i2c10: i2c@600 {
+		#address-cells = <1>;
+		#size-cells = <0>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_flx10_default>;
 		i2c-analog-filter;
@@ -239,17 +258,22 @@
 				};
 			};
 		};
+
+		wm8731: codec@1a {
+			compatible = "wlf,wm8731";
+			reg = <0x1a>;
+		};
 	};
 };
 
-&gmac0 {
+&gmac {
 	phy-mode = "rgmii-id";
 	#address-cells = <1>;
 	#size-cells = <0>;
+
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_gmac0_rgmii>;
-	reset-gpios = <&pioC 25 GPIO_ACTIVE_LOW>;
-	reset-delay-ms = <1>;
+	pinctrl-0 = <&pinctrl_macb0_rgmii>;
+	magic-packet;
 	status = "okay";
 
 	ethernet-phy@7 {
@@ -290,6 +314,14 @@
 			      AT91_PIOA 29 AT91_PERIPH_B AT91_PINCTRL_PULL_UP>;		/* CAN1 Rx */
 	};
 
+	pinctrl_classd_default: classd {
+		atmel,pins =
+			<AT91_PIOA 18 AT91_PERIPH_C AT91_PINCTRL_PULL_UP
+			 AT91_PIOA 19 AT91_PERIPH_C AT91_PINCTRL_PULL_DOWN
+			 AT91_PIOA 20 AT91_PERIPH_C AT91_PINCTRL_PULL_UP
+			 AT91_PIOA 21 AT91_PERIPH_C AT91_PINCTRL_PULL_DOWN>;
+	};
+
 	pinctrl_dbgu: dbgu-0 {
 		atmel,pins = <AT91_PIOA 26 AT91_PERIPH_A AT91_PINCTRL_PULL_UP
 			      AT91_PIOA 27 AT91_PERIPH_A AT91_PINCTRL_NONE>;
@@ -326,7 +358,7 @@
 			      AT91_PIOC 20 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>;
 	};
 
-	pinctrl_gmac0_rgmii: gmac0 {
+	pinctrl_macb0_rgmii: gmac {
 		atmel,pins =
 			<AT91_PIOB 13 AT91_PERIPH_A  AT91_PINCTRL_SLEWRATE_DIS				/* ETH_TX0   */
 			 AT91_PIOB 14 AT91_PERIPH_A  AT91_PINCTRL_SLEWRATE_DIS				/* ETH_TX1   */
@@ -377,9 +409,9 @@
 	bus-width = <4>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_sdmmc0_default>;
-	status = "okay";
 	cd-gpios = <&pioA 13 GPIO_ACTIVE_LOW>;
 	disable-wp;
+	status = "okay";
 };
 
 &shutdown_controller {

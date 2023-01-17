@@ -224,7 +224,7 @@ static const struct i2c_eeprom_drv_data atmel24c32_data = {
 	.size = 4096,
 	.pagesize = 32,
 	.addr_offset_mask = 0,
-	.offset_len = 1,
+	.offset_len = 2,
 };
 
 static const struct i2c_eeprom_drv_data atmel24c64_data = {

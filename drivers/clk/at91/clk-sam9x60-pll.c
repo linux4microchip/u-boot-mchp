@@ -62,7 +62,7 @@ static long sam9x60_frac_pll_compute_mul_frac(const struct clk_range *core_clk,
 	unsigned long nmul = 0;
 	unsigned long nfrac = 0;
 
-	if (rate < core_clk[0].min || rate > core_clk[0].max)
+	if (rate < core_clk->min || rate > core_clk->max)
 		return -ERANGE;
 
 	/*
