@@ -20,6 +20,9 @@ config TARGET_MICROCHIP_ICICLE
 config TARGET_MICROCHIP_VIDEOKIT
 	bool "Support Microchip PolarFire-SoC Video Kit"
 
+config TARGET_ALDEC_TYSOM_M_MPFS250T
+	bool "Support Aldec TySoM M MPFS250T Board"
+
 config TARGET_QEMU_VIRT
 	bool "Support QEMU Virt Board"
 
@@ -67,6 +70,7 @@ config SPL_SYS_DCACHE_OFF
 	  Do not enable data cache in SPL.
 
 # board-specific options below
+source "board/aldec/tysom-m-mpfs250t/Kconfig"
 source "board/AndesTech/ae350/Kconfig"
 source "board/aries/m100pfsevp/Kconfig"
 source "board/emulation/qemu-riscv/Kconfig"
