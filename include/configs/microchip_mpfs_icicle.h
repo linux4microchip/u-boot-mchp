@@ -31,6 +31,7 @@
 #define BOOT_TARGET_DEVICES_MMC(func)
 #endif
 
+#if defined(CONFIG_MPFS_PRIORITISE_QSPI_BOOT)
 #define BOOTENV_DEV_QSPI(devtypeu, devtypel, instance) \
 	"bootcmd_qspi=echo Trying to boot from QSPI...; "\
 			"setenv scriptname boot.scr.uimg; " \
@@ -41,6 +42,13 @@
 
 #define BOOTENV_DEV_NAME_QSPI(devtypeu, devtypel, instance) \
 	"qspi "
+#else
+#define BOOTENV_DEV_QSPI(devtypeu, devtypel, instance) \
+	""
+
+#define BOOTENV_DEV_NAME_QSPI(devtypeu, devtypel, instance) \
+	""
+#endif
 
 #define BOOT_TARGET_DEVICES(func) \
 	BOOT_TARGET_DEVICES_QSPI(func)\
