@@ -40,4 +40,5 @@ config BOARD_SPECIFIC_OPTIONS # dummy
 	imply CMD_MTD
 	imply MTD_PARTITIONS
 	imply CMD_MTDPARTS
+	imply MPFS_PRIORITISE_QSPI_BOOT
 endif
