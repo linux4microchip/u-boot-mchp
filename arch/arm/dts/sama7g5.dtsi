@@ -445,11 +445,9 @@
 			interrupts = <GIC_SPI 80 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 80>, <&pmc PMC_TYPE_GCK 80>;
 			clock-names = "hclock", "multclk";
-#ifndef CONFIG_CLK_SCMI
 			assigned-clock-parents = <&pmc PMC_TYPE_CORE 10>; /* sys pll div. */
 			assigned-clocks = <&pmc PMC_TYPE_GCK 80>;
 			assigned-clock-rates = <200000000>;
-#endif
 			microchip,sdcal-inverted;
 			status = "disabled";
 		};
@@ -460,11 +458,9 @@
 			interrupts = <GIC_SPI 81 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 81>, <&pmc PMC_TYPE_GCK 81>;
 			clock-names = "hclock", "multclk";
-#ifndef CONFIG_CLK_SCMI
 			assigned-clock-parents = <&pmc PMC_TYPE_CORE 10>; /* sys pll div. */
 			assigned-clocks = <&pmc PMC_TYPE_GCK 81>;
 			assigned-clock-rates = <200000000>;
-#endif
 			microchip,sdcal-inverted;
 			status = "disabled";
 		};

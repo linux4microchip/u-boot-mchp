@@ -51,27 +51,21 @@
 &cpu0 {
 	clocks = <&scmi0_clock AT91_SCMI_CLK_CORE_MCK_PRES>, <&scmi0_clock AT91_SCMI_CLK_CORE_MCK>, <&main_xtal>;
 };
-/*
-&usb1 {
-	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_UHPHS_CLK>, <&scmi0_clock AT91_SCMI_CLK_PERIPH_UHPHS_CLK>, <&scmi0_clock AT91_SCMI_CLK_SYSTEM_UHPCK>;
-};
 
-&usb2 {
-	clocks = <&scmi0_clock AT91_SCMI_CLK_CORE_UTMI>, <&scmi0_clock AT91_SCMI_CLK_PERIPH_UHPHS_CLK>;
-};
-*/
 &sdmmc0 {
 	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_SDMMC0_HCLK>, <&scmi0_clock AT91_SCMI_CLK_GCK_SDMMC0_GCLK>, <&scmi0_clock AT91_SCMI_CLK_CORE_MAIN>;
+	/delete-property/assigned-clocks;
+	/delete-property/assigned-clock-parents;
+	/delete-property/assigned-clock-rates;
 };
 
 &sdmmc1 {
 	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_SDMMC1_HCLK>, <&scmi0_clock AT91_SCMI_CLK_GCK_SDMMC1_GCLK>, <&scmi0_clock AT91_SCMI_CLK_CORE_MAIN>;
+	/delete-property/assigned-clocks;
+	/delete-property/assigned-clock-parents;
+	/delete-property/assigned-clock-rates;
 };
-/*
-&hlcdc {
-	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_LCDC_CLK>;
-};
-*/
+
 &pmc {
 	status = "disabled";
 };
@@ -79,45 +73,9 @@
 &clk32k {
 	status = "disabled";
 };
-/*
-&qspi0 {
-	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_QSPI0_CLK>;
-};
 
-&qspi1 {
-	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_QSPI1_CLK>;
-};
-
-&spi0 {
-	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_SPI0_CLK>;
-};
-*/
 &gmac0 {
 	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_MACB0_CLK>, <&scmi0_clock AT91_SCMI_CLK_PERIPH_MACB0_CLK>;
-};
-/*
-&uart0 {
-	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_UART0_CLK>;
-};
-
-&uart1 {
-	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_UART1_CLK>;
-};
-
-&uart2 {
-	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_UART2_CLK>;
-};
-
-&i2c0 {
-	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_TWI0_CLK>;
-};
-
-&rstc {
-	status = "disabled";
-};
-*/
-&shdwc {
-	status = "disabled";
 };
 
 &pit64b0 {
@@ -127,30 +85,11 @@
 &pit64b1 {
 	status = "disabled";
 };
-/*
-&watchdog {
-	clocks = <&scmi0_clock AT91_SCMI_CLK_SCKC_SLOWCK_32K>;
-};
 
-&spi1 {
-	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_SPI1_CLK>;
-};
-*/
-&flx3 {
-	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_UART3_CLK>;
-};
 &uart3 {
 	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_UART3_CLK>;
 };
 
-&uart4 {
-	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_UART4_CLK>;
-};
-/*
-&i2c1 {
-	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_TWI1_CLK>;
-};
-*/
 &pioA {
 	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_PIOA_CLK>;
 };
