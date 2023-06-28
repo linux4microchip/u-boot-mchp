@@ -85,11 +85,13 @@
 		};
 	};
 
+#ifndef CONFIG_CLK_SCMI
 	/* 512 M */
 	memory@60000000 {
 		device_type = "memory";
 		reg = <0x60000000 0x20000000>;
 	};
+#endif
 
 	sound: sound {
 		compatible = "simple-audio-card";
