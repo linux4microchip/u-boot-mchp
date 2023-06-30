@@ -93,6 +93,10 @@
 	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_UART3_CLK>;
 };
 
+&i2c8 {
+	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_FLX8_CLK>;
+};
+
 &pioA {
 	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_PIOA_CLK>;
 };
