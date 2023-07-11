@@ -90,7 +90,7 @@
 };
 
 &uart3 {
-	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_UART3_CLK>;
+	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_FLX3_CLK>;
 };
 
 &i2c8 {
