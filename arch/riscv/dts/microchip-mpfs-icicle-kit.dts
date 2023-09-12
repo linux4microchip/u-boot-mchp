@@ -30,16 +30,10 @@
 		timebase-frequency = <RTCCLK_FREQ>;
 	};
 
-	kernel: memory@80000000 {
+	ddr_cached_low: memory@80000000 {
 		device_type = "memory";
-		reg = <0x0 0x80000000 0x0 0x4000000>;
+		reg = <0x0 0x80000000 0x0 0x40000000>;
 		label = "kernel";
-	};
-
-	ddr_cached_low: memory@8a000000 {
-		device_type = "memory";
-		reg = <0x0 0x8a000000 0x0 0x8000000>;
-		label = "cached-low";
 	};
 
 	ddr_non_cached_low: memory@c4000000 {
@@ -106,6 +100,11 @@
 			reg = <0x0 0xd8000000 0x0 0x2000000>;
 			no-map;
 		};
+
+		non_cached: region@84000000 {
+			reg = <0x0 0x84000000 0x0 0x4000000>;
+			no-map;
+		};
 	};
 
 	udmabuf0 {
@@ -133,17 +132,6 @@
 		size = <0x0 0x2000000>;
 		memory-region = <&fabricbuf2ddrncwcb>;
 		sync-mode = <3>;
-	};
-
-	reserved-memory {
-		#address-cells = <2>;
-		#size-cells = <2>;
-		ranges;
-
-		hss_payload: region@BFC00000 {
-			reg = <0x0 0xBFC00000 0x0 0x400000>;
-			no-map;
-		};
 	};
 };
 
