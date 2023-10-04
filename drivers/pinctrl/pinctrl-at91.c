@@ -10,6 +10,8 @@
 #include <dm.h>
 #include <log.h>
 #include <asm/global_data.h>
+#include <dm/device-internal.h>
+#include <dm/lists.h>
 #include <dm/pinctrl.h>
 #include <asm/hardware.h>
 #include <linux/bitops.h>
@@ -493,6 +495,18 @@ const struct pinctrl_ops at91_pinctrl_ops  = {
 	.set_state = at91_pinctrl_set_state,
 };
 
+static int at91_pinctrl_bind(struct udevice *dev)
+{
+	ofnode gpio_node;
+	struct udevice *gpio;
+
+	ofnode_for_each_subnode(gpio_node, dev_ofnode(dev)) {
+		lists_bind_fdt(dev, gpio_node, &gpio, NULL, false);
+	}
+
+	return 0;
+}
+
 static int at91_pinctrl_probe(struct udevice *dev)
 {
 	struct at91_pinctrl_priv *priv = dev_get_priv(dev);
@@ -525,6 +539,7 @@ U_BOOT_DRIVER(atmel_sama5d3_pinctrl) = {
 	.id = UCLASS_PINCTRL,
 	.of_match = at91_pinctrl_match,
 	.probe = at91_pinctrl_probe,
+	.bind = at91_pinctrl_bind,
 	.priv_auto	= sizeof(struct at91_pinctrl_priv),
 	.ops = &at91_pinctrl_ops,
 };
