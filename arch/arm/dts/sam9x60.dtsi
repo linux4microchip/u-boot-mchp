@@ -17,6 +17,7 @@
 /{
 	model = "Microchip SAM9X60 SoC";
 	compatible = "microchip,sam9x60";
+	interrupt-parent = <&aic>;
 
 	aliases {
 		serial0 = &dbgu;
@@ -173,6 +174,14 @@
 			sfr: sfr@f8050000 {
 				compatible = "microchip,sam9x60-sfr", "syscon";
 				reg = <0xf8050000 0x100>;
+			};
+
+			aic: interrupt-controller@fffff100 {
+				compatible = "microchip,sam9x60-aic";
+				reg = <0xfffff100 0x100>;
+				#interrupt-cells = <3>;
+				interrupt-controller;
+				atmel,external-irqs = <31>;
 			};
 
 			dbgu: serial@fffff200 {
