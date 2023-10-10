@@ -115,6 +115,10 @@
 
 #define CFG_EXTRA_ENV_SETTINGS \
 	"bootm_size=0x10000000\0" \
+	"kernel_addr_r=0x80200000\0" \
+	"fdt_addr_r=0x8a000000\0" \
+	"fdtoverlay_addr_r=0x8a080000\0" \
+	"ramdisk_addr_r=0x8aa00000\0" \
 	"scriptaddr=0x8e000000\0" \
 	BOOTENV_DESIGN_OVERLAYS \
 	BOOTARGS \
@@ -124,6 +128,10 @@
 
 #define CFG_EXTRA_ENV_SETTINGS \
 	"bootm_size=0x10000000\0" \
+	"kernel_addr_r=0x80200000\0" \
+	"fdt_addr_r=0x8a000000\0" \
+	"fdtoverlay_addr_r=0x8a080000\0" \
+	"ramdisk_addr_r=0x8aa00000\0" \
 	"scriptaddr=0x8e000000\0" \
 	BOOTENV_DESIGN_OVERLAYS \
 	BOOTENV \
