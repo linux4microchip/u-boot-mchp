@@ -23,12 +23,12 @@
 			arm,smc-id = <0x2000200>;
 			#address-cells = <0x01>;
 			#size-cells = <0x00>;
-			u-boot,dm-pre-reloc;
+			bootph-all;
 
 			scmi0_clock: scmi0_clock@14 {
 				#clock-cells = <0x01>;
 				reg = <0x14>;
-				u-boot,dm-pre-reloc;
+				bootph-all;
 			};
 		};
 	};
