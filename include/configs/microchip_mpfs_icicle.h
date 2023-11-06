@@ -19,41 +19,28 @@
 #define BOOT_TARGET_DEVICES_DHCP(func)
 #endif
 
-#if defined(CONFIG_CMD_MTD)
-# define BOOT_TARGET_DEVICES_QSPI(func) func(QSPI, qspi, na)
-#else
-# define BOOT_TARGET_DEVICES_QSPI(func)
-#endif
-
 #if defined(CONFIG_CMD_MMC)
 #define BOOT_TARGET_DEVICES_MMC(func)	func(MMC, mmc, 0)
 #else
 #define BOOT_TARGET_DEVICES_MMC(func)
 #endif
 
-#if defined(CONFIG_MPFS_PRIORITISE_QSPI_BOOT)
-#define BOOTENV_DEV_QSPI(devtypeu, devtypel, instance) \
-	"bootcmd_qspi=echo Trying to boot from QSPI...; "\
-			"setenv scriptname boot.scr.uimg; " \
-			"if mtd list; then setenv mtd_present true; " \
-			"mtd read env ${scriptaddr} 0; " \
-			"source ${scriptaddr}; setenv mtd_present; " \
-			"fi\0 "
-
-#define BOOTENV_DEV_NAME_QSPI(devtypeu, devtypel, instance) \
-	"qspi "
+#if defined(CONFIG_CMD_UBIFS)
+#define BOOT_TARGET_DEVICE_UBIFS(func)	func(UBIFS, ubifs, 0, rootfs, rootfs)
 #else
-#define BOOTENV_DEV_QSPI(devtypeu, devtypel, instance) \
-	""
-
-#define BOOTENV_DEV_NAME_QSPI(devtypeu, devtypel, instance) \
-	""
+#define BOOT_TARGET_DEVICE_UBIFS(func)
 #endif
 
+#if defined(CONFIG_MPFS_PRIORITISE_QSPI_BOOT)
 #define BOOT_TARGET_DEVICES(func) \
-	BOOT_TARGET_DEVICES_QSPI(func)\
+	BOOT_TARGET_DEVICE_UBIFS(func)	\
 	BOOT_TARGET_DEVICES_MMC(func)\
 	BOOT_TARGET_DEVICES_DHCP(func)
+#else
+#define BOOT_TARGET_DEVICES(func) \
+	BOOT_TARGET_DEVICES_MMC(func)\
+	BOOT_TARGET_DEVICES_DHCP(func)
+#endif
 
 #define BOOTENV_DESIGN_OVERLAYS \
 	"design_overlays=" \
