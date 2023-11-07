@@ -28,6 +28,14 @@
 		stdout-path = "serial0:115200n8";
 	};
 
+	memory {
+#ifdef CONFIG_CLK_SCMI
+		reg = <0x62000000 0x6000000>;
+#else
+		reg = <0x60000000 0x8000000>;
+#endif
+	};
+
 	aliases {
 		serial0 = &uart3;
 		serial1 = &uart4;
