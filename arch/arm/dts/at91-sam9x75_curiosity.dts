@@ -16,7 +16,6 @@
 
 	aliases {
 		i2c0 = &i2c6;
-		i2c1 = &i2c7;
 	};
 
 	chosen {
@@ -103,11 +102,6 @@
 };
 
 &flx6 {
-	atmel,flexcom-mode = <ATMEL_FLEXCOM_MODE_TWI>;
-	status = "okay";
-};
-
-&flx7 {
 	atmel,flexcom-mode = <ATMEL_FLEXCOM_MODE_TWI>;
 	status = "okay";
 };
@@ -223,17 +217,6 @@
 			};
 		};
 	};
-};
-
-&i2c7 {
-	#address-cells = <1>;
-	#size-cells = <0>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_flx7_default>;
-	i2c-analog-filter;
-	i2c-digital-filter;
-	i2c-digital-filter-width-ns = <35>;
-	status = "okay";
 
 	eeprom@53 {
 		compatible = "atmel,24c01";
@@ -292,12 +275,6 @@
 			atmel,pins =
 				<AT91_PIOA 24 AT91_PERIPH_A AT91_PINCTRL_PULL_UP
 				 AT91_PIOA 25 AT91_PERIPH_A AT91_PINCTRL_PULL_UP>;
-		};
-
-		pinctrl_flx7_default: flx7-twi {
-			atmel,pins =
-				<AT91_PIOC 0 AT91_PERIPH_C AT91_PINCTRL_PULL_UP
-				 AT91_PIOC 1 AT91_PERIPH_C AT91_PINCTRL_PULL_UP>;
 		};
 	};
 
