@@ -62,6 +62,7 @@ int board_early_init_f(void)
 
 int board_init(void)
 {
+	at91_set_pio_output(AT91_PIO_PORTC, 30, 1);	// set PC30 as output
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = gd->bd->bi_dram[0].start + 0x100;
 
