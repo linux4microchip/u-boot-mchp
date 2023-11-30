@@ -547,7 +547,7 @@ static int macb_phy_find(struct macb_device *macb, const char *name)
 	u16 phy_id;
 
 	phy_id = macb_mdio_read(macb, macb->phy_addr, MII_PHYSID1);
-	if (phy_id != 0xffff && phy_id != 0x0000) {
+	if (phy_id != 0xffff) {
 		printf("%s: PHY present at %d\n", name, macb->phy_addr);
 		return 0;
 	}
@@ -556,8 +556,8 @@ static int macb_phy_find(struct macb_device *macb, const char *name)
 	for (i = 0; i < 32; i++) {
 		macb->phy_addr = i;
 		phy_id = macb_mdio_read(macb, macb->phy_addr, MII_PHYSID1);
-		if (phy_id != 0xffff && phy_id != 0x0000) {
-			printf("%s: PHY found at %d\n", name, i);
+		if (phy_id != 0xffff) {
+			printf("%s: PHY present at %d\n", name, i);
 			return 0;
 		}
 	}
