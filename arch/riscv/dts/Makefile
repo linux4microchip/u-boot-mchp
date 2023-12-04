@@ -3,6 +3,7 @@
 dtb-$(CONFIG_TARGET_AX25_AE350) += ae350_32.dtb ae350_64.dtb
 dtb-$(CONFIG_TARGET_ALDEC_TYSOM_M_MPFS250T) += mpfs-tysom-m.dtb
 dtb-$(CONFIG_TARGET_ARIES_M100PFSEVP) += mpfs-m100pfsevp.dtb
+dtb-$(CONFIG_TARGET_BEAGLEBOARD_BEAGLEVFIRE) += mpfs-beaglev-fire.dtb
 dtb-$(CONFIG_TARGET_MICROCHIP_ICICLE) += microchip-mpfs-icicle-kit.dtb \
 microchip-mpfs-icicle-kit-amp.dtb microchip-mpfs-icicle-kit-qspi-nor.dtb
 dtb-$(CONFIG_TARGET_MICROCHIP_VIDEOKIT) += microchip-mpfs-video-kit.dtb

@@ -14,6 +14,9 @@ config TARGET_ARIES_M100PFSEVP
 config TARGET_AE350
 	bool "Support ae350"
 
+config TARGET_BEAGLEBOARD_BEAGLEVFIRE
+	bool "Support BeagleBoard BeagleV-Fire Board (based on Microchip MPFS)"
+
 config TARGET_MICROCHIP_ICICLE
 	bool "Support Microchip PolarFire-SoC Icicle Board"
 
@@ -76,6 +79,7 @@ config SPL_SYS_DCACHE_OFF
 source "board/aldec/tysom-m-mpfs250t/Kconfig"
 source "board/AndesTech/ae350/Kconfig"
 source "board/aries/m100pfsevp/Kconfig"
+source "board/beagle/beaglev_fire/Kconfig"
 source "board/emulation/qemu-riscv/Kconfig"
 source "board/microchip/mpfs_icicle/Kconfig"
 source "board/microchip/mpfs_videokit/Kconfig"
