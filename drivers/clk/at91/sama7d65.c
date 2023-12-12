@@ -721,7 +721,7 @@ static const struct {
 	{
 		.n  = "flex0_gclk",
 		.id = 34,
-		.r = { .max = 200000000 },
+		.r = { .max = 34000000 },
 		.ep = {"baudpll_divpmcck", },
 		.ep_mux_table = { 8, },
 		.ep_clk_mux_table = {ID_PLL_BAUD_DIV, },
@@ -731,7 +731,7 @@ static const struct {
 	{
 		.n  = "flex1_gclk",
 		.id = 35,
-		.r = { .max = 200000000 },
+		.r = { .max = 34000000 },
 		.ep = {"baudpll_divpmcck", },
 		.ep_mux_table = { 8, },
 		.ep_clk_mux_table = { ID_PLL_BAUD_DIV, },
@@ -741,7 +741,7 @@ static const struct {
 	{
 		.n  = "flex2_gclk",
 		.id = 36,
-		.r = { .max = 200000000 },
+		.r = { .max = 34000000 },
 		.ep = { "baudpll_divpmcck", },
 		.ep_mux_table = { 8,},
 		.ep_clk_mux_table = {ID_PLL_BAUD_DIV, },
@@ -751,7 +751,7 @@ static const struct {
 	{
 		.n  = "flex3_gclk",
 		.id = 37,
-		.r = { .max = 200000000 },
+		.r = { .max = 34000000 },
 		.ep = {"baudpll_divpmcck", },
 		.ep_mux_table = { 8,},
 		.ep_clk_mux_table = { ID_PLL_BAUD_DIV, },
@@ -761,7 +761,7 @@ static const struct {
 	{
 		.n  = "flex4_gclk",
 		.id = 38,
-		.r = { .max = 200000000 },
+		.r = { .max = 34000000 },
 		.ep = {"baudpll_divpmcck", },
 		.ep_mux_table = { 8, },
 		.ep_clk_mux_table = { ID_PLL_BAUD_DIV, },
@@ -771,7 +771,7 @@ static const struct {
 	{
 		.n  = "flex5_gclk",
 		.id = 39,
-		.r = { .max = 200000000 },
+		.r = { .max = 34000000 },
 		.ep = { "baudpll_divpmcck", },
 		.ep_mux_table = { 8, },
 		.ep_clk_mux_table = {ID_PLL_BAUD_DIV, },
@@ -781,7 +781,7 @@ static const struct {
 	{
 		.n  = "flex6_gclk",
 		.id = 40,
-		.r = { .max = 200000000 },
+		.r = { .max = 34000000 },
 		.ep = { "baudpll_divpmcck", },
 		.ep_mux_table = { 8, },
 		.ep_clk_mux_table = { ID_PLL_BAUD_DIV, },
@@ -791,7 +791,7 @@ static const struct {
 	{
 		.n  = "flex7_gclk",
 		.id = 41,
-		.r = { .max = 200000000 },
+		.r = { .max = 34000000 },
 		.ep = { "baudpll_divpmcck", },
 		.ep_mux_table = { 8, },
 		.ep_clk_mux_table = {ID_PLL_BAUD_DIV, },
@@ -801,7 +801,7 @@ static const struct {
 	{
 		.n  = "flex8_gclk",
 		.id = 42,
-		.r = { .max = 200000000 },
+		.r = { .max = 34000000 },
 		.ep = { "baudpll_divpmcck", },
 		.ep_mux_table = { 8,},
 		.ep_clk_mux_table = { ID_PLL_BAUD_DIV, },
@@ -811,7 +811,7 @@ static const struct {
 	{
 		.n  = "flex9_gclk",
 		.id = 43,
-		.r = { .max = 200000000 },
+		.r = { .max = 34000000 },
 		.ep = { "baudpll_divpmcck", },
 		.ep_mux_table = { 8,},
 		.ep_clk_mux_table = {ID_PLL_BAUD_DIV, },
@@ -821,7 +821,7 @@ static const struct {
 	{
 		.n  = "flex10_gclk",
 		.id = 44,
-		.r = { .max = 200000000 },
+		.r = { .max = 34000000 },
 		.ep = { "baudpll_divpmcck", },
 		.ep_mux_table = { 8,},
 		.ep_clk_mux_table = {ID_PLL_BAUD_DIV, },
@@ -891,7 +891,7 @@ static const struct {
 	{
 		.n  = "mcan0_gclk",
 		.id = 58,
-		.r = { .max = 200000000 },
+		.r = { .max = 80000000 },
 		.ep = { "usbpll_divpmcck", },
 		.ep_mux_table = { 12, },
 		.ep_clk_mux_table = { ID_PLL_USB_DIV },
@@ -901,7 +901,7 @@ static const struct {
 	{
 		.n  = "mcan1_gclk",
 		.id = 59,
-		.r = { .max = 200000000 },
+		.r = { .max = 80000000 },
 		.ep = { "usbpll_divpmcck", },
 		.ep_mux_table = { 12, },
 		.ep_clk_mux_table = { ID_PLL_USB_DIV, },
@@ -911,7 +911,7 @@ static const struct {
 	{
 		.n  = "mcan2_gclk",
 		.id = 60,
-		.r = { .max = 200000000 },
+		.r = { .max = 80000000 },
 		.ep = { "usbpll_divpmcck", },
 		.ep_mux_table = { 12, },
 		.ep_clk_mux_table = { ID_PLL_USB_DIV, },
@@ -921,7 +921,7 @@ static const struct {
 	{
 		.n  = "mcan3_gclk",
 		.id = 61,
-		.r = { .max = 200000000 },
+		.r = { .max = 80000000 },
 		.ep = { "usbpll_divpmcck", },
 		.ep_mux_table = { 12, },
 		.ep_clk_mux_table = { ID_PLL_USB_DIV, },
@@ -931,7 +931,7 @@ static const struct {
 	{
 		.n  = "mcan4_gclk",
 		.id = 62,
-		.r = { .max = 200000000 },
+		.r = { .max = 80000000 },
 		.ep = { "usbpll_divpmcck", },
 		.ep_mux_table = { 12, },
 		.ep_clk_mux_table = { ID_PLL_USB_DIV, },
@@ -941,7 +941,7 @@ static const struct {
 	{
 		.n  = "pdmc0_gclk",
 		.id = 64,
-		.r = { .max = 50000000  },
+		.r = { .max = 80000000 },
 		.ep = { "audiopll_divpmcck", },
 		.ep_mux_table = { 9, },
 		.ep_clk_mux_table = { ID_PLL_AUDIO_DIVPMC, },
@@ -951,7 +951,7 @@ static const struct {
 	{
 		.n  = "pdmc1_gclk",
 		.id = 65,
-		.r = { .max = 50000000, },
+		.r = { .max = 80000000, },
 		.ep = { "audiopll_divpmcck",},
 		.ep_mux_table = { 9, },
 		.ep_clk_mux_table = {ID_PLL_AUDIO_DIVPMC, },
@@ -961,7 +961,7 @@ static const struct {
 	{
 		.n  = "pit64b0_gclk",
 		.id = 66,
-		.r = { .max = 200000000 },
+		.r = { .max = 34000000 },
 		.ep = { "baudpll_divpmcck", "audiopll_divpmcck", "ethpll_divpmcck", },
 		.ep_mux_table = {8, 9, 10, },
 		.ep_clk_mux_table = { ID_PLL_BAUD_DIV, ID_PLL_AUDIO_DIVPMC,
@@ -972,7 +972,7 @@ static const struct {
 	{
 		.n  = "pit64b1_gclk",
 		.id = 67,
-		.r = { .max = 200000000 },
+		.r = { .max = 34000000 },
 		.ep = { "baudpll_divpmcck", "audiopll_divpmcck", "ethpll_divpmcck", },
 		.ep_mux_table = {8, 9, 10, },
 		.ep_clk_mux_table = { ID_PLL_BAUD_DIV, ID_PLL_AUDIO_DIVPMC,
@@ -984,7 +984,7 @@ static const struct {
 	{
 		.n  = "pit64b2_gclk",
 		.id = 68,
-		.r = { .max = 200000000 },
+		.r = { .max = 34000000 },
 		.ep = { "baudpll_divpmcck", "audiopll_divpmcck", "ethpll_divpmcck", },
 		.ep_mux_table = { 8, 9, 10, },
 		.ep_clk_mux_table = {ID_PLL_BAUD_DIV, ID_PLL_AUDIO_DIVPMC,
@@ -995,7 +995,7 @@ static const struct {
 	{
 		.n  = "pit64b3_gclk",
 		.id = 69,
-		.r = { .max = 200000000 },
+		.r = { .max = 34000000 },
 		.ep = {"baudpll_divpmcck", "audiopll_divpmcck", "ethpll_divpmcck", },
 		.ep_mux_table = {8, 9, 10, },
 		.ep_clk_mux_table = {ID_PLL_BAUD_DIV, ID_PLL_AUDIO_DIVPMC,
@@ -1006,7 +1006,7 @@ static const struct {
 	{
 		.n  = "pit64b4_gclk",
 		.id = 70,
-		.r = { .max = 200000000 },
+		.r = { .max = 34000000 },
 		.ep = {"baudpll_divpmcck", "audiopll_divpmcck", "ethpll_divpmcck", },
 		.ep_mux_table = {8, 9, 10, },
 		.ep_clk_mux_table = {ID_PLL_BAUD_DIV, ID_PLL_AUDIO_DIVPMC,
@@ -1017,7 +1017,7 @@ static const struct {
 	{
 		.n  = "pit64b5_gclk",
 		.id = 71,
-		.r = { .max = 200000000 },
+		.r = { .max = 34000000 },
 		.ep = {"baudpll_divpmcck", "audiopll_divpmcck", "ethpll_divpmcck", },
 		.ep_mux_table = {8, 9, 10, },
 		.ep_clk_mux_table = {ID_PLL_BAUD_DIV, ID_PLL_AUDIO_DIVPMC,
@@ -1028,7 +1028,7 @@ static const struct {
 	{
 		.n  = "qspi0_gclk",
 		.id = 73,
-		.r = { .max = 200000000 },
+		.r = { .max = 400000000 },
 		.ep = { "syspll_divpmcck", "baudpll_divpmcck", },
 		.ep_mux_table = { 5, 8, },
 		.ep_clk_mux_table = { ID_PLL_SYS_DIV, ID_PLL_BAUD_DIV, },
@@ -1038,7 +1038,7 @@ static const struct {
 	{
 		.n  = "qspi1_gclk",
 		.id = 74,
-		.r = { .max = 200000000 },
+		.r = { .max = 266000000 },
 		.ep = { "syspll_divpmcck", "baudpll_divpmcck", },
 		.ep_mux_table = { 5, 8, },
 		.ep_clk_mux_table = { ID_PLL_SYS_DIV, ID_PLL_BAUD_DIV, },
@@ -1098,7 +1098,7 @@ static const struct {
 	{
 		.n  = "tcb0_ch0_gclk",
 		.id = 83,
-		.r = { .max = 200000000 },
+		.r = { .max = 34000000 },
 		.ep = {"baudpll_divpmcck", "audiopll_divpmcck", "ethpll_divpmcck", },
 		.ep_mux_table = { 8, 9, 10, },
 		.ep_clk_mux_table = {ID_PLL_BAUD_DIV, ID_PLL_AUDIO_DIVPMC,
@@ -1109,7 +1109,7 @@ static const struct {
 	{
 		.n  = "tcb1_ch0_gclk",
 		.id = 86,
-		.r = { .max = 200000000 },
+		.r = { .max = 67000000 },
 		.ep = {"baudpll_divpmcck", "audiopll_divpmcck", "ethpll_divpmcck", },
 		.ep_mux_table = {8, 9, 10, },
 		.ep_clk_mux_table = {ID_PLL_BAUD_DIV, ID_PLL_AUDIO_DIVPMC,
