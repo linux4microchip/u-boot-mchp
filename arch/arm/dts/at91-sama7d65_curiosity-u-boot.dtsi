@@ -1,0 +1,55 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ *  at91-sama7d65_curiosity-u-boot.dtsi - Device Tree Include file for
+ * SAMA7D65 CURIOSITY.
+ *
+ *  Copyright (c) 2023 Microchip Technology Inc. and its subsidiaries
+ *
+ *  Author: Ryan Wanner <ryan.wanner@microchip.com>
+ */
+
+/{
+	chosen {
+		bootph-all;
+	};
+
+	soc {
+		bootph-all;
+	};
+};
+
+&main_rc {
+	bootph-all;
+};
+
+&main_xtal {
+	bootph-all;
+};
+
+&pioA {
+	bootph-all;
+};
+
+&pinctrl_uart6_default {
+	bootph-all;
+};
+
+&pit64b0 {
+	bootph-all;
+};
+
+&pmc {
+	bootph-all;
+};
+
+&slow_rc_osc {
+	bootph-all;
+};
+
+&slow_xtal {
+	bootph-all;
+};
+
+&uart6 {
+	bootph-all;
+};
