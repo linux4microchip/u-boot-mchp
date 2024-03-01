@@ -29,6 +29,9 @@ config TARGET_LICHEERV_NANO
 config TARGET_MICROCHIP_ICICLE
 	bool "Support Microchip PolarFire-SoC Icicle Board"
 
+config TARGET_MICROCHIP_DISCOKIT
+	bool "Support Microchip PolarFire-SoC Discovery Board"
+
 config TARGET_MICROCHIP_VIDEOKIT
 	bool "Support Microchip PolarFire-SoC Video Kit"
 
@@ -123,6 +126,7 @@ source "board/beagle/beaglev_fire/Kconfig"
 source "board/canaan/k230_canmv/Kconfig"
 source "board/emulation/qemu-riscv/Kconfig"
 source "board/microchip/mpfs_icicle/Kconfig"
+source "board/microchip/mpfs_discokit/Kconfig"
 source "board/microchip/mpfs_videokit/Kconfig"
 source "board/openpiton/riscv64/Kconfig"
 source "board/sundancedsp/polarberry/Kconfig"
