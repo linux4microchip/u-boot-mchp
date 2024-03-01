@@ -20,6 +20,9 @@ config TARGET_BEAGLEBOARD_BEAGLEVFIRE
 config TARGET_MICROCHIP_ICICLE
 	bool "Support Microchip PolarFire-SoC Icicle Board"
 
+config TARGET_MICROCHIP_DISCOKIT
+	bool "Support Microchip PolarFire-SoC Discovery Board"
+
 config TARGET_MICROCHIP_VIDEOKIT
 	bool "Support Microchip PolarFire-SoC Video Kit"
 
@@ -82,6 +85,7 @@ source "board/aries/m100pfsevp/Kconfig"
 source "board/beagle/beaglev_fire/Kconfig"
 source "board/emulation/qemu-riscv/Kconfig"
 source "board/microchip/mpfs_icicle/Kconfig"
+source "board/microchip/mpfs_discokit/Kconfig"
 source "board/microchip/mpfs_videokit/Kconfig"
 source "board/sundancedsp/polarberry/Kconfig"
 source "board/sifive/unleashed/Kconfig"
