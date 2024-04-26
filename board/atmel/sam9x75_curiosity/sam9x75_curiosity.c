@@ -32,7 +32,7 @@ int board_late_init(void)
 {
 	at91_prepare_cpu_var();
 
-#ifdef CONFIG_I2C_EEPROM
+#if (IS_ENABLED(CONFIG_I2C_EEPROM))
 	at91_ext_board_display_detect(LVDS_MIPI_DISPLAY_EEPROM);
 	at91_ext_board_eth_detect(GB_ETH_SODIMM_EEPROM);
 #endif
@@ -40,7 +40,7 @@ int board_late_init(void)
 	return 0;
 }
 
-#ifdef CONFIG_DEBUG_UART_BOARD_INIT
+#if (IS_ENABLED(CONFIG_DEBUG_UART_BOARD_INIT))
 static void board_dbgu0_hw_init(void)
 {
 	at91_pio3_set_a_periph(AT91_PIO_PORTA, 26, 1);	/* DRXD */
