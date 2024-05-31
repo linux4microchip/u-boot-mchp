@@ -82,6 +82,27 @@
 	status = "okay";
 };
 
+&ebi {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_nand_default>;
+	status = "okay";
+
+	nand_controller: nand-controller {
+		status = "okay";
+
+		nand@0 {
+			reg = <0x0 0x0 0x1000000>;
+			atmel,rb = <0>;
+			nand-bus-width = <8>;
+			nand-ecc-mode = "hw";
+			nand-ecc-strength = <8>;
+			nand-ecc-step-size = <512>;
+			nand-on-flash-bbt;
+			label = "at91-nand";
+		};
+	};
+};
+
 &flx0 {
 	atmel,flexcom-mode = <ATMEL_FLEXCOM_MODE_TWI>;
 	status = "okay";
@@ -386,6 +407,25 @@
 	pinctrl_key_gpio_default: key-gpio-default {
 		pinmux = <PIN_PC10__GPIO>;
 		bias-pull-up;
+	};
+
+	pinctrl_nand_default: nand-default {
+		pinmux = <PIN_PA0__NWER0>,
+			 <PIN_PA1__A21>,
+			 <PIN_PA2__A22>,
+			 <PIN_PA3__D0>,
+			 <PIN_PA4__D1>,
+			 <PIN_PA5__D4>,
+			 <PIN_PA6__D5>,
+			 <PIN_PA7__D6>,
+			 <PIN_PA8__D7>,
+			 <PIN_PA9__D2>,
+			 <PIN_PA10__D3>,
+			 <PIN_PA11__NANDRDY>,
+			 <PIN_PA12__NRD>,
+			 <PIN_PA13__NCS0>;
+		slew-rate = <0>;
+		bias-disable;
 	};
 
 	pinctrl_sdmmc1_default: sdmmc1-default {
