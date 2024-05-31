@@ -104,7 +104,7 @@
 			reg = <0x40000000 0x18000000>;
 			ranges = <0x0 0x0 0x40000000 0x8000000
 				  0x1 0x0 0x48000000 0x10000000>;
-			clocks = <&pmc PMC_TYPE_CORE 23>; /* PMC_MCK1 */
+			clocks = <&pmc PMC_TYPE_CORE 31>; /* PMC_MCK5 */
 			status = "disabled";
 
 		};
