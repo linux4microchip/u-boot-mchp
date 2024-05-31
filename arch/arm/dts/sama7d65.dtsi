@@ -107,6 +107,16 @@
 			clocks = <&pmc PMC_TYPE_CORE 31>; /* PMC_MCK5 */
 			status = "disabled";
 
+			nand_controller: nand-controller {
+				compatible = "atmel,sama7d65-nand-controller", "atmel,sama5d3-nand-controller";
+				atmel,nfc-sram = <&nfc_sram>;
+				atmel,nfc-io = <&nfc_io>;
+				ecc-engine = <&pmecc>;
+				#address-cells = <2>;
+				#size-cells = <1>;
+				ranges;
+				status = "disabled";
+			};
 		};
 
 		securam: sram@e0000000 {
