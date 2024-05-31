@@ -232,7 +232,7 @@
 		};
 
 		hsmc: hsmc@e0808000 {
-			compatible = "microchip,sama7d65-smc", "atmel,sama5d2-smc", "syscon", "simple-mfd";
+			compatible = "atmel,sama5d2-smc", "syscon", "simple-mfd";
 			reg = <0xe0808000 0x1000>;
 			interrupts = <GIC_SPI 20 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 20>;
