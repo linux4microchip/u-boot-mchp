@@ -96,17 +96,27 @@
 			reg = <0x10000000 0x8000000>;
 		};
 
-		ebi: ebi@48000000 {
+		ebi: ebi@40000000 {
 			compatible = "microchip,sama7d65-ebi", "atmel,sama5d3-ebi";
 			#address-cells = <2>;
 			#size-cells = <1>;
 			atmel,smc = <&hsmc>;
-			reg = <0x48000000 0x10000000>;
-			ranges = <0x0 0x0 0x48000000 0x8000000
-				  0x1 0x0 0x50000000 0x8000000>;
-			clocks = <&pmc PMC_TYPE_CORE 23>; /* PMC_MCK1 */
+			reg = <0x40000000 0x18000000>;
+			ranges = <0x0 0x0 0x40000000 0x8000000
+				  0x1 0x0 0x48000000 0x10000000>;
+			clocks = <&pmc PMC_TYPE_CORE 31>; /* PMC_MCK5 */
 			status = "disabled";
 
+			nand_controller: nand-controller {
+				compatible = "atmel,sama7d65-nand-controller", "atmel,sama5d3-nand-controller";
+				atmel,nfc-sram = <&nfc_sram>;
+				atmel,nfc-io = <&nfc_io>;
+				ecc-engine = <&pmecc>;
+				#address-cells = <2>;
+				#size-cells = <1>;
+				ranges;
+				status = "disabled";
+			};
 		};
 
 		securam: sram@e0000000 {
@@ -222,7 +232,7 @@
 		};
 
 		hsmc: hsmc@e0808000 {
-			compatible = "microchip,sama7d65-smc", "atmel,sama5d2-smc", "syscon", "simple-mfd";
+			compatible = "atmel,sama5d2-smc", "syscon", "simple-mfd";
 			reg = <0xe0808000 0x1000>;
 			interrupts = <GIC_SPI 20 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 20>;
