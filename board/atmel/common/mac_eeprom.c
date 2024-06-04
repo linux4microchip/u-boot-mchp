@@ -69,3 +69,28 @@ int at91_set_eth1addr(int offset)
 
 	return 0;
 }
+
+/* this function will set ethaddr based on eeprom name */
+int at91_set_ethaddr_by_name(const char *eeprom, int offset)
+{
+	const int ETH_ADDR_LEN = 6;
+	struct udevice *dev;
+	int ret;
+	unsigned char ethaddr[ETH_ADDR_LEN];
+	const char *ETHADDR_NAME = "ethaddr";
+
+
+	ret = uclass_get_device_by_name(UCLASS_I2C_EEPROM, eeprom, &dev);
+	if (ret)
+		return ret;
+
+	ret = i2c_eeprom_read(dev, offset,
+			      ethaddr, ETH_ADDR_LEN);
+	if (ret)
+		return ret;
+
+	if (is_valid_ethaddr(ethaddr))
+		eth_env_set_enetaddr(ETHADDR_NAME, ethaddr);
+
+	return 0;
+}
