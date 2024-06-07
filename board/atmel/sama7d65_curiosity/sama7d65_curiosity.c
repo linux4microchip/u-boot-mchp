@@ -36,6 +36,9 @@ static void board_leds_init(void)
 int board_late_init(void)
 {
 
+	/* set PB18 as output/high to drive the LCD module */
+	atmel_pio4_set_pio_output(AT91_PIO_PORTB, 18, 1);
+
 #ifdef CONFIG_I2C_EEPROM
 	at91_ext_board_display_detect(LVDS_MIPI_DISPLAY_EEPROM);
 #endif
