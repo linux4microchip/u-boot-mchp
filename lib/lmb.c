@@ -255,7 +255,7 @@ static long lmb_add_region_flags(struct lmb_region *rgn, phys_addr_t base,
 				/* Already have this region, so we're done */
 				return 0;
 			else
-				return -1; /* regions with new flags */
+				break; /* regions with new flags */
 		}
 
 		adjacent = lmb_addrs_adjacent(base, size, rgnbase, rgnsize);

@@ -1,7 +1,7 @@
-if TARGET_MICROCHIP_ICICLE
+if TARGET_MICROCHIP_VIDEOKIT
 
 config SYS_BOARD
-	default "mpfs_icicle"
+	default "mpfs_videokit"
 
 config SYS_VENDOR
 	default "microchip"
@@ -10,7 +10,7 @@ config SYS_CPU
 	default "mpfs"
 
 config SYS_CONFIG_NAME
-	default "microchip_mpfs_icicle"
+	default "microchip_mpfs_videokit"
 
 config TEXT_BASE
 	default 0x80000000 if !RISCV_SMODE
@@ -40,5 +40,4 @@ config BOARD_SPECIFIC_OPTIONS # dummy
 	imply CMD_MTD
 	imply MTD_PARTITIONS
 	imply CMD_MTDPARTS
-	imply MPFS_PRIORITISE_QSPI_BOOT
 endif

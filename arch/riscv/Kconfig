@@ -8,11 +8,29 @@ choice
 	prompt "Target select"
 	optional
 
+config TARGET_ARIES_M100PFSEVP
+	bool "Support Aries M100PFSEVP PolarFire SoC-FPGA Platform"
+
 config TARGET_AE350
 	bool "Support ae350"
 
+config TARGET_BEAGLEBOARD_BEAGLEVFIRE
+	bool "Support BeagleBoard BeagleV-Fire Board (based on Microchip MPFS)"
+
 config TARGET_MICROCHIP_ICICLE
 	bool "Support Microchip PolarFire-SoC Icicle Board"
+
+config TARGET_MICROCHIP_DISCOKIT
+	bool "Support Microchip PolarFire-SoC Discovery Board"
+
+config TARGET_MICROCHIP_VIDEOKIT
+	bool "Support Microchip PolarFire-SoC Video Kit"
+
+config TARGET_SUNDANCEDSP_POLARBERRY
+	bool "Support SundanceDSP Polarberry Board (based on Microchip MPFS)"
+
+config TARGET_ALDEC_TYSOM_M_MPFS250T
+	bool "Support Aldec TySoM M MPFS250T Board"
 
 config TARGET_QEMU_VIRT
 	bool "Support QEMU Virt Board"
@@ -61,9 +79,15 @@ config SPL_SYS_DCACHE_OFF
 	  Do not enable data cache in SPL.
 
 # board-specific options below
+source "board/aldec/tysom-m-mpfs250t/Kconfig"
 source "board/AndesTech/ae350/Kconfig"
+source "board/aries/m100pfsevp/Kconfig"
+source "board/beagle/beaglev_fire/Kconfig"
 source "board/emulation/qemu-riscv/Kconfig"
 source "board/microchip/mpfs_icicle/Kconfig"
+source "board/microchip/mpfs_discokit/Kconfig"
+source "board/microchip/mpfs_videokit/Kconfig"
+source "board/sundancedsp/polarberry/Kconfig"
 source "board/sifive/unleashed/Kconfig"
 source "board/sifive/unmatched/Kconfig"
 source "board/openpiton/riscv64/Kconfig"
@@ -74,6 +98,7 @@ source "board/starfive/visionfive2/Kconfig"
 source "arch/riscv/cpu/andesv5/Kconfig"
 source "arch/riscv/cpu/fu540/Kconfig"
 source "arch/riscv/cpu/fu740/Kconfig"
+source "arch/riscv/cpu/mpfs/Kconfig"
 source "arch/riscv/cpu/generic/Kconfig"
 source "arch/riscv/cpu/jh7110/Kconfig"
 

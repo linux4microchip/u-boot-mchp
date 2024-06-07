@@ -321,7 +321,7 @@ int board_late_init(void)
 	u8 idx;
 	u8 device_serial_number[16] = { 0 };
 	unsigned char mac_addr[6];
-	char icicle_mac_addr[20];
+	char videokit_mac_addr[20];
 	void *blob = (void *)gd->fdt_blob;
 
 	node = fdt_path_offset(blob, "ethernet0");
@@ -352,33 +352,33 @@ int board_late_init(void)
 		return -ENODEV;
 	}
 
-	icicle_mac_addr[0] = '[';
+	videokit_mac_addr[0] = '[';
 
-	sprintf(&icicle_mac_addr[1], "%pM", mac_addr);
+	sprintf(&videokit_mac_addr[1], "%pM", mac_addr);
 
-	icicle_mac_addr[18] = ']';
-	icicle_mac_addr[19] = '\0';
+	videokit_mac_addr[18] = ']';
+	videokit_mac_addr[19] = '\0';
 
 	for (idx = 0; idx < 20; idx++) {
-		if (icicle_mac_addr[idx] == ':')
-			icicle_mac_addr[idx] = ' ';
+		if (videokit_mac_addr[idx] == ':')
+			videokit_mac_addr[idx] = ' ';
 	}
-	env_set("icicle_mac_addr0", icicle_mac_addr);
+	env_set("videokit_mac_addr0", videokit_mac_addr);
 
 	mac_addr[5] = device_serial_number[0] + 1;
 
-	icicle_mac_addr[0] = '[';
+	videokit_mac_addr[0] = '[';
 
-	sprintf(&icicle_mac_addr[1], "%pM", mac_addr);
+	sprintf(&videokit_mac_addr[1], "%pM", mac_addr);
 
-	icicle_mac_addr[18] = ']';
-	icicle_mac_addr[19] = '\0';
+	videokit_mac_addr[18] = ']';
+	videokit_mac_addr[19] = '\0';
 
 	for (idx = 0; idx < 20; idx++) {
-		if (icicle_mac_addr[idx] == ':')
-			icicle_mac_addr[idx] = ' ';
+		if (videokit_mac_addr[idx] == ':')
+			videokit_mac_addr[idx] = ' ';
 	}
-	env_set("icicle_mac_addr1", icicle_mac_addr);
+	env_set("videokit_mac_addr1", videokit_mac_addr);
 
 	get_device_tree_overlays();
 

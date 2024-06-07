@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0+ */
 /*
- * Copyright (C) 2019 Microchip Technology Inc.
- * Padmarao Begari <padmarao.begari@microchip.com>
+ * Copyright (C) 2023 Microchip Technology Inc.
  */
 
 #ifndef __CONFIG_H
@@ -25,22 +24,9 @@
 #define BOOT_TARGET_DEVICES_MMC(func)
 #endif
 
-#if defined(CONFIG_CMD_UBIFS)
-#define BOOT_TARGET_DEVICE_UBIFS(func)	func(UBIFS, ubifs, 0, ubi, rootfs)
-#else
-#define BOOT_TARGET_DEVICE_UBIFS(func)
-#endif
-
-#if defined(CONFIG_MPFS_PRIORITISE_QSPI_BOOT)
-#define BOOT_TARGET_DEVICES(func) \
-	BOOT_TARGET_DEVICE_UBIFS(func)	\
-	BOOT_TARGET_DEVICES_MMC(func)\
-	BOOT_TARGET_DEVICES_DHCP(func)
-#else
 #define BOOT_TARGET_DEVICES(func) \
 	BOOT_TARGET_DEVICES_MMC(func)\
 	BOOT_TARGET_DEVICES_DHCP(func)
-#endif
 
 #define BOOTENV_DESIGN_OVERLAYS \
 	"design_overlays=" \
@@ -56,7 +42,6 @@
 		"done; " \
 	"fi;\0 " \
 
-#if !defined(CONFIG_FIT_SIGNATURE)
 #include <config_distro_bootcmd.h>
 
 #define CFG_EXTRA_ENV_SETTINGS \
@@ -69,5 +54,4 @@
 	BOOTENV_DESIGN_OVERLAYS \
 	BOOTENV \
 
-#endif
 #endif /* __CONFIG_H */

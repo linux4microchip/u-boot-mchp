@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
- * Copyright (C) 2021-2022 Microchip Technology Inc.
- * Padmarao Begari <padmarao.begari@microchip.com>
+ * Copyright (C) 2021 Microchip Technology Inc.
+ * vattipalli praveen <praveen.kumar@microchip.com>
  */
 
 /dts-v1/;
@@ -12,14 +12,12 @@
 #define RTCCLK_FREQ		1000000
 
 / {
-	model = "Microchip PolarFire-SoC Icicle Kit";
-	compatible = "microchip,mpfs-icicle-reference-rtlv2210",
-		     "microchip,mpfs-icicle-kit", "microchip,mpfs";
+	model = "Microchip PolarFire-SoC Video Kit";
+	compatible = "microchip,mpfs-video-kit", "microchip,mpfs";
 
 	aliases {
 		serial1 = &uart1;
-		ethernet0 = &mac1;
-		spi0 = &qspi;
+		ethernet0 = &mac0;
 	};
 
 	chosen {
@@ -67,11 +65,11 @@
 
 		dma_non_cached_low: non-cached-low-buffer {
 			compatible = "shared-dma-pool";
-			size = <0x0 0x4000000>;
+			size = <0x0 0x2000000>;
 			no-map;
 			linux,dma-default;
-			alloc-ranges = <0x0 0xc4000000 0x0 0x4000000>;
-			dma-ranges = <0x0 0xc4000000 0x0 0xc4000000 0x0 0x4000000>;
+			alloc-ranges = <0x0 0xc4000000 0x0 0x2000000>;
+			dma-ranges = <0x0 0xc4000000 0x0 0xc4000000 0x0 0x2000000>;
 		};
 
 		dma_non_cached_high: non-cached-high-buffer {
@@ -133,6 +131,7 @@
 		memory-region = <&fabricbuf2ddrncwcb>;
 		sync-mode = <3>;
 	};
+
 };
 
 &refclk {
@@ -191,26 +190,11 @@
 	};
 };
 
-&mac1 {
+&mac0 {
 	status = "okay";
 	phy-mode = "sgmii";
-	phy-handle = <&phy1>;
-	phy1: ethernet-phy@9 {
-		reg = <9>;
-	};
-};
-
-&qspi {
-	status = "okay";
-	num-cs = <1>;
-
-	flash0: flash@0 {
-		compatible = "spi-nand";
-		reg = <0x0>;
-		spi-tx-bus-width = <4>;
-		spi-rx-bus-width = <4>;
-		spi-max-frequency = <20000000>;
-		spi-cpol;
-		spi-cpha;
+	phy-handle = <&phy0>;
+	phy0: ethernet-phy@8 {
+		reg = <8>;
 	};
 };

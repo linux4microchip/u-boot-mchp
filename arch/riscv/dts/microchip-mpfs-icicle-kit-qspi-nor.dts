@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
- * Copyright (C) 2021-2022 Microchip Technology Inc.
+ * Copyright (C) 2022 Microchip Technology Inc.
  * Padmarao Begari <padmarao.begari@microchip.com>
  */
 
@@ -13,8 +13,7 @@
 
 / {
 	model = "Microchip PolarFire-SoC Icicle Kit";
-	compatible = "microchip,mpfs-icicle-reference-rtlv2210",
-		     "microchip,mpfs-icicle-kit", "microchip,mpfs";
+	compatible = "microchip,mpfs-icicle-kit", "microchip,mpfs";
 
 	aliases {
 		serial1 = &uart1;
@@ -133,6 +132,7 @@
 		memory-region = <&fabricbuf2ddrncwcb>;
 		sync-mode = <3>;
 	};
+
 };
 
 &refclk {
@@ -145,7 +145,6 @@
 
 &mmc {
 	status = "okay";
-
 	bus-width = <4>;
 	disable-wp;
 	cap-mmc-highspeed;
@@ -203,13 +202,12 @@
 &qspi {
 	status = "okay";
 	num-cs = <1>;
-
-	flash0: flash@0 {
-		compatible = "spi-nand";
-		reg = <0x0>;
+	flash0: qspi-nor-flash@0 {
+		compatible = "jedec,spi-nor";
+		reg = <0>;
 		spi-tx-bus-width = <4>;
 		spi-rx-bus-width = <4>;
-		spi-max-frequency = <20000000>;
+		spi-max-frequency = <10000000>;
 		spi-cpol;
 		spi-cpha;
 	};

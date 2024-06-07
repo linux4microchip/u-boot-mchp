@@ -1,16 +1,16 @@
-if TARGET_MICROCHIP_ICICLE
+if TARGET_BEAGLEBOARD_BEAGLEVFIRE
 
 config SYS_BOARD
-	default "mpfs_icicle"
+	default "beaglev_fire"
 
 config SYS_VENDOR
-	default "microchip"
+	default "beagle"
 
 config SYS_CPU
 	default "mpfs"
 
 config SYS_CONFIG_NAME
-	default "microchip_mpfs_icicle"
+	default "beaglev_fire"
 
 config TEXT_BASE
 	default 0x80000000 if !RISCV_SMODE
@@ -36,9 +36,4 @@ config BOARD_SPECIFIC_OPTIONS # dummy
 	imply ISO_PARTITION
 	imply PHY_LIB
 	imply PHY_VITESSE
-	imply MTD_SPI_NAND
-	imply CMD_MTD
-	imply MTD_PARTITIONS
-	imply CMD_MTDPARTS
-	imply MPFS_PRIORITISE_QSPI_BOOT
 endif

@@ -1,9 +1,3 @@
-// SPDX-License-Identifier: GPL-2.0+
-/*
- * Copyright (C) 2019-2023 Microchip Technology Inc.
- * Padmarao Begari <padmarao.begari@microchip.com>
- */
-
 #include <common.h>
 #include <dm.h>
 #include <env.h>

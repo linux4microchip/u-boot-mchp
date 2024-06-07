@@ -1,16 +1,16 @@
-if TARGET_MICROCHIP_ICICLE
+if TARGET_SUNDANCEDSP_POLARBERRY
 
 config SYS_BOARD
-	default "mpfs_icicle"
+	default "polarberry"
 
 config SYS_VENDOR
-	default "microchip"
+	default "sundancedsp"
 
 config SYS_CPU
 	default "mpfs"
 
 config SYS_CONFIG_NAME
-	default "microchip_mpfs_icicle"
+	default "sundancedsp_polarberry"
 
 config TEXT_BASE
 	default 0x80000000 if !RISCV_SMODE
