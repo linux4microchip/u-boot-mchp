@@ -118,11 +118,11 @@
 	clocks = <&scmi0_clock AT91_SCMI_CLK_PERIPH_TWI0_CLK>;
 };
 
-&rstc {
+&reset_controller {
 	status = "disabled";
 };
 
-&shdwc {
+&shutdown_controller {
 	status = "disabled";
 };
 
