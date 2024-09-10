@@ -1,0 +1,8 @@
+SAM9X75 CURIOSITY BOARD
+M:	Manikandan Muralidharan <manikandan.m@microchip.com>
+S:	Maintained
+F:	board/atmel/sam9x75_curiosity/
+F:	include/configs/sam9x75_curiosity.h
+F:	configs/sam9x75_curiosity_mmc_defconfig
+F:	configs/sam9x75_curiosity_nandflash_defconfig
+F:	configs/sam9x75_curiosity_qspiflash_defconfig
