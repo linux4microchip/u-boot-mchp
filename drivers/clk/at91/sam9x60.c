@@ -113,17 +113,24 @@ static const struct clk_range upll_outputs[] = {
 	{ .min = 300000000, .max = 500000000 },
 };
 
+/* Fractional PLL core output range. */
+static const struct clk_range core_outputs[] = {
+	{ .min = 600000000, .max = 1200000000 },
+};
+
 /* PLL characteristics. */
 static const struct clk_pll_characteristics apll_characteristics = {
 	.input = { .min = 12000000, .max = 48000000 },
 	.num_output = ARRAY_SIZE(plla_outputs),
 	.output = plla_outputs,
+	.core_output = core_outputs,
 };
 
 static const struct clk_pll_characteristics upll_characteristics = {
 	.input = { .min = 12000000, .max = 48000000 },
 	.num_output = ARRAY_SIZE(upll_outputs),
 	.output = upll_outputs,
+	.core_output = core_outputs,
 	.upll = true,
 };
 
@@ -258,9 +265,6 @@ static const struct {
 	{ .n = "prog0", .cid = ID_PROG0, },
 	{ .n = "prog1", .cid = ID_PROG1, },
 };
-
-/* Mux table for programmable clocks. */
-static u32 sam9x60_prog_mux_table[] = { 0, 1, 2, 3, 4, 5, };
 
 /**
  * System clock description
@@ -620,8 +624,7 @@ static int sam9x60_clk_probe(struct udevice *dev)
 
 		c = at91_clk_register_programmable(base, sam9x60_prog[i].n, p,
 						   10, i, &programmable_layout,
-						   tmpclkmux,
-						   sam9x60_prog_mux_table);
+						   tmpclkmux, NULL);
 		if (IS_ERR(c)) {
 			ret = PTR_ERR(c);
 			goto fail;
