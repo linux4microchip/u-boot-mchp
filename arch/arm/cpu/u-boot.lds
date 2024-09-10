@@ -168,6 +168,7 @@ SECTIONS
 
 	.end :
 	{
+		. = ALIGN(8);
 		*(.__end)
 	}
 

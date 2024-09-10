@@ -58,6 +58,11 @@ SECTIONS
 	} :data
 	_data_size = . - _data;
 
+	.end : {
+		. = ALIGN(8);
+		*(.__end)
+	}
+
 	/DISCARD/ : {
 		/*
 		 * We don't support relocations. These would have to be
