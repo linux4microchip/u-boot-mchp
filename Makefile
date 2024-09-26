@@ -3,7 +3,7 @@
 VERSION = 2023
 PATCHLEVEL = 07
 SUBLEVEL = 02
-EXTRAVERSION = -linux4microchip+fpga-2024.06
+EXTRAVERSION = -linux4microchip+fpga-2024.09-rc1
 NAME =
 
 # *DOCUMENTATION*
