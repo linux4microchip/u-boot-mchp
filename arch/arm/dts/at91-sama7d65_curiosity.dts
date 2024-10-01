@@ -428,6 +428,18 @@
 		bias-disable;
 	};
 
+	pinctrl_qspi0_default: qspi0-default {
+		pinmux = <PIN_PB8__QSPI0_IO3>,
+			 <PIN_PB9__QSPI0_IO2>,
+			 <PIN_PB10__QSPI0_IO1>,
+			 <PIN_PB11__QSPI0_IO0>,
+			 <PIN_PB12__QSPI0_CS>,
+			 <PIN_PB13__QSPI0_SCK>;
+		bias-disable;
+		atmel,drive-strength = <ATMEL_PIO_DRVSTR_2>;
+		slew-rate = <0>;
+	};
+
 	pinctrl_sdmmc1_default: sdmmc1-default {
 		cmd-data {
 			pinmux = <PIN_PB22__SDMMC1_CMD>,
@@ -454,6 +466,21 @@
 		pinmux = <PIN_PD18__FLEXCOM6_IO0>,
 			<PIN_PD19__FLEXCOM6_IO1>;
 		bias-disable;
+	};
+};
+
+&qspi0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_qspi0_default>;
+	status = "okay";
+
+	flash@0 {
+		compatible = "jedec,spi-nor";
+		reg = <0x0>;
+		spi-max-frequency = <100000000>;
+		spi-tx-bus-width = <4>;
+		spi-rx-bus-width = <4>;
+		m25p,fast-read;
 	};
 };
 
