@@ -23,6 +23,17 @@ config TARGET_MICROCHIP_ICICLE
 config TARGET_MICROCHIP_DISCOKIT
 	bool "Support Microchip PolarFire-SoC Discovery Board"
 
+config TARGET_MICROCHIP_PIC64GX_CURIOSITY
+	bool "Support Microchip PIC64GX-SoC Curiosity Kit"
+	help
+	  Support for Microchip PIC64GX Curiosity Kit platform.
+	  The Curiosity-GX10000 (PIC64GX SoC Curiosity Kit) is a compact SoC
+	  prototyping board featuring a Microchip PIC64GX SoC
+	  PIC64GX-1000. Features include:
+	  - 1 GB DDR4 SDRAM
+	  - Gigabit Ethernet
+	  - microSD-card slot
+
 config TARGET_MICROCHIP_VIDEOKIT
 	bool "Support Microchip PolarFire-SoC Video Kit"
 
@@ -87,6 +98,7 @@ source "board/emulation/qemu-riscv/Kconfig"
 source "board/microchip/mpfs_icicle/Kconfig"
 source "board/microchip/mpfs_discokit/Kconfig"
 source "board/microchip/mpfs_videokit/Kconfig"
+source "board/microchip/pic64gx_curiosity_kit/Kconfig"
 source "board/sundancedsp/polarberry/Kconfig"
 source "board/sifive/unleashed/Kconfig"
 source "board/sifive/unmatched/Kconfig"
