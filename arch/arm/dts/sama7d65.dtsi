@@ -244,6 +244,40 @@
 			};
 		};
 
+		qspi0: spi@e080c000 {
+			compatible = "microchip,sama7d65-ospi";
+			reg = <0xe080c000 0x400>, <0x20000000 0x1000000>; // limit to 16 MiB
+			reg-names = "qspi_base", "qspi_mmap"; // mmap max size 256 MiB
+			interrupts = <GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH>;
+			dmas = <&dma0 AT91_XDMAC_DT_PERID(41)>,
+			       <&dma0 AT91_XDMAC_DT_PERID(40)>;
+			dma-names = "tx", "rx";
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 73>, <&pmc PMC_TYPE_GCK 73>;
+			clock-names = "pclk", "gclk";
+			assigned-clock-parents = <&pmc PMC_TYPE_CORE 10>; // ID_PLL_SYS_DIV
+			assigned-clocks = <&pmc PMC_TYPE_GCK 73>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "disabled";
+		};
+
+		qspi1: spi@e0810000 {
+			compatible = "microchip,sama7d65-qspi";
+			reg = <0xe0810000 0x400>, <0x30000000 0x1000000>; // limit to 16 MiB
+			reg-names = "qspi_base", "qspi_mmap"; // mmap max size 256 MiB
+			interrupts = <GIC_SPI 74 IRQ_TYPE_LEVEL_HIGH>;
+			dmas = <&dma0 AT91_XDMAC_DT_PERID(43)>,
+			       <&dma0 AT91_XDMAC_DT_PERID(42)>;
+			dma-names = "tx", "rx";
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 74>, <&pmc PMC_TYPE_GCK 74>;
+			clock-names = "pclk", "gclk";
+			assigned-clock-parents = <&pmc PMC_TYPE_CORE 10>; // ID_PLL_SYS_DIV
+			assigned-clocks = <&pmc PMC_TYPE_GCK 74>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "disabled";
+		};
+
 		can0: can@e0828000 {
 			compatible = "bosch,m_can";
 			reg = <0xe0828000 0x200>, <0x100000 0x7800>;
