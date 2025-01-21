@@ -164,3 +164,11 @@
 		 reg = <11>;
 	};
 };
+
+&mbox {
+	status = "okay";
+};
+
+&syscontroller {
+	status = "okay";
+};

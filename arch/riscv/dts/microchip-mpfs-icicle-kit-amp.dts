@@ -221,3 +221,11 @@
 		spi-cpha;
 	};
 };
+
+&mbox {
+	status = "okay";
+};
+
+&syscontroller {
+	status = "okay";
+};

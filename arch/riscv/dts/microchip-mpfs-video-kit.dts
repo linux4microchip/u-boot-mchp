@@ -198,3 +198,11 @@
 		reg = <8>;
 	};
 };
+
+&mbox {
+	status = "okay";
+};
+
+&syscontroller {
+	status = "okay";
+};

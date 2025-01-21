@@ -84,3 +84,11 @@
 		reg = <1>;
 	};
 };
+
+&mbox {
+	status = "okay";
+};
+
+&syscontroller {
+	status = "okay";
+};
