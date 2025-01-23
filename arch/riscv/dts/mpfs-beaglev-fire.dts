@@ -197,3 +197,10 @@
 	};
 };
 
+&mbox {
+	status = "okay";
+};
+
+&syscontroller {
+	status = "okay";
+};
