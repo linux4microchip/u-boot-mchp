@@ -21,6 +21,13 @@ config APPLE_MBOX
 	  such as the System Management Controller (SMC) and NVMe and this
 	  driver is required to get that functionality up and running.
 
+config MPFS_MBOX
+	bool "Enable MPFS system controler support"
+	depends on DM_MAILBOX && ARCH_RV64I
+	help
+	  Enable support for the mailboxes that provide a comminucation
+	  channel with the system controller integrated on PolarFire SoC.
+
 config SANDBOX_MBOX
 	bool "Enable the sandbox mailbox test driver"
 	depends on DM_MAILBOX && SANDBOX
