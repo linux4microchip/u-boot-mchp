@@ -131,7 +131,7 @@ int ft_board_setup(void *blob, struct bd_info *bd)
 		}
 	}
 
-	mac_addr[5] += 1;
+	mac_addr[5] -= 1;
 
 	node = fdt_path_offset(blob, "/soc/ethernet@20112000");
 	if (node >= 0) {
