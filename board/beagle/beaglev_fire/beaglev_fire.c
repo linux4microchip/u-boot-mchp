@@ -17,6 +17,8 @@ DECLARE_GLOBAL_DATA_PTR;
 #define MPFS_SYSREG_SOFT_RESET	((unsigned int *)0x20002088)
 #define PERIPH_RESET_VALUE		0x800001e8u
 
+static unsigned char mac_addr[6];
+
 int board_init(void)
 {
 	/* For now nothing to do here. */
@@ -40,10 +42,7 @@ int board_late_init(void)
 {
 	u32 ret;
 	int node;
-	u8 idx;
 	u8 device_serial_number[16] = {0};
-	unsigned char mac_addr[6];
-	char beaglevfire_mac_addr[20];
 	void *blob = (void *)gd->fdt_blob;
 	struct udevice *dev;
 	struct mpfs_sys_serv *sys_serv_priv;
@@ -90,20 +89,24 @@ int board_late_init(void)
 		}
 	}
 
-	beaglevfire_mac_addr[0] = '[';
-
-	sprintf(&beaglevfire_mac_addr[1], "%pM", mac_addr);
-
-	beaglevfire_mac_addr[18] = ']';
-	beaglevfire_mac_addr[19] = '\0';
-
-	for (idx = 0; idx < 20; idx++) {
-		if (beaglevfire_mac_addr[idx] == ':')
-			beaglevfire_mac_addr[idx] = ' ';
-	}
-	env_set("beaglevfire_mac_addr0", beaglevfire_mac_addr);
-
 	mpfs_syscontroller_process_dtbo(sys_serv_priv);
+
+	return 0;
+}
+
+int ft_board_setup(void *blob, struct bd_info *bd)
+{
+	u32 ret;
+	int node;
+
+	node = fdt_path_offset(blob, "/soc/ethernet@20110000");
+	if (node >= 0) {
+		ret = fdt_setprop(blob, node, "local-mac-address", mac_addr, 6);
+		if (ret) {
+			printf("Error setting local-mac-address property for ethernet@20110000\n");
+			return -ENODEV;
+		}
+	}
 
 	return 0;
 }
