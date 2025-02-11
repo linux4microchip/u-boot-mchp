@@ -48,18 +48,6 @@ int board_late_init(void)
 	struct udevice *dev;
 	struct mpfs_sys_serv *sys_serv_priv;
 
-	node = fdt_path_offset(blob, "ethernet0");
-	if (node < 0) {
-		printf("No ethernet0 path offset\n");
-		return -ENODEV;
-	}
-
-	ret = fdtdec_get_byte_array(blob, node, "local-mac-address", mac_addr, 6);
-	if (ret) {
-		printf("No local-mac-address property\n");
-		return -EINVAL;
-	}
-
 	ret = uclass_get_device_by_name(UCLASS_MISC, "syscontroller", &dev);
 	if (ret) {
 		debug("%s: system controller setup failed\n", __func__);
