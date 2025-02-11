@@ -40,32 +40,14 @@ int board_early_init_f(void)
 int board_late_init(void)
 {
 	u32 ret;
-	u32 node_off;
+	int node;
 	u8 idx;
 	u8 device_serial_number[16] = { 0 };
-	ofnode node;
-	const u8 *initial_mac_addr;
-	unsigned char updated_mac_addr[ARP_HLEN];
+	unsigned char mac_addr[ARP_HLEN];
 	char pic64gx_curiosity_kit_mac_addr[20];
 	void *blob = (void *)gd->fdt_blob;
 	struct udevice *dev;
 	struct mpfs_sys_serv *sys_serv_priv;
-
-	node_off = fdt_path_offset(blob, "ethernet0");
-	if (node_off < 0) {
-		printf("No ethernet0 path offset\n");
-		return -ENODEV;
-	}
-
-	node = offset_to_ofnode(node_off);
-	initial_mac_addr = ofnode_read_u8_array_ptr(node, "local-mac-address",
-						    ARP_HLEN);
-	if (!initial_mac_addr) {
-		printf("No local-mac-address property\n");
-		return -EINVAL;
-	}
-
-	memcpy(updated_mac_addr, initial_mac_addr, ARP_HLEN);
 
 	sys_serv_priv = devm_kzalloc(dev, sizeof(*sys_serv_priv), GFP_KERNEL);
 	if (!sys_serv_priv)
@@ -93,22 +75,24 @@ int board_late_init(void)
 	}
 
 	/* Update MAC address with device serial number */
-	updated_mac_addr[0] = 0x00;
-	updated_mac_addr[1] = 0x04;
-	updated_mac_addr[2] = 0xA3;
-	updated_mac_addr[3] = device_serial_number[2];
-	updated_mac_addr[4] = device_serial_number[1];
-	updated_mac_addr[5] = device_serial_number[0];
+	mac_addr[0] = 0x00;
+	mac_addr[1] = 0x04;
+	mac_addr[2] = 0xA3;
+	mac_addr[3] = device_serial_number[2];
+	mac_addr[4] = device_serial_number[1];
+	mac_addr[5] = device_serial_number[0];
 
-	ret = ofnode_write_prop(node, "local-mac-address", updated_mac_addr,
-				ARP_HLEN, true);
-	if (ret) {
-		printf("Error setting local-mac-address property\n");
-		return -ENODEV;
+	node = fdt_path_offset(blob, "/soc/ethernet@20110000");
+	if (node >= 0) {
+		ret = fdt_setprop(blob, node, "local-mac-address", mac_addr, 6);
+		if (ret) {
+			printf("Error setting local-mac-address property for ethernet@20110000\n");
+			return -ENODEV;
+		}
 	}
 	pic64gx_curiosity_kit_mac_addr[0] = '[';
 
-	sprintf(&pic64gx_curiosity_kit_mac_addr[1], "%pM", updated_mac_addr);
+	sprintf(&pic64gx_curiosity_kit_mac_addr[1], "%pM", mac_addr);
 
 	pic64gx_curiosity_kit_mac_addr[18] = ']';
 	pic64gx_curiosity_kit_mac_addr[19] = '\0';
