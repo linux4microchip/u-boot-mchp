@@ -40,7 +40,7 @@ int board_early_init_f(void)
 int board_late_init(void)
 {
 	u32 ret;
-	u32 node;
+	int node;
 	u8 idx;
 	u8 device_serial_number[16] = {0};
 	unsigned char mac_addr[6];
@@ -48,18 +48,6 @@ int board_late_init(void)
 	void *blob = (void *)gd->fdt_blob;
 	struct udevice *dev;
 	struct mpfs_sys_serv *sys_serv_priv;
-
-	node = fdt_path_offset(blob, "ethernet0");
-	if (node < 0) {
-		printf("No ethernet0 path offset\n");
-		return -ENODEV;
-	}
-
-	ret = fdtdec_get_byte_array(blob, node, "local-mac-address", mac_addr, 6);
-	if (ret) {
-		printf("No local-mac-address property\n");
-		return -EINVAL;
-	}
 
 	sys_serv_priv = devm_kzalloc(dev, sizeof(*sys_serv_priv), GFP_KERNEL);
 	if (!sys_serv_priv)
@@ -94,10 +82,13 @@ int board_late_init(void)
 	mac_addr[4] = device_serial_number[1];
 	mac_addr[5] = device_serial_number[0];
 
-	ret = fdt_setprop(blob, node, "local-mac-address", mac_addr, 6);
-	if (ret) {
-		printf("Error setting local-mac-address property\n");
-		return -ENODEV;
+	node = fdt_path_offset(blob, "/soc/ethernet@20112000");
+	if (node >= 0) {
+		ret = fdt_setprop(blob, node, "local-mac-address", mac_addr, 6);
+		if (ret) {
+			printf("Error setting local-mac-address property for ethernet@20112000\n");
+			return -ENODEV;
+		}
 	}
 
 	icicle_mac_addr[0] = '[';
@@ -114,6 +105,15 @@ int board_late_init(void)
 	env_set("icicle_mac_addr0", icicle_mac_addr);
 
 	mac_addr[5] = device_serial_number[0] + 1;
+
+	node = fdt_path_offset(blob, "/soc/ethernet@20110000");
+	if (node >= 0) {
+		ret = fdt_setprop(blob, node, "local-mac-address", mac_addr, 6);
+		if (ret) {
+			printf("Error setting local-mac-address property for ethernet@20110000\n");
+			return -ENODEV;
+		}
+	}
 
 	icicle_mac_addr[0] = '[';
 
