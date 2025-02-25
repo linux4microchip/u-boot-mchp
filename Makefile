@@ -3,7 +3,7 @@
 VERSION = 2024
 PATCHLEVEL = 07
 SUBLEVEL =
-EXTRAVERSION = -linux4microchip+sama7d65-2025.02-rc1
+EXTRAVERSION = -linux4microchip+sama7d65-2025.02-rc2
 NAME =
 
 # *DOCUMENTATION*
