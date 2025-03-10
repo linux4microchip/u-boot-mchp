@@ -262,7 +262,7 @@ void mpfs_syscontroller_process_dtbo(struct mpfs_sys_serv *sys_serv_priv)
 	    design_info_desc[1] != DESIGN_MAGIC_1 ||
 	    design_info_desc[2] != DESIGN_MAGIC_2 ||
 	    design_info_desc[3] != DESIGN_MAGIC_3) {
-		dev_err(sys_serv_priv->dev, "magic not found in desc structure.\n");
+		dev_dbg(sys_serv_priv->dev, "magic not found in desc structure.\n");
 		sprintf(no_of_dtbos, "%d", no_of_dtbo);
 		env_set("no_of_overlays", no_of_dtbos);
 		sprintf(dtbo_size, "%d", dtbos_size);
