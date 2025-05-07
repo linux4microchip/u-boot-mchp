@@ -4,7 +4,7 @@
  */
 
 /dts-v1/;
-
+#include <dt-bindings/gpio/gpio.h>
 #include "microchip-mpfs.dtsi"
 
 /* Clock frequency (in Hz) of the rtcclk */
@@ -154,6 +154,48 @@
 	sd-uhs-sdr25;
 	sd-uhs-sdr50;
 	sd-uhs-sdr104;
+};
+
+&qspi {
+	status = "okay";
+	cs-gpios = <&gpio0 12 GPIO_ACTIVE_LOW>;
+	num-cs = <1>;
+
+	mmc@0 {
+		compatible = "mmc-spi-slot";
+		reg = <0>;
+		gpios = <&gpio2 31 1>;
+		voltage-ranges = <3300 3300>;
+		spi-max-frequency = <5000000>;
+		disable-wp;
+	};
+};
+
+&gpio0 {
+	ngpios=<14>;
+	gpio-line-names = "", "", "", "", "", "", "",
+			  "", "", "", "", "", "SD_CARD_CS", "USER_BUTTON";
+	status = "okay";
+};
+
+&gpio1 {
+	ngpios=<24>;
+	gpio-line-names = "", "", "", "", "", "", "", "", "", "",
+			  "", "", "", "", "", "", "", "", "", "",
+			  "ADC_IRQn", "", "", "USB_OCn";
+	status = "okay";
+};
+
+&gpio2 {
+	gpio-line-names = "P8_PIN3_USER_LED_0", "P8_PIN4_USER_LED_1", "P8_PIN5_USER_LED_2",
+			  "P8_PIN6_USER_LED_3", "P8_PIN7_USER_LED_4", "P8_PIN8_USER_LED_5",
+			  "P8_PIN9_USER_LED_6", "P8_PIN10_USER_LED_7", "P8_PIN11_USER_LED_8",
+			  "P8_PIN12_USER_LED_9", "P8_PIN13_USER_LED_10", "P8_PIN14_USER_LED_11",
+			  "P8_PIN15", "P8_PIN16", "P8_PIN17", "P8_PIN18", "P8_PIN19", "P8_PIN20",
+			  "P8_PIN21", "P8_PIN22", "P8_PIN23", "P8_PIN24", "P8_PIN25", "P8_PIN26",
+			  "P8_PIN27", "P8_PIN28", "P8_PIN29", "P8_PIN30", "M2_W_DISABLE1",
+			  "M2_W_DISABLE2", "VIO_ENABLE", "SD_DET";
+	status = "okay";
 };
 
 &i2c1 {
