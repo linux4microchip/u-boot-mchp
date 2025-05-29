@@ -4,7 +4,6 @@
  * Eoin Dickson <eoin.dickson@microchip.com>
  */
 
-#include <common.h>
 #include <dm.h>
 #include <asm-generic/gpio.h>
 #include <asm/io.h>
