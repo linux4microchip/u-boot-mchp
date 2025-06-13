@@ -114,16 +114,16 @@ int board_late_init(void)
 	struct udevice *dev;
 	struct mpfs_sys_serv *sys_serv_priv;
 
-	sys_serv_priv = devm_kzalloc(dev, sizeof(*sys_serv_priv), GFP_KERNEL);
-	if (!sys_serv_priv)
-		return -ENOMEM;
-
 	ret = uclass_get_device_by_name(UCLASS_MISC, "syscontroller", &dev);
 	if (ret) {
 		debug("%s: system controller setup failed\n", __func__);
 		return ret;
 	}
 
+	sys_serv_priv = devm_kzalloc(dev, sizeof(*sys_serv_priv), GFP_KERNEL);
+	if (!sys_serv_priv)
+	return -ENOMEM;
+	
 	sys_serv_priv->dev = dev;
 
 	sys_serv_priv->sys_controller = mpfs_syscontroller_get(dev);
