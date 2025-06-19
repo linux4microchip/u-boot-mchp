@@ -10,6 +10,7 @@
 #include <env.h>
 #include <asm/global_data.h>
 #include <asm/io.h>
+#include <asm/sections.h>
 #include <linux/compat.h>
 #include <mpfs-mailbox.h>
 
@@ -19,6 +20,69 @@ DECLARE_GLOBAL_DATA_PTR;
 #define PERIPH_RESET_VALUE		0x800001e8u
 
 static unsigned char mac_addr[6];
+
+#if defined(CONFIG_MULTI_DTB_FIT)
+int board_fit_config_name_match(const char *name)
+{
+
+	const void* fdt;
+	int list_len;
+
+	/*
+	 * If there's not a HSS provided dtb, there's no point re-selecting
+	 * since we'd just end up re-selecting the same dtb again.
+	 */
+	if (!gd->arch.firmware_fdt_addr)
+		return -EINVAL;
+
+	fdt = (void *)gd->arch.firmware_fdt_addr;
+
+	list_len = fdt_stringlist_count(fdt, 0, "compatible");
+	if (list_len < 1)
+		return -EINVAL;
+
+	for (int i = 0; i < list_len; i++) {
+		int len;
+		const char *compat;
+		char *devendored;
+
+		compat = fdt_stringlist_get(fdt, 0, "compatible", i, &len);
+		if (!compat)
+			return -EINVAL;
+
+		strtok((char *)compat, ",");
+
+		devendored = strtok(NULL, ",");
+		if (!devendored)
+			return -EINVAL;
+
+		int match = strcmp(devendored, name);
+		if (!match)
+			return 0;
+	}
+
+	return -EINVAL;
+}
+#endif
+
+void *board_fdt_blob_setup(int *err)
+{
+	*err = 0;
+
+	/*
+	* The devicetree provided by the previous stage is very minimal due to
+	* severe space constraints. The firmware performs no fixups etc.
+	* U-Boot, if providing a devicetree, almost certainly has a better
+	* more complete one than the firmware so that provided by the firmware
+	* is ignored for OF_SEPARATE.
+	*/
+	if (IS_ENABLED(CONFIG_OF_BOARD) && !IS_ENABLED(CONFIG_MULTI_DTB_FIT)) {
+		if (gd->arch.firmware_fdt_addr)
+			return (ulong *)(uintptr_t)gd->arch.firmware_fdt_addr;
+	}
+
+	return (ulong *)_end;
+}
 
 int board_init(void)
 {
