@@ -4,11 +4,12 @@
  * Padmarao Begari <padmarao.begari@microchip.com>
  */
 
+#include <asm/global_data.h>
+#include <asm/io.h>
+#include <asm/sections.h>
 #include <dm.h>
 #include <dm/devres.h>
 #include <env.h>
-#include <asm/global_data.h>
-#include <asm/io.h>
 #include <linux/compat.h>
 #include <mpfs-mailbox.h>
 
@@ -18,6 +19,77 @@ DECLARE_GLOBAL_DATA_PTR;
 #define PERIPH_RESET_VALUE		0x800001e8u
 
 static unsigned char mac_addr[6];
+
+#if defined(CONFIG_MULTI_DTB_FIT)
+int board_fit_config_name_match(const char *name)
+{
+	const void *fdt;
+	int list_len;
+
+	/*
+	 * If there's not a HSS provided dtb, there's no point re-selecting
+	 * since we'd just end up re-selecting the same dtb again.
+	 */
+	if (!gd->arch.firmware_fdt_addr)
+		return -EINVAL;
+
+	fdt = (void *)gd->arch.firmware_fdt_addr;
+
+	list_len = fdt_stringlist_count(fdt, 0, "compatible");
+	if (list_len < 1)
+		return -EINVAL;
+
+	for (int i = 0; i < list_len; i++) {
+		int len, match;
+		const char *compat;
+		char copy[64];
+		char *devendored;
+
+		compat = fdt_stringlist_get(fdt, 0, "compatible", i, &len);
+		if (!compat)
+			return -EINVAL;
+
+		/*
+		 * The naming scheme for compatibles doesn't produce anything
+		 * close to this long.
+		 */
+		if (len >= 64)
+			return -EINVAL;
+
+		strncpy(copy, compat, 64);
+		strtok(copy, ",");
+
+		devendored = strtok(NULL, ",");
+		if (!devendored)
+			return -EINVAL;
+
+		match = strcmp(devendored, name);
+		if (!match)
+			return 0;
+	}
+
+	return -EINVAL;
+}
+#endif
+
+int board_fdt_blob_setup(void **fdtp)
+{
+	*fdtp = (void *)_end;
+
+	/*
+	 * The devicetree provided by the previous stage is very minimal due to
+	 * severe space constraints. The firmware performs no fixups etc.
+	 * U-Boot, if providing a devicetree, almost certainly has a better
+	 * more complete one than the firmware so that provided by the firmware
+	 * is ignored for OF_SEPARATE.
+	 */
+	if (IS_ENABLED(CONFIG_OF_BOARD) && !IS_ENABLED(CONFIG_MULTI_DTB_FIT)) {
+		if (gd->arch.firmware_fdt_addr)
+			*fdtp = (void *)(uintptr_t)gd->arch.firmware_fdt_addr;
+	}
+
+	return 0;
+}
 
 int board_init(void)
 {
