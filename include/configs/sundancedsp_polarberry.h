@@ -117,6 +117,7 @@
 #include <config_distro_bootcmd.h>
 
 #define CFG_EXTRA_ENV_SETTINGS \
+	"fdtfile=microchip/mpfs-polarberry.dtb\0" \
 	"bootm_size=0x10000000\0" \
 	"scriptaddr=0x8e000000\0" \
 	BOOTENV_DESIGN_OVERLAYS \
