@@ -59,6 +59,7 @@
 #include <config_distro_bootcmd.h>
 
 #define CFG_EXTRA_ENV_SETTINGS \
+	"fdtfile=microchip/pic64gx-curiosity-kit.dtb\0" \
 	"bootm_size=0x10000000\0" \
 	"kernel_addr_r=0x80200000\0" \
 	"fdt_addr_r=0x8a000000\0" \
