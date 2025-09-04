@@ -166,6 +166,8 @@ SECTIONS
 		__rel_dyn_end = .;
 	}
 
+	. = ALIGN(8);
+
 	_end = .;
 	_image_binary_end = .;
 
