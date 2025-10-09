@@ -52,6 +52,7 @@ int board_early_init_f(void)
 
 int board_late_init(void)
 {
+#if IS_ENABLED(CONFIG_MPFS_SYSCONTROLLER)
 	u8 device_serial_number[16] = { 0 };
 	struct udevice *dev;
 	struct mpfs_sys_serv *sys_serv_priv;
@@ -87,6 +88,7 @@ int board_late_init(void)
 	for (i = 15; i >= 0; i--)
 	  printf("%02x", device_serial_number[i]);
 	puts("\n");
+#endif
 
 	return 0;
 }
