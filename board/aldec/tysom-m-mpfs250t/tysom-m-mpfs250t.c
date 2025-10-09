@@ -32,7 +32,9 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define PERIPH_RESET_VALUE		0x1e8u
 
+#if IS_ENABLED(CONFIG_MPFS_SYSCONTROLLER)
 static unsigned char mac_addr[6];
+#endif
 
 int board_init(void)
 {
@@ -54,6 +56,7 @@ int board_early_init_f(void)
 
 int board_late_init(void)
 {
+#if IS_ENABLED(CONFIG_MPFS_SYSCONTROLLER)
 	u32 ret;
 	int node;
 	u8 device_serial_number[16] = { 0 };
@@ -113,12 +116,14 @@ int board_late_init(void)
 			return -ENODEV;
 		}
 	}
+#endif
 
 	return 0;
 }
 
 int ft_board_setup(void *blob, struct bd_info *bd)
 {
+#if IS_ENABLED(CONFIG_MPFS_SYSCONTROLLER)
 	u32 ret;
 	int node;
 
@@ -141,6 +146,7 @@ int ft_board_setup(void *blob, struct bd_info *bd)
 			return -ENODEV;
 		}
 	}
+#endif
 
 	return 0;
 }
