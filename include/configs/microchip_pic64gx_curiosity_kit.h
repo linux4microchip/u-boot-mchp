@@ -41,20 +41,6 @@
 	BOOT_TARGET_DEVICES_DHCP(func)
 #endif
 
-#define BOOTENV_DESIGN_OVERLAYS \
-	"design_overlays=" \
-	"if test -n ${no_of_overlays}; then " \
-		"setenv inc 1; " \
-		"setenv idx 0; " \
-		"fdt resize ${dtbo_size}; " \
-		"while test $idx -ne ${no_of_overlays}; do " \
-			"setenv dtbo_name dtbo_image${idx}; " \
-			"setenv fdt_cmd \"fdt apply $\"$dtbo_name; " \
-			"run fdt_cmd; " \
-			"setexpr idx $inc + $idx; " \
-		"done; " \
-	"fi;\0 " \
-
 #if !defined(CONFIG_FIT_SIGNATURE)
 #include <config_distro_bootcmd.h>
 
@@ -66,7 +52,6 @@
 	"fdtoverlay_addr_r=0x8a080000\0" \
 	"ramdisk_addr_r=0x8aa00000\0" \
 	"scriptaddr=0x8e000000\0" \
-	BOOTENV_DESIGN_OVERLAYS \
 	BOOTENV \
 
 #endif
