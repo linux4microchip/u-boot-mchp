@@ -4,7 +4,6 @@
  * Padmarao Begari <padmarao.begari@microchip.com>
  */
 
-#include <common.h>
 #include <dm.h>
 #include <dm/devres.h>
 #include <env.h>
