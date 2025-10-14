@@ -4,7 +4,6 @@
  * Padmarao Begari <padmarao.begari@microchip.com>
  */
 
-#include <common.h>
 #include <command.h>
 #include <dm.h>
 #include <dm/devres.h>
@@ -59,15 +58,15 @@ int board_late_init(void)
 	u32 ret;
 	int i;
 
-	sys_serv_priv = devm_kzalloc(dev, sizeof(*sys_serv_priv), GFP_KERNEL);
-	if (!sys_serv_priv)
-		return -ENOMEM;
-
 	ret = uclass_get_device_by_name(UCLASS_MISC, "syscontroller", &dev);
 	if (ret) {
 		debug("%s: system controller setup failed\n", __func__);
 		return ret;
 	}
+
+	sys_serv_priv = devm_kzalloc(dev, sizeof(*sys_serv_priv), GFP_KERNEL);
+	if (!sys_serv_priv)
+		return -ENOMEM;
 
 	sys_serv_priv->dev = dev;
 

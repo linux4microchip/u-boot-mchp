@@ -1,6 +1,6 @@
 /dts-v1/;
 
-#include "microchip-mpfs.dtsi"
+#include "../../../dts/upstream/src/riscv/microchip/mpfs.dtsi"
 
 /* Clock frequency (in Hz) of the rtcclk */
 #define RTCCLK_FREQ		1000000
@@ -10,7 +10,7 @@
 	compatible = "sundance,polarberry", "microchip,mpfs";
 
 	aliases {
-		serial0 = &uart0;
+		serial0 = &mmuart0;
 		ethernet0 = &mac1;
 		spi0 = &spi0;
 	};
@@ -133,11 +133,11 @@
 	clock-frequency = <125000000>;
 };
 
-&uart0 {
+&mmuart0 {
 	status = "okay";
 };
 
-&uart1 {
+&mmuart1 {
 	status = "okay";
 };
 
