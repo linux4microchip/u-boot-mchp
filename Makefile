@@ -3,7 +3,7 @@
 VERSION = 2025
 PATCHLEVEL = 07
 SUBLEVEL =
-EXTRAVERSION = -linux4microchip+fpga-2025.10-rc1
+EXTRAVERSION = -linux4microchip+fpga-2025.10-rc2
 NAME =
 
 # *DOCUMENTATION*
