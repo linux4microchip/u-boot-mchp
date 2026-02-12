@@ -78,6 +78,7 @@ struct clk_pcr_layout {
 	u32 div_mask;
 	u32 gckcss_mask;
 	u32 pid_mask;
+	bool gclk_status;
 };
 
 struct clk_usbck_layout {
@@ -98,6 +99,7 @@ struct pmc_clk_setup {
 	unsigned int pid;
 	unsigned long rate;
 	unsigned long prate;
+	bool enable;
 };
 
 extern const struct clk_programmable_layout at91rm9200_programmable_layout;
