@@ -108,9 +108,7 @@ properties:
 
       - description: Microchip SAM9X7 Evaluation Boards
         items:
-          - enum:
-              - microchip,sam9x75-curiosity
-              - microchip,sam9x75-curiosity-pro
+          - const: microchip,sam9x75-curiosity
           - const: microchip,sam9x7
           - const: atmel,at91sam9
 
