@@ -168,14 +168,11 @@ static int __maybe_unused sdhci_cdns_execute_tuning(struct udevice *dev,
 	int i;
 
 	/*
-	 * This handler only implements the eMMC tuning that is specific to
-	 * this controller.  The tuning for SD timing should be handled by the
-	 * SDHCI core.
+	 * Do not execute tuning for UHS_SDR50 or UHS_DDR50.
+	 * The delay is set by probe, based on the DT properties.
 	 */
-	if (!IS_MMC(mmc))
-		return -ENOTSUPP;
-
-	if (WARN_ON(opcode != MMC_CMD_SEND_TUNING_BLOCK_HS200))
+	if (WARN_ON(mmc->selected_mode != UHS_SDR104 &&
+		    mmc->selected_mode != MMC_HS_200))
 		return -EINVAL;
 
 	for (i = 0; i < SDHCI_CDNS_MAX_TUNING_LOOP; i++) {
