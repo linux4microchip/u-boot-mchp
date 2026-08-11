@@ -96,9 +96,15 @@ static void sdhci_cdns_set_control_reg(struct sdhci_host *host)
 	 * REVISIT:
 	 * The mode should be decided by MMC_TIMING_* like Linux, but
 	 * U-Boot does not support timing.  Use the clock frequency instead.
+	 *
+	 * HRS06 documents EMM as an eMMC mode selector and requires SD cards
+	 * to keep the field at 0. Only eMMC uses the Cadence-specific mode
+	 * encoding here.
 	 */
-	if (clock <= 26000000) {
-		mode = SDHCI_CDNS_HRS06_MODE_SD; /* use this for Legacy */
+	if (IS_SD(mmc)) {
+		mode = SDHCI_CDNS_HRS06_MODE_SD;
+	} else if (clock <= 26000000) {
+		mode = SDHCI_CDNS_HRS06_MODE_SD;
 	} else if (clock <= 52000000) {
 		if (mmc->ddr_mode)
 			mode = SDHCI_CDNS_HRS06_MODE_MMC_DDR;
