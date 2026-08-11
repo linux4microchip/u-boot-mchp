@@ -90,6 +90,8 @@ static void sdhci_cdns_set_control_reg(struct sdhci_host *host)
 	unsigned int clock = mmc->clock;
 	u32 mode, tmp;
 
+	sdhci_set_control_reg(host);
+
 	/*
 	 * REVISIT:
 	 * The mode should be decided by MMC_TIMING_* like Linux, but
