@@ -296,6 +296,17 @@ config TARGET_SAMA7G54_CURIOSITY
 	  4Gbit SLC nand-flash, MCP16502 PMIC, 2 x Mikrobus connectors,
 	  1 x SD-Card connector, 1 x M.2 slot, 3 x USB
 
+config TARGET_SAMA7G54_CURIOSITY_PRO
+	bool "SAMA7G54 CURIOSITY PRO board"
+	select SAMA7G5
+	select CPU_V7A
+	help
+	  The SAMA7G54 Curiosity Pro embeds the SAMA7G54 SoC with 8Gbit
+	  DDR3L-SDRAM, 64Mbit QSPI nor-flash, 4Gbit SLC nand-flash,
+	  MCP16502 PMIC, PAC1934 power monitor, 24AA025E48 EEPROM,
+	  2 x Mikrobus connectors, 2 x CAN, 1 x SD-Card connector,
+	  1 x M.2 Key-E slot, 3 x USB
+
 config TARGET_SAMA7D65EB
 	bool "SAMA7D65EB board"
 	select SAMA7D65
@@ -382,6 +393,7 @@ source "board/atmel/sam9x75_curiosity/Kconfig"
 source "board/atmel/sam9x75_curiosity_pro/Kconfig"
 source "board/atmel/sama7g5ek/Kconfig"
 source "board/atmel/sama7g54_curiosity/Kconfig"
+source "board/atmel/sama7g54_curiosity_pro/Kconfig"
 source "board/atmel/sama7d65eb/Kconfig"
 source "board/atmel/sama7d65_curiosity/Kconfig"
 source "board/atmel/sama7d65_curiosity_pro/Kconfig"

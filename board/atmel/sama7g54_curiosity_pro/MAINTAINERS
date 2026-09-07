@@ -1,0 +1,6 @@
+SAMA7G54 CURIOSITY PRO BOARD
+M:	Varshini Rajendran <varshini.rajendran@microchip.com>
+S:	Maintained
+F:	board/atmel/sama7g54_curiosity_pro/
+F:	include/configs/sama7g54_curiosity_pro.h
+F:	arch/arm/dts/at91-sama7g54_curiosity_pro*
