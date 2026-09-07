@@ -1,0 +1,87 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * at91-sama7g54_curiosity_pro-u-boot.dtsi - Device Tree Include file for
+ * SAMA7G54 Curiosity Pro board u-boot properties.
+ *
+ * Copyright (C) 2026 Microchip Technology Inc. and its subsidiaries
+ *
+ * Author: Varshini Rajendran <varshini.rajendran@microchip.com>
+ */
+
+/ {
+	/*
+	 * sama7g5.dtsi pulls in skeleton.dtsi, which provides a placeholder
+	 * /memory node. Drop it in favour of the memory@60000000 node the
+	 * board device tree describes.
+	 */
+	/delete-node/ memory;
+
+	chosen {
+		bootph-all;
+	};
+};
+
+&eeprom0 {
+	compatible = "atmel,24c02";
+};
+
+&gmac1 {
+	phy-handle = <&phy0>;
+
+	phy0: ethernet-phy@1 {
+		vsc8531,clk-out-frequency = <50000000>;
+	};
+};
+
+&main_rc {
+	bootph-all;
+};
+
+&main_xtal {
+	bootph-all;
+};
+
+&pinctrl_flx3_default {
+	bootph-all;
+};
+
+&pinctrl_qspi1_default {
+	bootph-all;
+};
+
+&pinctrl_sdmmc1_default {
+	bootph-all;
+};
+
+&pioA {
+	bootph-all;
+};
+
+&pit64b0 {
+	bootph-all;
+};
+
+&pmc {
+	bootph-all;
+};
+
+&qspi1 {
+	bootph-all;
+};
+
+&sdmmc1 {
+	bootph-all;
+	atmel,drive-strength = <ATMEL_PIO_DRVSTR_2>;
+};
+
+&slow_rc_osc {
+	bootph-all;
+};
+
+&slow_xtal {
+	bootph-all;
+};
+
+&uart3 {
+	bootph-all;
+};
