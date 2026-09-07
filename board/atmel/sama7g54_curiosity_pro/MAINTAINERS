@@ -5,3 +5,4 @@ F:	board/atmel/sama7g54_curiosity_pro/
 F:	include/configs/sama7g54_curiosity_pro.h
 F:	arch/arm/dts/at91-sama7g54_curiosity_pro*
 F:	configs/sama7g54_curiosity_pro_mmc_defconfig
+F:	configs/sama7g54_curiosity_pro_nandflash_defconfig
