@@ -1854,7 +1854,7 @@ atmel_nand_controller_init(struct atmel_nand_controller *nc,
 	if (nc->caps->legacy_of_bindings)
 		return 0;
 
-	nc->mck = devm_kzalloc(dev, sizeof(nc->mck), GFP_KERNEL);
+	nc->mck = devm_kzalloc(dev, sizeof(*nc->mck), GFP_KERNEL);
 	if (!nc->mck)
 		return -ENOMEM;
 
