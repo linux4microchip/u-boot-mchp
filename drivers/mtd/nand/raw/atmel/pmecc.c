@@ -143,7 +143,10 @@ struct atmel_pmecc_caps {
 	int nstrengths;
 	int el_offset;
 	bool correct_erased_chunks;
+    /* Setup pmecc data setup time in PMECC_CLK reg */
 	bool clk_ctrl;
+    /* needs PMC peripheral clock enabled */
+	bool pmc_clk_ctrl;
 };
 
 struct atmel_pmecc_user_conf_cache {
@@ -831,7 +834,7 @@ atmel_pmecc_create(struct udevice *dev,
 	if (!pmecc)
 		return ERR_PTR(-ENOMEM);
 
-	if (caps->clk_ctrl) {
+	if (caps->pmc_clk_ctrl) {
 		ret = clk_get_by_index(dev, 0, &pmecc->clk);
 		if (ret)
 			return ERR_PTR(ret);
@@ -905,7 +908,7 @@ static struct atmel_pmecc_caps sam9x7_caps = {
 	.strengths = atmel_pmecc_strengths,
 	.nstrengths = 5,
 	.el_offset = 0x8c,
-	.clk_ctrl = true,
+	.pmc_clk_ctrl = true,
 };
 
 static struct atmel_pmecc_caps sama5d4_caps = {
@@ -982,9 +985,8 @@ static int atmel_pmecc_remove(struct udevice *dev)
 {
 	struct atmel_pmecc *pmecc = dev_get_priv(dev);
 
-	if (pmecc->caps->clk_ctrl) {
+	if (pmecc->caps->pmc_clk_ctrl)
 		clk_disable(&pmecc->clk);
-	}
 
 	return 0;
 }
