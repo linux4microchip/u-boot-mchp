@@ -717,6 +717,21 @@ static int macb_phy_init(struct udevice *dev, const char *name)
 			return -ENODEV;
 		}
 
+		/*
+		 * MII and RMII carry 10/100 only. A gigabit capable PHY must
+		 * therefore not be left advertising 1000BASE-T, or the link
+		 * comes up at a speed the MAC cannot match and nothing is put
+		 * on the wire.
+		 */
+		if (macb->phy_interface == PHY_INTERFACE_MODE_MII ||
+		    macb->phy_interface == PHY_INTERFACE_MODE_RMII) {
+			ret = phy_set_supported(macb->phydev, SPEED_100);
+			if (ret)
+				return ret;
+
+			macb->phydev->advertising = macb->phydev->supported;
+		}
+
 		phy_config(macb->phydev);
 #endif
 
