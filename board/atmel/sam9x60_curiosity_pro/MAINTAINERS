@@ -1,0 +1,5 @@
+SAM9X60 CURIOSITY PRO BOARD
+M:	Varshini Rajendran <varshini.rajendran@microchip.com>
+S:	Maintained
+F:	board/atmel/sam9x60_curiosity_pro/
+F:	include/configs/sam9x60_curiosity_pro.h
