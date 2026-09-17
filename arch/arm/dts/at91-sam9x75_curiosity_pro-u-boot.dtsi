@@ -270,6 +270,10 @@
 	clocks = <&pmc PMC_TYPE_PERIPHERAL 48>;
 };
 
+&qspi {
+	assigned-clock-parents = <&pmc PMC_TYPE_CORE 11>;
+};
+
 &sdmmc0 {
 	bootph-all;
 };
