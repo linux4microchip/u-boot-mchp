@@ -241,6 +241,7 @@
 &qspi {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_qspi>;
+	assigned-clock-parents = <&pmc PMC_TYPE_CORE 11>;
 	status = "okay";
 
 	flash@0 {
