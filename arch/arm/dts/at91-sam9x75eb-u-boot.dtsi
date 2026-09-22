@@ -16,9 +16,9 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 			interrupts = <23 IRQ_TYPE_LEVEL_HIGH 2>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 23>, <&pmc PMC_TYPE_CORE 2>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 23>, <&pmc PMC_TYPE_CORE 8>;
 			clock-names = "pclk", "hclk";
-			assigned-clocks = <&pmc PMC_TYPE_CORE 2>;
+			assigned-clocks = <&pmc PMC_TYPE_CORE 8>;
 			assigned-clock-rates = <480000000>;
 			atmel,vbus-gpio = <&pioC 26 GPIO_ACTIVE_HIGH>;
 			pinctrl-names = "default";
