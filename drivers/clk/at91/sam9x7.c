@@ -87,6 +87,9 @@ enum pmc_clk_ids {
 
 	ID_MCK_PRES		= 25,
 
+	ID_USBCK		= 26,
+	ID_UHPCK		= 27,
+
 	ID_MAX,
 };
 
@@ -114,6 +117,7 @@ static const char *clk_names[] = {
 	[ID_PLL_LVDS_DIV]	= "pll_lvds_divpmcck",
 	[ID_MCK_PRES]		= "mck_pres",
 	[ID_MCK_DIV]		= "mck_div",
+	[ID_USBCK]		= "usbck",
 };
 
 /* Fractional PLL core output range. */
@@ -271,6 +275,12 @@ static const struct clk_pcr_layout sam9x7_pcr_layout = {
 	.cmd = BIT(31),
 	.gckcss_mask = GENMASK(12, 8),
 	.pid_mask = GENMASK(6, 0),
+};
+
+static const struct clk_usbck_layout usbck_layout = {
+	.offset = 0x38,
+	.usbs_mask = GENMASK(1, 0),
+	.usbdiv_mask = GENMASK(11, 8),
 };
 
 /**
@@ -436,6 +446,7 @@ static const struct {
 	u8 cid;
 } sam9x7_systemck[] = {
 	{ .n = "ddrck", .p = "mck_pres", .id = 2, .cid = ID_DDR, },
+	{ .n = "uhpck",	.p = "usbck",    .id = 6, .cid = ID_UHPCK, },
 	{ .n = "pck0",	.p = "prog0",	 .id = 8, .cid = ID_PCK0, },
 	{ .n = "pck1",	.p = "prog1",	 .id = 9, .cid = ID_PCK1, },
 };
@@ -802,6 +813,31 @@ static const struct {
 
 };
 
+/**
+ * Clock setup description
+ * @cid:	clock id corresponding to clock subsystem
+ * @pid:	parent clock id corresponding to clock subsystem
+ * @rate:	clock rate
+ * @prate:	parent rate
+ */
+static const struct pmc_clk_setup sam9x7_clk_setup[] = {
+	{
+		.cid = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_U_FRAC),
+		.rate = 960000000,
+	},
+
+	{
+		.cid = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_U_DIV),
+		.rate = 480000000,
+	},
+
+	{
+		.cid = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_USBCK),
+		.pid = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_U_DIV),
+		.rate = 48000000,
+	},
+};
+
 #define prepare_mux_table(_allocs, _index, _dst, _src, _num, _label)	\
 	do {								\
 		int _i;							\
@@ -968,6 +1004,28 @@ static int sam9x7_clk_probe(struct udevice *dev)
 	}
 	clk_dm(AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_MCK_DIV), c);
 
+	/* Register usbck. */
+	p[0] = clk_names[ID_PLL_A_DIV];
+	p[1] = clk_names[ID_PLL_U_DIV];
+	p[2] = clk_names[ID_MAIN_XTAL];
+	m[0] = 0;
+	m[1] = 1;
+	m[2] = 2;
+	cm[0] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_A_DIV);
+	cm[1] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_PLL_U_DIV);
+	cm[2] = AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_MAIN_XTAL);
+	prepare_mux_table(clkmuxallocs, clkmuxallocindex, tmpclkmux, cm,
+			  3, fail);
+	prepare_mux_table(muxallocs, muxallocindex, tmpmux, m, 3, fail);
+	c = sam9x60_clk_register_usb(base, clk_names[ID_USBCK], p, 3,
+				     &usbck_layout, tmpclkmux, tmpmux,
+				     ID_USBCK);
+	if (IS_ERR(c)) {
+		ret = PTR_ERR(c);
+		goto fail;
+	}
+	clk_dm(AT91_TO_CLK_ID(PMC_TYPE_CORE, ID_USBCK), c);
+
 	/* Register programmable clocks. */
 	p[0] = clk_names[ID_MD_SLCK];
 	p[1] = clk_names[ID_TD_SLCK];
@@ -1062,6 +1120,10 @@ static int sam9x7_clk_probe(struct udevice *dev)
 		}
 		clk_dm(AT91_TO_CLK_ID(PMC_TYPE_GCK, sam9x7_gck[i].id), c);
 	}
+
+	ret = at91_clk_setup(sam9x7_clk_setup, ARRAY_SIZE(sam9x7_clk_setup));
+	if (ret)
+		goto fail;
 
 	return 0;
 
