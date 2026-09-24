@@ -9,6 +9,24 @@
  */
 
 /{
+	chosen {
+		bootph-all;
+	};
+
+	clocks {
+		slow_rc_osc: slow_rc_osc {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <32000>;
+		};
+	};
+
+	cpus {
+		cpu@0 {
+			clocks = <&pmc PMC_TYPE_CORE 8>, <&pmc PMC_TYPE_CORE 26>, <&main_xtal>;
+			clock-names = "cpu", "master", "xtal";
+		};
+	};
 
 	soc {
 		bootph-all;
@@ -106,6 +124,14 @@
 	};
 };
 
+&clk32k {
+	clocks = <&slow_rc_osc>, <&slow_xtal>;
+};
+
+&main_xtal {
+	bootph-all;
+};
+
 &pioa {
 	bootph-all;
 
@@ -139,4 +165,32 @@
 		atmel,drive-strength = <ATMEL_PIO_DRVSTR_2>;
 		slew-rate = <0>;
 	};
+};
+
+&pinctrl_uart6_default {
+	bootph-all;
+};
+
+&pit64b0 {
+	bootph-all;
+};
+
+&pmc {
+	bootph-all;
+};
+
+&sdmmc1 {
+	assigned-clock-parents = <&pmc PMC_TYPE_CORE 27>; /* mck1 */
+};
+
+&slow_rc_osc {
+	bootph-all;
+};
+
+&slow_xtal {
+	bootph-all;
+};
+
+&uart6 {
+	bootph-all;
 };
