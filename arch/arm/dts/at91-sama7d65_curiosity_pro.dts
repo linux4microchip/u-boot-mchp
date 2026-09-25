@@ -29,16 +29,6 @@
 		ethernet1 = &gmac1;
 	};
 
-	clocks {
-		slow_xtal {
-			clock-frequency = <32768>;
-		};
-
-		main_xtal {
-			clock-frequency = <24000000>;
-		};
-	};
-
 	leds {
 		compatible = "gpio-leds";
 		pinctrl-names = "default";
@@ -255,6 +245,10 @@
 	};
 };
 
+&main_xtal {
+	clock-frequency = <24000000>;
+};
+
 &gmac1 {
 	#address-cells = <1>;
 	#size-cells = <0>;
@@ -386,4 +380,8 @@
 	input@0 {
 		reg = <0>;
 	};
+};
+
+&slow_xtal {
+	clock-frequency = <32768>;
 };
