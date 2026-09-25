@@ -33,6 +33,8 @@ config MICROCHIP_MPFS
 	imply MPFS_MBOX
 	imply MISC
 	imply MPFS_SYSCONTROLLER
+	imply DM_RNG
+	imply RNG_MPFS
 
 config MPFS_PRIORITISE_QSPI_BOOT
 	bool "prioritise booting from QSPI"
