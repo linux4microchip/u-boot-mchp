@@ -252,6 +252,7 @@
 &gmac1 {
 	#address-cells = <1>;
 	#size-cells = <0>;
+	assigned-clock-parents = <&pmc PMC_TYPE_CORE 21>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_gmac1_default
 		     &pinctrl_gmac1_mdc_default
