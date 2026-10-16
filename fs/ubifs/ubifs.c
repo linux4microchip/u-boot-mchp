@@ -544,7 +544,7 @@ static unsigned long ubifs_findfile(struct super_block *sb, char *filename)
 				*(next++) = '\0';
 		}
 		ret = ubifs_finddir(sb, name, root_inum, &inum);
-		if (!ret) {
+		if (ret <= 0) {
 			kfree(buf);
 			return 0;
 		}
