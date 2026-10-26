@@ -78,7 +78,6 @@ struct clk_pcr_layout {
 	u32 div_mask;
 	u32 gckcss_mask;
 	u32 pid_mask;
-	bool gclk_status;
 };
 
 struct clk_usbck_layout {
