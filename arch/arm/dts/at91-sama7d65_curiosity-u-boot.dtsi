@@ -132,6 +132,10 @@
 	clocks = <&slow_rc_osc>, <&slow_xtal>;
 };
 
+&eeprom0 {
+	compatible = "atmel,24c01";
+};
+
 &flx0 {
 	atmel,flexcom-mode = <ATMEL_FLEXCOM_MODE_TWI>;
 	status = "okay";
